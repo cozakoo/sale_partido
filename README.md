@@ -344,6 +344,61 @@ docker-compose exec postgres psql -U postgres -d sale_partido -f /docker-entrypo
 
 ---
 
+## 🤖 Agentes & Contexto del Proyecto
+
+Para que los agentes (Claude o automatizaciones) tengan contexto completo del proyecto, deben consumir:
+
+### Archivo de referencia: `doc/CLAUDE.md`
+
+El archivo **`doc/CLAUDE.md`** contiene la **fuente única de verdad** del proyecto:
+
+```markdown
+- Arquitectura técnica y stack decisivo
+- Estructura de directorios (backend, frontend, infra)
+- 9 épicas del proyecto (E1-E9)
+- Flujo de desarrollo (sprints, ramas, PRs)
+- Patrones arquitectónicos (capas, DDD)
+- Testing strategy (pirámide, cobertura)
+- Seguridad mínima (JWT, protecciones)
+- Métricas y monitoreo
+- Deployment strategy
+- Checklist y comandos rápidos
+```
+
+### Cómo usar para agentes
+
+1. **Lectura inicial**: Cualquier agente debe leer `doc/CLAUDE.md` para entender:
+   - Estructura del proyecto
+   - Épica a desarrollar
+   - Patrones a seguir
+   - Convenciones de código
+
+2. **Contexto de HU**: Cuando se trabaja en una Historia de Usuario (HU):
+   - Identificar épica (`E1`, `E2`, etc.)
+   - Validar criteria con formato INVEST
+   - Seguir patrón DDD + capas
+   - Aplicar testing strategy (80%+ coverage)
+
+3. **Validaciones antes de commit**:
+   - ✅ Branch naming: `feature/[E#-H##]-descripcion`
+   - ✅ Tests: `./mvnw test` + `npm run test`
+   - ✅ Lint: sin errores
+   - ✅ Commit message: `[E#-H##] Descripción`
+
+### Secciones clave a consumir
+
+| Sección | Para qué | Agentes relevantes |
+| --- | --- | --- |
+| **ARQUITECTURA TÉCNICA** | Entender stack | Backend/Frontend devs |
+| **ESTRUCTURA DIRECTORIOS** | Dónde ir | Cualquiera |
+| **ÉPICAS (E1-E9)** | Contexto negocio | Product/QA |
+| **PATRONES ARQUITECTÓNICOS** | Cómo diseñar | Architects |
+| **TESTING STRATEGY** | Qué testear | QA/devs |
+| **FLUJO DESARROLLO** | Sprint & PRs | DevOps/leads |
+| **SEGURIDAD MÍNIMA** | Qué validar | Security reviewers |
+
+---
+
 ## 🤝 Contribuir
 
 ### Pasos
