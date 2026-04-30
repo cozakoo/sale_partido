@@ -1,0 +1,56 @@
+# === VSCODE Settings
+.vscode/settings.json
+
+# === Backend (Java/Spring Boot) ===
+/backend/target/                 # Maven build output
+/backend/bin/target/             # (if bin exists)
+/backend/.idea/                  # JetBrains project files
+/backend/*.iml                   # IntelliJ module files
+/backend/.classpath
+/backend/.project
+/backend/.settings/
+*.class
+*.jar
+*.war
+*.log
+/backend/.DS_Store
+
+# === Frontend (Angular/Node) ===
+/frontend/node_modules/          # Node modules
+/frontend/cli/node_modules/
+/frontend/dist/                   # Angular build output
+/frontend/.angular/              # Angular cache
+/frontend/.env                   # Env files (if used)
+/frontend/cli/.env
+/frontend/.vscode/               # VSCode project settings
+/frontend/.DS_Store
+
+# === System Files ===
+.DS_Store
+Thumbs.db
+
+# === Editor/IDE Configurations ===
+.idea/
+*.sublime-workspace
+*.sublime-project
+*.code-workspace
+
+# === Logs ===
+/logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# === Environment and secrets ===
+.env
+.env.local
+.env.*.local
+/secrets/
+
+# === Misc ===
+*.swpbackend/.bash_history
+*.bkp
+**/node_modules/
+*.pid
+/runtime/
