@@ -1,5 +1,6 @@
 # === VSCODE Settings
 .vscode/settings.json
+.github/*
 
 # === Backend (Java/Spring Boot) ===
 /backend/target/                 # Maven build output
