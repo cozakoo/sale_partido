@@ -2,14 +2,14 @@ services:
 
   database:
     image: postgres:16 # stable
-    container_name: salepartido-database
+    container_name: salepartido-postgres
     restart: always
     environment:
-      POSTGRES_DB: ${POSTGRES_DB_NAME}
+      POSTGRES_DB: ${POSTGRES_DATABASE_NAME}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
@@ -17,7 +17,7 @@ services:
     image: redis:7
     container_name: salepartido-redis
     ports:
-      - "6379:6379"
+      - "${REDIS_PORT}:6379"
 
   backend:
     build: ./backend
@@ -26,7 +26,7 @@ services:
     env_file:
       - .env
     ports:
-      - "8080:8080"
+      - "${SPRING_PORT}:8080"
     depends_on:
       - database
       - redis
