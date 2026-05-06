@@ -21,7 +21,6 @@ services:
 
   backend:
     build: ./backend
-    image: salepartido-backend:latest
     container_name: salepartido-backend
     env_file:
       - .env

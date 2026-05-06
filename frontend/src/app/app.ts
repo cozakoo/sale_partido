@@ -10,6 +10,7 @@ interface HelloWorld {
 }
 
 @Component({
+  standalone: true,
   selector: 'app-root',
   imports: [RouterOutlet, FormsModule],
   templateUrl: './app.html',
