@@ -1,0 +1,33 @@
+name: Deploy Sale Partido to Production
+
+on:
+  push:
+    branches:
+      - main # O la rama que uses para producción
+
+jobs:
+  deploy:
+    runs-on: self-hosted # Esto hará que se ejecute en tu servidor Debian
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build Backend Image
+        run: |
+          docker build -t salepartido-backend:latest -f backend/Dockerfile.prod ./backend
+
+      - name: Build Frontend Image
+        run: |
+          docker build -t salepartido-frontend:latest -f frontend/Dockerfile.prod ./frontend
+
+      - name: Deploy to Kubernetes
+        run: |
+          kubectl apply -f k8s/namespace.yaml
+          kubectl apply -f k8s/configmap.yaml
+          kubectl apply -f k8s/secret.yaml
+          kubectl apply -f k8s/postgres.yaml
+          kubectl apply -f k8s/redis.yaml
+          kubectl apply -f k8s/backend.yaml
+          kubectl apply -f k8s/frontend.yaml
+          kubectl apply -f k8s/ingress.yaml
