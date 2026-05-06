@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: backend
-        image: salepartido-backend:latest # Replace with your image registry/tag
+        image: salepartido-backend:latest 
         ports:
         - containerPort: 8080
         env:
@@ -73,6 +73,7 @@ metadata:
   name: salepartido-backend
   namespace: salepartido
 spec:
+  type: LoadBalancer
   selector:
     app: backend
   ports:

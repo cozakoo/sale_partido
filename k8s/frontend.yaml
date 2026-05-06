@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: frontend
-        image: salepartido-frontend:latest # Replace with your image registry/tag
+        image: salepartido-frontend:latest 
         ports:
         - containerPort: 80
 ---
@@ -25,6 +25,7 @@ metadata:
   name: salepartido-frontend
   namespace: salepartido
 spec:
+  type: LoadBalancer 
   selector:
     app: frontend
   ports:
