@@ -1,5 +1,7 @@
 package io.github.salepartido.api.domain.canchas.model;
 
+import java.time.Duration;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -22,6 +24,8 @@ public class ConfiguracionHorario {
     private String codigo;
 
     private boolean activo;
+
+    private Duration duracionTurno;
 
     @ManyToOne
     private Cancha cancha;

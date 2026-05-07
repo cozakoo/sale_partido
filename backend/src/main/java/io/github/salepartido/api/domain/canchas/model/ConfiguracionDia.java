@@ -1,7 +1,6 @@
 package io.github.salepartido.api.domain.canchas.model;
 
 import java.time.DayOfWeek;
-import java.time.Duration;
 import java.time.LocalTime;
 
 import jakarta.persistence.Entity;
@@ -28,8 +27,6 @@ class ConfiguracionDia {
     private LocalTime horaInicio;
 
     private LocalTime horaFin;
-
-    private Duration duracionTurno;
 
     @ManyToOne
     private ConfiguracionHorario configuracionHorario;
