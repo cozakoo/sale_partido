@@ -5,7 +5,7 @@ metadata:
   namespace: salepartido
 data:
   SPRING_PORT: "8080"
-  SPRING_CORS: "http://sale-partido.com" # Change to production URL
+  SPRING_CORS: "http://138.36.96.63:31167"
   POSTGRES_DATABASE_NAME: "salepartido_database"
   POSTGRES_USER: "admin"
   POSTGRES_PORT: "5432"
