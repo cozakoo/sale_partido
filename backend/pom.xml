@@ -143,7 +143,12 @@
 			<scope>test</scope>
 		</dependency>
 
-
+		<!--  Data mocks library  -->
+		<dependency>
+			<groupId>net.datafaker</groupId>
+			<artifactId>datafaker</artifactId>
+			<version>2.5.4</version>
+		</dependency>
 
 	</dependencies>
 
