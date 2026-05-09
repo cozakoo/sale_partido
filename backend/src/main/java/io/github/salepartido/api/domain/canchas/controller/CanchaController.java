@@ -73,11 +73,13 @@ public class CanchaController {
         canchaService.eliminarCancha(uuid);
     }
 
+    /* 
     @GetMapping("/disponibilidad/{codigo}")
     public DisponibilidadResponse verificarDisponibilidad(@PathVariable String codigo) {
         boolean disponible = canchaService.verificarDisponibilidadCancha(codigo);
         return new DisponibilidadResponse(codigo, disponible);
     }
+    */
 
     public static record CanchaRequest(String name, String code) {
     }

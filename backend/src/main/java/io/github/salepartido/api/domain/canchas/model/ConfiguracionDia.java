@@ -16,7 +16,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-class ConfiguracionDia {
+public class ConfiguracionDia {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

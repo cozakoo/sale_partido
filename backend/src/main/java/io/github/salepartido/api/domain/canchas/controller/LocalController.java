@@ -1,4 +1,4 @@
-package io.github.salepartido.api.controller;
+package io.github.salepartido.api.domain.canchas.controller;
 
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
