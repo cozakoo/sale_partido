@@ -1,0 +1,17 @@
+[
+  {
+    "uuid": "1",
+    "nombre": "Cancha Fútbol 5",
+    "codigo": "F05"
+  },
+  {
+    "uuid": "2",
+    "nombre": "Cancha Básquet",
+    "codigo": "BKT"
+  },
+  {
+    "uuid": "3",
+    "nombre": "Cancha Tenis",
+    "codigo": "TNS"
+  }
+]
