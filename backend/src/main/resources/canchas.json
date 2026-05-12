@@ -1,0 +1,14 @@
+[
+  {
+    "nombre": "Cancha Fútbol 5",
+    "codigo": "F05"
+  },
+  {
+    "nombre": "Cancha Básquet",
+    "codigo": "BKT"
+  },
+  {
+    "nombre": "Cancha Tenis",
+    "codigo": "TNS"
+  }
+]
