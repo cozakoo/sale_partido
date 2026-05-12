@@ -28,7 +28,13 @@ public class CanchaService {
      * Función de ejemplo: Obtiene todas las canchas disponibles
      */
     public List<Cancha> obtenerTodasLasCanchas() {
-        return cargarCanchasDesdeJson();
+        List<Cancha> canchas = canchaRepository.findAll();
+        return canchas;
+        // if (!canchas.isEmpty()) {
+        // }
+        //List<Cancha> canchasPorDefecto = cargarCanchasDesdeJson();
+        //canchasPorDefecto.forEach(canchaRepository::save);
+        //return canchasPorDefecto;
     }
 
     private List<Cancha> cargarCanchasDesdeJson() {
