@@ -4,7 +4,6 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
-import io.github.salepartido.api.infrastructure.config.AppConstants;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -26,9 +25,6 @@ public class ConfiguracionHorario {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String uuid;
-
-    @Column(name = "nombre", nullable = false, length = AppConstants.VARCHAR_NAME_LENGTH)
-    private String codigo;
 
     @Column(name = "activo", nullable = false)
     private boolean activo;

@@ -6,7 +6,6 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -65,7 +64,7 @@ public class CanchaController {
     public CanchaInfo getCanchaById(@PathVariable UUID uuid) {
         Cancha cancha = canchaService.buscarCanchaPorId(uuid)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cancha no encontrada"));
-        return new CanchaInfo(cancha.getUuid(), cancha.getNombre(), cancha.getCodigo());
+        return new CanchaInfo(cancha.getUuid(), cancha.getNombre());
     }
 
     @PostMapping
@@ -73,10 +72,9 @@ public class CanchaController {
     public CanchaInfo createCancha(@RequestBody CanchaRequest request) {
         Cancha cancha = new Cancha();
         cancha.setNombre(request.name());
-        cancha.setCodigo(request.code());
         
         Cancha saved = canchaService.guardarCancha(cancha);
-        return new CanchaInfo(saved.getUuid(), saved.getNombre(), saved.getCodigo());
+        return new CanchaInfo(saved.getUuid(), saved.getNombre());
     }
 
     @PutMapping("/{uuid}")
@@ -85,10 +83,9 @@ public class CanchaController {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cancha no encontrada"));
 
         existing.setNombre(request.name());
-        existing.setCodigo(request.code());
         
         Cancha updated = canchaService.guardarCancha(existing);
-        return new CanchaInfo(updated.getUuid(), updated.getNombre(), updated.getCodigo());
+        return new CanchaInfo(updated.getUuid(), updated.getNombre());
     }
 
     @DeleteMapping("/{uuid}")
@@ -111,7 +108,7 @@ public class CanchaController {
     public static record CanchaRequest(String name, String code) {
     }
 
-    public static record CanchaInfo(String uuid, String name, String code) {
+    public static record CanchaInfo(String uuid, String name) {
     }
 
     public static record DisponibilidadResponse(String codigo, boolean disponible) {

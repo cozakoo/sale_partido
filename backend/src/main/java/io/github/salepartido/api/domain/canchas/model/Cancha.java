@@ -30,9 +30,6 @@ public class Cancha {
     @Column(name = "nombre", nullable = false, length = AppConstants.VARCHAR_NAME_LENGTH)
     private String nombre;
 
-    @Column(name = "codigo", nullable = false, unique = true, length = AppConstants.VARCHAR_NAME_LENGTH)
-    private String codigo;
-
     @OneToMany(cascade = { CascadeType.MERGE, CascadeType.PERSIST}, orphanRemoval = true)
     @JoinColumn(name = "cancha_uuid")
     private List<ConfiguracionHorario> configuracionesHorarios = new ArrayList<>();

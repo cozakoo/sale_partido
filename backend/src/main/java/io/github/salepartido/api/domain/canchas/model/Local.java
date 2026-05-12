@@ -7,7 +7,6 @@ import io.github.salepartido.api.infrastructure.config.AppConstants;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.ForeignKey;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -31,14 +30,8 @@ public class Local {
     @Column(name = "nombre", nullable = false, length = AppConstants.VARCHAR_NAME_LENGTH)
     private String nombre;
 
-    @Column(name = "codigo", nullable = false, length = AppConstants.VARCHAR_NAME_LENGTH)
-    private String codigo;
-
     @OneToMany(cascade = { CascadeType.MERGE, CascadeType.PERSIST }, orphanRemoval = true)
-    @JoinColumn(
-        name = "cancha_uuid",
-        foreignKey = @ForeignKey(name = "fk_configuracion_horario_cancha")
-    )
+    @JoinColumn(name = "local_uuid")
     private List<Cancha> canchas = new ArrayList<>();
 
 }

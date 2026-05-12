@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import io.github.salepartido.api.domain.canchas.model.Cancha;
 import io.github.salepartido.api.domain.canchas.model.Local;
 import io.github.salepartido.api.domain.canchas.service.CanchaService;
 
@@ -33,9 +34,10 @@ public class DevCanchaController {
         return seedService.generarLocales(cantidad, 3);
     }
 
-    @PostMapping("/locales/poblar")
+    @PostMapping("/canchas/poblar")
     public void seed() {
-
+        List<Cancha> canchas = seedService.generarCanchas(50);
+        canchas.forEach(canchaService::guardarCancha);
     }
 
 
