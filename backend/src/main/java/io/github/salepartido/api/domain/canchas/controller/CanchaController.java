@@ -1,5 +1,9 @@
 package io.github.salepartido.api.domain.canchas.controller;
 
+import java.io.FileWriter;
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -31,7 +35,30 @@ public class CanchaController {
 
     @GetMapping
     public List<Cancha> getCanchas() {
+        // try {
+        //     GuardarCanchasEnDB();
+        // } catch (Exception e) {
+        //     GuardarExcepcionEnLog(e);
+        // }
         return canchaService.obtenerTodasLasCanchas();
+    }
+
+    private void GuardarExcepcionEnLog(Exception e) {
+        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        String logMessage = String.format("[%s] Error: %s\nStackTrace:\n%s\n\n",
+                timestamp, e.getMessage(), e.getStackTrace().toString());
+
+        try (FileWriter writer = new FileWriter(System.getProperty("user.dir") + "/log.txt", true)) {
+            writer.write(logMessage);
+        } catch (IOException ioException) {
+            // Si no se puede escribir el log, al menos imprimir en consola
+            System.err.println("Error al escribir log: " + ioException.getMessage());
+        }
+    }
+
+    private void GuardarCanchasEnDB() {
+        List<Cancha> canchas = canchaService.obtenerTodasLasCanchas();
+        canchas.forEach(canchaService::guardarCancha);
     }
 
     @GetMapping("/{uuid}")

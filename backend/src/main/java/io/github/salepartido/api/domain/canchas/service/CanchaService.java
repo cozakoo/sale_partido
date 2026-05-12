@@ -1,16 +1,22 @@
 package io.github.salepartido.api.domain.canchas.service;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import io.github.salepartido.api.domain.canchas.model.Cancha;
 import io.github.salepartido.api.domain.canchas.repository.CanchaRepository;
 
 @Service
 public class CanchaService {
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     private final CanchaRepository canchaRepository;
 
@@ -23,10 +29,27 @@ public class CanchaService {
      */
     public List<Cancha> obtenerTodasLasCanchas() {
         List<Cancha> canchas = canchaRepository.findAll();
-        if (!canchas.isEmpty()) {
-            return canchas;
-        }
+        return canchas;
+        // if (!canchas.isEmpty()) {
+        // }
+        //List<Cancha> canchasPorDefecto = cargarCanchasDesdeJson();
+        //canchasPorDefecto.forEach(canchaRepository::save);
+        //return canchasPorDefecto;
+    }
 
+    private List<Cancha> cargarCanchasDesdeJson() {
+        try (InputStream inputStream = getClass().getClassLoader().getResourceAsStream("canchas.json")) {
+            if (inputStream == null) {
+                return getDefaultCanchas();
+            }
+
+            return OBJECT_MAPPER.readValue(inputStream, new TypeReference<List<Cancha>>() {});
+        } catch (IOException e) {
+            return getDefaultCanchas();
+        }
+    }
+
+    private List<Cancha> getDefaultCanchas() {
         Cancha cancha1 = new Cancha();
         cancha1.setNombre("Cancha Fútbol 5");
         cancha1.setCodigo("F05");
