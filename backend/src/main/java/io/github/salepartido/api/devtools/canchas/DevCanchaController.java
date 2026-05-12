@@ -1,6 +1,6 @@
 package io.github.salepartido.api.devtools.canchas;
 
-import java.util.Collection;
+import java.util.List;
 
 import org.springframework.context.annotation.Profile;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -9,7 +9,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import io.github.salepartido.api.domain.canchas.model.ConfiguracionDia;
+import io.github.salepartido.api.domain.canchas.model.Local;
+import io.github.salepartido.api.domain.canchas.service.CanchaService;
 
 @Profile("dev")
 @RestController
@@ -18,19 +19,24 @@ public class DevCanchaController {
     
     private final SeedService seedService;
 
-    public DevCanchaController(SeedService seedService) {
+    private final CanchaService canchaService;
+
+    public DevCanchaController(CanchaService canchaService, SeedService seedService) {
         this.seedService = seedService;
+        this.canchaService = canchaService;
     }
 
-    @GetMapping("/preview/{count}")
-    public Collection<ConfiguracionDia> preview(
-        @PathVariable("count") int count
+    @GetMapping("/locales/random/{cantidad}")
+    public List<Local> generarLocalesRandom(
+        @PathVariable("cantidad") int cantidad
     ) {
-        return seedService.seed(count);
+        return seedService.generarLocales(cantidad, 3);
     }
 
-    @PostMapping("/seed")
+    @PostMapping("/locales/poblar")
     public void seed() {
-        // poblar la db
+
     }
+
+
 }
