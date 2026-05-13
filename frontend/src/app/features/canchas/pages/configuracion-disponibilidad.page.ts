@@ -1,30 +1,29 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
-import {
-  ScheduleConfig,
-  DaySchedule,
-  Space,
-  ScheduleScope,
-  DEFAULT_DAYS,
-  SLOT_DURATIONS,
-} from './schedule-config.model';
-import { ScheduleConfigService } from '../../services/schedule-config';
+import { ConfiguracionHorario } from '../models/configuracion-horario';
+import { ScheduleConfigService } from '../services/configuracion-disponibilidad.service';
+import { AlcanceConfiguracionHorario } from '../models/alcance-configuracion-horario';
+import { Cancha } from '../models/cancha';
+import { ConfiguracionDia } from '../models/configuracion-dia';
+import { Constantes } from '../../../core/Constantes';
  
+
 @Component({
   selector: 'app-schedule-config',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl: './schedule-config.html',
-  styleUrl: './schedule-config.scss',
+  templateUrl: './configuracion-disponibilidad.page.html',
+  styleUrl: './configuracion-disponibilidad.page.scss',
 })
-export class ScheduleConfigComponent implements OnInit {
-  scope: ScheduleScope = 'global';
+export class ConfiguracionDisponibilidadPage implements OnInit {
+  
+  scope: AlcanceConfiguracionHorario = 'global';
   selectedSpaceId: number | null = null;
-  spaces: Space[] = [];
-  slotDurations = SLOT_DURATIONS;
+  spaces: Cancha[] = [];
+  slotDurations = Constantes.SLOT_DURATIONS_MINUTES;
  
-  days: DaySchedule[] = DEFAULT_DAYS.map(d => ({ ...d }));
+  days: ConfiguracionDia[] = Constantes.DEFAULT_DAYS;
   slotDurationMinutes = 60;
  
   saving = false;
@@ -37,7 +36,7 @@ export class ScheduleConfigComponent implements OnInit {
     this.scheduleService.getSpaces().subscribe(s => (this.spaces = s));
   }
  
-  onScopeChange(newScope: ScheduleScope): void {
+  onScopeChange(newScope: AlcanceConfiguracionHorario): void {
     this.scope = newScope;
     this.selectedSpaceId = null;
     this.saveSuccess = false;
@@ -50,20 +49,19 @@ export class ScheduleConfigComponent implements OnInit {
  
   isFormValid(): boolean {
     if (this.scope === 'individual' && !this.selectedSpaceId) return false;
-    const hasAtLeastOneDay = this.days.some(d => d.enabled);
+    const hasAtLeastOneDay = this.days.some(d => d.activo);
     if (!hasAtLeastOneDay) return false;
-    return this.days.every(d => !d.enabled || (!!d.from && !!d.to && d.from < d.to));
+    return this.days.every(d => !d.activo || (!!d.horaInicio && !!d.horaFin && d.horaInicio < d.horaFin));
   }
  
   onSubmit(form: NgForm): void {
     if (!form.valid || !this.isFormValid()) return;
  
-    const config: ScheduleConfig = {
-      scope: this.scope,
-      spaceId: this.scope === 'individual' ? this.selectedSpaceId : null,
-      days: this.days,
-      slotDurationMinutes: this.slotDurationMinutes,
-    };
+    const config: ConfiguracionHorario = {
+      alcance: this.scope,
+      configuracionesDias: this.days,
+      duracionTurno: this.slotDurationMinutes,
+    } as ConfiguracionHorario;
  
     this.saving = true;
     this.saveSuccess = false;

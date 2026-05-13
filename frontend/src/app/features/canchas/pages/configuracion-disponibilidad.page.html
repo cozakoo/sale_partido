@@ -30,12 +30,12 @@
           <div class="mt-3">
             <p class="text-muted small mb-2">Seleccioná el espacio</p>
             <div class="d-flex flex-wrap gap-2">
-              @for (space of spaces; track space.id) {
+              @for (space of spaces; track space.uuid) {
                 <button type="button" class="btn btn-sm"
-                  [class.btn-dark]="selectedSpaceId === space.id"
-                  [class.btn-outline-secondary]="selectedSpaceId !== space.id"
-                  (click)="onSpaceSelect(space.id)">
-                  {{ space.name }}
+                  [class.btn-dark]="selectedSpaceId === space.uuid"
+                  [class.btn-outline-secondary]="selectedSpaceId !== space.uuid"
+                  (click)="onSpaceSelect(space.uuid)">
+                  {{ space.nombre }}
                 </button>
               }
             </div>
@@ -64,40 +64,40 @@
               </tr>
             </thead>
             <tbody>
-              @for (day of days; track day.day; let i = $index) {
+              @for (day of days; track day.diaSemana; let i = $index) {
                 <tr>
                   <td class="ps-0">
                     <div class="form-check form-switch mb-0">
                       <input class="form-check-input" type="checkbox" role="switch"
                         [id]="'toggle-' + i"
-                        [(ngModel)]="day.enabled"
+                        [(ngModel)]="day.activo"
                         [name]="'enabled-' + i">
                     </div>
                   </td>
                   <td>
                     <label [for]="'toggle-' + i" class="mb-0 fw-medium"
-                      [class.text-muted]="!day.enabled" style="cursor:pointer">
-                      {{ day.day }}
+                      [class.text-muted]="!day.activo" style="cursor:pointer">
+                      {{ day.diaSemana }}
                     </label>
                   </td>
                   <td style="max-width:140px">
                     <input type="time" class="form-control form-control-sm"
                       [name]="'from-' + i"
-                      [(ngModel)]="day.from"
-                      [disabled]="!day.enabled"
-                      [required]="day.enabled"
+                      [(ngModel)]="day.horaInicio"
+                      [disabled]="!day.activo"
+                      [required]="day.activo"
                       #fromRef="ngModel">
-                    @if (day.enabled && fromRef.invalid && fromRef.touched) {
+                    @if (day.activo && fromRef.invalid && fromRef.touched) {
                       <div class="form-text text-danger">Requerido</div>
                     }
                   </td>
                   <td style="max-width:140px">
                     <input type="time" class="form-control form-control-sm"
                       [name]="'to-' + i"
-                      [(ngModel)]="day.to"
-                      [disabled]="!day.enabled"
-                      [required]="day.enabled">
-                    @if (day.enabled && day.from && day.to && day.from >= day.to) {
+                      [(ngModel)]="day.horaFin"
+                      [disabled]="!day.activo"
+                      [required]="day.activo">
+                    @if (day.activo && day.horaInicio && day.horaFin && day.horaInicio >= day.horaFin) {
                       <div class="form-text text-danger">Debe ser posterior a la apertura.</div>
                     }
                   </td>

@@ -1,12 +1,14 @@
 import { Routes } from '@angular/router';
+import { CANCHAS_ROUTES } from './features/canchas/routes';
+import { EVENTOS_ROUTES } from './features/eventos/routes';
 
 export const routes: Routes = [
   {
-    path: 'configuracion/horarios',
-    loadComponent: () =>
-      import('./features/schedule-config/components/schedule-config/schedule-config').then(
-        m => m.ScheduleConfigComponent
-      ),
+    path: 'canchas',
+    children: CANCHAS_ROUTES
   },
-  { path: '', redirectTo: 'configuracion/horarios', pathMatch: 'full' },
+  {
+    path: 'eventos',
+    children: EVENTOS_ROUTES
+  }
 ];
