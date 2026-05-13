@@ -26,7 +26,7 @@ metadata:
   name: salepartido-frontend
   namespace: salepartido
 spec:
-  type: LoadBalancer 
+  type: NodePort
   selector:
     app: frontend
   ports:

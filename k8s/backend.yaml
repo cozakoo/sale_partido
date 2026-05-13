@@ -7,11 +7,11 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      app: backend
+      app: salepartido-backend
   template:
     metadata:
       labels:
-        app: backend
+        app: salepartido-backend
     spec:
       containers:
       - name: backend
@@ -74,9 +74,9 @@ metadata:
   name: salepartido-backend
   namespace: salepartido
 spec:
-  type: LoadBalancer
+  type: NodePort
   selector:
-    app: backend
+    app: salepartido-backend
   ports:
     - protocol: TCP
       port: 8080
