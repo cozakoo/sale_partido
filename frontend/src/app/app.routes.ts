@@ -4,6 +4,11 @@ import { EVENTOS_ROUTES } from './features/eventos/routes';
 
 export const routes: Routes = [
   {
+    path: '',
+    redirectTo: 'canchas/configuracion/horarios',
+    pathMatch: 'full'
+  },
+  {
     path: 'canchas',
     children: CANCHAS_ROUTES
   },

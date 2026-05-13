@@ -27,5 +27,12 @@ export class ScheduleConfigService {
   saveConfig(config: ConfiguracionHorario): Observable<ConfiguracionHorario> {
     return this.http.post<ConfiguracionHorario>(this.apiUrl, config);
   }
+
+/*
+    getSemana(fechaInicio: Date): Observable<DiaCalendario[]> {
+    const params = new HttpParams()
+      .set('desde', fechaInicio.toISOString().split('T')[0]);
+    return this.http.get<DiaCalendario[]>(`${this.base}/semana`, { params }); }*/
+ 
 }
  
