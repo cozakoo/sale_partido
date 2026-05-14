@@ -8,7 +8,6 @@ import io.github.salepartido.api.domain.locales.controller.dto.CanchaDetail;
 import io.github.salepartido.api.domain.locales.controller.dto.CanchaSummary;
 import io.github.salepartido.api.domain.locales.controller.dto.ConfiguracionDiaDTO;
 import io.github.salepartido.api.domain.locales.controller.dto.ConfiguracionHorarioDTO;
-import io.github.salepartido.api.domain.locales.controller.dto.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
