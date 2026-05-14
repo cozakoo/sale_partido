@@ -56,8 +56,39 @@ public class LocalController {
     }
 
     @PostMapping("/{uuid}/configuraciones-horarios")
-    public SaveCanchaConfiguracionHorarioResponse saveConfiguracionesHorarios(@PathVariable UUID uuid, @Valid @RequestBody SaveCanchaConfiguracionHorarioRequest request) {
-        localService.actualizarConfiguracionesHorarios(uuid, request);
-        return new SaveCanchaConfiguracionHorarioResponse(true, "Configuraciones guardadas exitosamente");
+    public SaveCanchasConfiguracionesHorariosResponse saveConfiguracionesHorarios(@PathVariable UUID uuid, @Valid @RequestBody SaveCanchasConfiguracionesHorariosRequest request) {
+        return localService.actualizarConfiguracionesHorarios(uuid, request);
     }
 }
+
+
+
+/*
+
+cancha: ConfiguracionHorario[
+    {
+        activo: true,
+        configuracionesDias: ConfiguracionDia[
+            {
+                dia: Lunes
+                horaInicio: 10:00
+                horaFin: 20:00
+            },
+            {
+                dia: Martes
+                horaInicio: 10:00
+                horaFin: 20:00
+            },
+            ...
+        ]
+    },
+    ...
+    
+]
+
+
+
+*/
+
+
+

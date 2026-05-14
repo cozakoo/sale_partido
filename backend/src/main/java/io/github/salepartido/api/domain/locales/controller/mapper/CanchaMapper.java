@@ -42,7 +42,6 @@ public class CanchaMapper {
 
     public ConfiguracionDiaDTO toConfiguracionDiaDTO(ConfiguracionDia dia) {
         if (dia == null) return null;
-        // En caso que desde backend no manejes estado 'activo' por cada día suelto, pero frontend lo requiera:
-        return new ConfiguracionDiaDTO(dia.getDiaSemana(), dia.getHoraInicio(), dia.getHoraFin(), true);
+        return new ConfiguracionDiaDTO(dia.getDiaSemana(), dia.getHoraInicio(), dia.getHoraFin());
     }
 }

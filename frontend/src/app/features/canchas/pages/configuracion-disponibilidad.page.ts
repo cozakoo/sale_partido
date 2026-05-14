@@ -92,8 +92,8 @@ export class ConfiguracionDisponibilidadPage implements OnInit {
               if (config.configuracionesDias && config.configuracionesDias.length > 0) {
                 configuracionesDias = configuracionesDias.map(defaultDay => {
                   const backendDay = config.configuracionesDias.find(d => d.diaSemana.toUpperCase() === defaultDay.diaSemana.toUpperCase());
-                  // Si el backend trajo el día y está activo, lo habilitamos y tomamos sus horas (o el default como fallback)
-                  if (backendDay && backendDay.activo) {
+                  // Si el backend trajo el día, lo habilitamos y tomamos sus horas (o el default como fallback)
+                  if (backendDay) {
                     let hIni: any = backendDay.horaInicio || defaultDay.horaInicio;
                     let hFin: any = backendDay.horaFin || defaultDay.horaFin;
 
@@ -192,6 +192,12 @@ export class ConfiguracionDisponibilidadPage implements OnInit {
       canchaUuid: canchaId,
       duracionTurno: canchasVal[canchaId].duracionTurno,
       configuracionesDias: canchasVal[canchaId].configuracionesDias
+        .filter((d: any) => d.activo)
+        .map((d: any) => ({
+          diaSemana: d.diaSemana,
+          horaInicio: d.horaInicio,
+          horaFin: d.horaFin
+        }))
     }));
 
     const request = {

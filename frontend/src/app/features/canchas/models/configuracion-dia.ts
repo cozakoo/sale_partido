@@ -2,7 +2,7 @@ import { DiaSemana } from "./dia-semana";
 
 export interface ConfiguracionDia {
   diaSemana: DiaSemana;
-  activo: boolean;
+  activo?: boolean;
   horaInicio: string;
   horaFin: string;
 }
