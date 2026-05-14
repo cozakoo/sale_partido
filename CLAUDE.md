@@ -1049,23 +1049,25 @@ jobs:
           tags: salepartido-frontend:latest
 ```
 
-**.github/workflows/deploy.yml** - Deploy a K8s
+**.github/workflows/deploy.yml** - Deploy a K8s (Multienv)
 ```yaml
 name: Deploy
 on:
   push:
-    branches: [main]
+    branches: [main, pre_prod]
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'pre_prod' }}
+    env:
+      NAMESPACE: ${{ github.ref == 'refs/heads/main' && 'salepartido' || 'salepartido-preprod' }}
     steps:
-      - uses: actions/checkout@v3
-      - uses: azure/setup-kubectl@v3
-      
-      - name: Deploy to K8s
+      - uses: actions/checkout@v4
+      - name: Deploy
         run: |
-          kubectl apply -f k8s/
-          kubectl rollout status deployment/salepartido-backend -n salepartido
+          # El workflow detecta la rama y despliega al namespace correspondiente
+          # main -> salepartido (Producción)
+          # pre_prod -> salepartido-preprod (Demos/Testing)
+          kubectl apply -f k8s/ -n ${{ env.NAMESPACE }}
 ```
 
 ---
@@ -1074,12 +1076,11 @@ jobs:
 
 ### Git Branching Strategy
 
-```
-main (producción)
+main (producción) -> Despliegue automático
   ↑
-  ├─ staging (pre-producción)
+  ├─ pre_prod (demos/pre-producción) -> Despliegue automático
   │   ↑
-  │   └─ dev (integración)
+  │   └─ dev (desarrollo/historias de usuario) -> Manual/Local
   │       ↑
   │       ├─ feature/E1-H03-vista-mapa
   │       ├─ feature/E5-H21-reservas
