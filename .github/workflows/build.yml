@@ -4,10 +4,12 @@ on:
   push:
     branches:
       - main
+      - pre_prod
       - dev
   pull_request:
     branches:
       - main
+      - pre_prod
 
 jobs:
   build:

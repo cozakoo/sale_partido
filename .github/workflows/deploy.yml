@@ -1,13 +1,21 @@
-name: Deploy Sale Partido to Production
+name: Deploy Sale Partido
 
 on:
   push:
     branches:
       - main
+      - pre_prod
 
 jobs:
   deploy:
+    name: Deploy to ${{ github.ref == 'refs/heads/main' && 'Production' || 'Pre-Prod (Demos)' }}
     runs-on: self-hosted
+    environment:
+      name: ${{ github.ref == 'refs/heads/main' && 'production' || 'pre_prod' }}
+    
+    env:
+      NAMESPACE: ${{ github.ref == 'refs/heads/main' && 'salepartido' || 'salepartido-preprod' }}
+      IMAGE_TAG: ${{ github.ref == 'refs/heads/main' && 'latest' || 'preprod' }}
 
     steps:
       - name: Checkout code
@@ -15,19 +23,35 @@ jobs:
 
       - name: Build Backend Image
         run: |
-          docker build -t salepartido-backend:latest -f backend/Dockerfile.prod ./backend
+          docker build -t salepartido-backend:${{ env.IMAGE_TAG }} -f backend/Dockerfile.prod ./backend
 
       - name: Build Frontend Image
         run: |
-          docker build -t salepartido-frontend:latest -f frontend/Dockerfile.prod ./frontend
+          docker build -t salepartido-frontend:${{ env.IMAGE_TAG }} -f frontend/Dockerfile.prod ./frontend
 
       - name: Import images into containerd
         run: |
-          docker save salepartido-backend:latest -o /tmp/backend.tar
-          docker save salepartido-frontend:latest -o /tmp/frontend.tar
+          docker save salepartido-backend:${{ env.IMAGE_TAG }} -o /tmp/backend.tar
+          docker save salepartido-frontend:${{ env.IMAGE_TAG }} -o /tmp/frontend.tar
           sudo ctr -n k8s.io images import /tmp/backend.tar
           sudo ctr -n k8s.io images import /tmp/frontend.tar
           rm /tmp/backend.tar /tmp/frontend.tar
+
+      - name: Prepare Kubernetes manifests
+        run: |
+          # Create namespace if it doesn't exist
+          kubectl create namespace ${{ env.NAMESPACE }} --dry-run=client -o yaml | kubectl apply -f -
+          
+          # Replace namespace and tags in manifests
+          sed -i "s/namespace: salepartido/namespace: ${{ env.NAMESPACE }}/g" k8s/*.yaml
+          sed -i "s/name: salepartido/name: ${{ env.NAMESPACE }}/g" k8s/namespace.yaml
+          sed -i "s/salepartido-backend:latest/salepartido-backend:${{ env.IMAGE_TAG }}/g" k8s/backend.yaml
+          sed -i "s/salepartido-frontend:latest/salepartido-frontend:${{ env.IMAGE_TAG }}/g" k8s/frontend.yaml
+          
+          # Optional: Adjust Ingress host for pre_prod
+          if [ "${{ env.NAMESPACE }}" == "salepartido-preprod" ]; then
+            sed -i "s/sale-partido.com/preprod.sale-partido.com/g" k8s/ingress.yaml
+          fi
 
       - name: Apply Kubernetes manifests
         run: |
@@ -41,12 +65,12 @@ jobs:
 
       - name: Restart deployments to use new images
         run: |
-          kubectl rollout restart deployment/salepartido-backend -n salepartido
-          kubectl rollout restart deployment/salepartido-frontend -n salepartido
-          kubectl rollout status deployment/salepartido-backend -n salepartido --timeout=120s
-          kubectl rollout status deployment/salepartido-frontend -n salepartido --timeout=120s
+          kubectl rollout restart deployment/salepartido-backend -n ${{ env.NAMESPACE }}
+          kubectl rollout restart deployment/salepartido-frontend -n ${{ env.NAMESPACE }}
+          kubectl rollout status deployment/salepartido-backend -n ${{ env.NAMESPACE }} --timeout=120s
+          kubectl rollout status deployment/salepartido-frontend -n ${{ env.NAMESPACE }} --timeout=120s
 
       - name: Verify deployment
         run: |
-          kubectl get pods -n salepartido
-          echo "✅ Deploy completado"
+          kubectl get pods -n ${{ env.NAMESPACE }}
+          echo "✅ Deploy to ${{ env.NAMESPACE }} completado"
