@@ -46,15 +46,6 @@ jobs:
           kubectl rollout status deployment/salepartido-backend -n salepartido --timeout=120s
           kubectl rollout status deployment/salepartido-frontend -n salepartido --timeout=120s
 
-      - name: Copy built files directly to frontend pod
-        run: |
-          docker create --name temp-frontend salepartido-frontend:latest
-          docker cp temp-frontend:/usr/share/nginx/html/. /tmp/frontend-html
-          docker rm temp-frontend
-          POD=$(kubectl get pods -n salepartido -l app=frontend -o jsonpath='{.items[0].metadata.name}')
-          kubectl cp /tmp/frontend-html/. salepartido/$POD:/usr/share/nginx/html/
-          rm -rf /tmp/frontend-html
-
       - name: Verify deployment
         run: |
           kubectl get pods -n salepartido
