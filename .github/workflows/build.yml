@@ -26,7 +26,7 @@ jobs:
           cache: 'maven'
 
       - name: Compile backend
-        run: cd backend && ./mvnw compile test-compile --no-transfer-progress
+        run: cd backend && ./mvnw compile test-compile dependency:copy-dependencies --no-transfer-progress
 
       - uses: SonarSource/sonarqube-scan-action@v6
         env:
