@@ -25,6 +25,27 @@
 
 ---
 
+## 🤖 Modelo de Interacción con Agentes IA
+
+Este proyecto utiliza agentes de IA para acelerar el desarrollo. Las reglas de interacción son:
+
+### Roles de Agentes
+- **Arquitecto**: Decisiones de alto nivel y diseño de DB.
+- **Backend/Frontend**: Implementación de lógica y componentes.
+- **QA/Tester**: Generación de pruebas unitarias y E2E.
+
+### Reglas de Oro
+1. **Priorizar este archivo**: Úsalo como fuente de verdad para stack y convenciones.
+2. **Documentación Proactiva**: Actualiza `doc/HISTORY.md` (ADR) ante cambios arquitectónicos.
+3. **Herramientas (MCP)**: Usa filesystem, GitHub y búsqueda web según sea necesario.
+4. **Idioma**: Documentación en español, código/comentarios en inglés.
+
+### Documentación Adicional
+- [Integración con GitHub y CI/CD](file:///doc/GITHUB.md)
+- [Historial de Decisiones (ADR)](file:///doc/HISTORY.md)
+
+---
+
 ## 🎯 Visión General
 
 **Sale Partido** es una plataforma que conecta jugadores, propietarios de espacios deportivos y organizadores de eventos. Permite descubrir espacios, reservar, participar en eventos y competencias con sistema de notificaciones y pagos integrado.
