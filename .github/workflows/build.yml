@@ -33,7 +33,13 @@ jobs:
       - name: Compile backend
         run: cd backend && ./mvnw compile test-compile --no-transfer-progress
 
+      - name: Get Node.js path
+        id: node-path
+        run: echo "path=$(which node)" >> $GITHUB_OUTPUT
+
       - uses: SonarSource/sonarqube-scan-action@v6
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        with:
+          args: -Dsonar.nodejs.executable=${{ steps.node-path.outputs.path }}
