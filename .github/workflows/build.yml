@@ -25,6 +25,11 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
       - name: Compile backend
         run: cd backend && ./mvnw compile test-compile --no-transfer-progress
 
