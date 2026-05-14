@@ -28,14 +28,14 @@ export class App implements OnInit {
   }
 
   fetchHelloWorlds() {
-    this.http.get<HelloWorld[]>('http://localhost:8080/').subscribe((data) => {
+    this.http.get<HelloWorld[]>('http://localhost:32328/').subscribe((data) => {
       this.helloWorlds = data;
     });
   }
 
   submitText() {
     if (!this.textInput.trim()) return;
-    this.http.post('http://localhost:8080/', { text: this.textInput }).subscribe(() => {
+    this.http.post('http://localhost:32328/', { text: this.textInput }).subscribe(() => {
       this.textInput = '';
       this.fetchHelloWorlds();
     });
