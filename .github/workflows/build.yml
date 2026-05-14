@@ -1,9 +1,9 @@
 name: Build
 
-on: 
+on:
   push:
     branches:
-      - main
+      - sonarqube  # deshabilitado en main, activar cuando SonarQube esté configurado
 
 jobs:
   build:
