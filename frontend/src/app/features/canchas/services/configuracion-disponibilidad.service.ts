@@ -1,31 +1,44 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { Constantes } from '../../../core/Constantes';
-import { ConfiguracionHorario } from '../models/configuracion-horario';
-import { Cancha } from '../models/cancha';
- 
+import { CanchaDetail } from '../models/cancha-detail';
+import { LocalDetail } from '../models/local-detail';
+import { LocalSummary } from '../models/local-summary';
+import { CanchaSummary } from '../models/cancha-summary';
+import { SaveCanchaConfiguracionHorarioRequest } from '../models/cancha-configuracion-horario-request';
+import { SaveCanchaConfiguracionHorarioResponse } from '../models/cancha-configuracion-horario-response';
+
 @Injectable({ providedIn: 'root' })
-export class ScheduleConfigService {
-  private apiUrl = Constantes.ENDPOINT_CANCHAS;
- 
-  constructor(private http: HttpClient) {}
- 
-  getSpaces(): Observable<Cancha[]> {
-    return of([
-      { uuid: 1, nombre: 'Cancha 1' },
-      { uuid: 2, nombre: 'Cancha 2' },
-      { uuid: 3, nombre: 'Cancha 3' },
-    ] as Cancha[]);
+export class LocalService {
+  private http = inject(HttpClient)
+
+  getLocalesSummary(): Observable<LocalSummary[]> {
+    return this.http.get<LocalSummary[]>(`${Constantes.ENDPOINT_LOCALES}`);
   }
- 
-  getConfig(spaceId?: number | null): Observable<ConfiguracionHorario> {
-    const params = spaceId ? `?spaceId=${spaceId}` : '';
-    return this.http.get<ConfiguracionHorario>(`${this.apiUrl}${params}`);
+
+  getCanchasSummary(): Observable<CanchaSummary[]> {
+    return this.http.get<CanchaSummary[]>(`${Constantes.ENDPOINT_CANCHAS}`);
   }
- 
-  saveConfig(config: ConfiguracionHorario): Observable<ConfiguracionHorario> {
-    return this.http.post<ConfiguracionHorario>(this.apiUrl, config);
+
+  getLocalDetail(uuid: string): Observable<LocalDetail> {
+    return this.http.get<LocalDetail>(`${Constantes.ENDPOINT_LOCALES}/${uuid}`);
   }
+
+  getCanchaDetail(uuid: string): Observable<CanchaDetail> {
+    return this.http.get<CanchaDetail>(`${Constantes.ENDPOINT_CANCHAS}/${uuid}`);
+  }
+  
+  getCanchasSummaryFromLocal(uuid: string): Observable<CanchaSummary[]> {
+    return this.http.get<CanchaSummary[]>(`${Constantes.ENDPOINT_LOCALES}/${uuid}/canchas?view=resumen`);
+  }
+  
+  getCanchasDetailFromLocal(uuid: string): Observable<CanchaDetail[]> {
+    return this.http.get<CanchaDetail[]>(`${Constantes.ENDPOINT_LOCALES}/${uuid}/canchas?view=detalle`);
+  }
+
+  saveLocalConfiguracionesHorarios(uuid: string, request: SaveCanchaConfiguracionHorarioRequest): Observable<SaveCanchaConfiguracionHorarioResponse> {
+    return this.http.post<SaveCanchaConfiguracionHorarioResponse>(`${Constantes.ENDPOINT_LOCALES}/${uuid}/configuraciones-horarios`, request);
+  }
+
 }
- 

@@ -9,22 +9,21 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import io.github.salepartido.api.domain.canchas.model.Cancha;
-import io.github.salepartido.api.domain.canchas.model.Local;
-import io.github.salepartido.api.domain.canchas.service.CanchaService;
+import io.github.salepartido.api.domain.locales.model.Local;
+import io.github.salepartido.api.domain.locales.service.LocalService;
 
 @Profile("dev")
 @RestController
-@RequestMapping("/dev-canchas")
+@RequestMapping("/dev-locales")
 public class DevCanchaController {
     
     private final SeedService seedService;
 
-    private final CanchaService canchaService;
+    private final LocalService localService;
 
-    public DevCanchaController(CanchaService canchaService, SeedService seedService) {
+    public DevCanchaController(LocalService localService, SeedService seedService) {
         this.seedService = seedService;
-        this.canchaService = canchaService;
+        this.localService = localService;
     }
 
     @GetMapping("/locales/random/{cantidad}")
@@ -34,10 +33,10 @@ public class DevCanchaController {
         return seedService.generarLocales(cantidad, 3);
     }
 
-    @PostMapping("/canchas/poblar")
+    @PostMapping("/locales/poblar")
     public void seed() {
-        List<Cancha> canchas = seedService.generarCanchas(50);
-        canchas.forEach(canchaService::guardarCancha);
+        List<Local> canchas = seedService.generarLocales(50, 3);
+        canchas.forEach(localService::guardarLocal);
     }
 
 

@@ -1,149 +1,81 @@
-<div class="container-lg py-4">
- 
-  <div class="mb-4">
-    <h4 class="fw-semibold mb-1">Configuración de horarios</h4>
-    <p class="text-muted small mb-0">Definí los horarios de atención y la duración de los turnos.</p>
-  </div>
- 
-  <form #scheduleForm="ngForm" (ngSubmit)="onSubmit(scheduleForm)" novalidate>
- 
-    <!-- Scope -->
-    <div class="card border-0 shadow-sm mb-4">
-      <div class="card-body">
-        <p class="text-uppercase text-muted small fw-semibold mb-3">Aplicar a</p>
-        <div class="btn-group" role="group">
-          <button type="button" class="btn"
-            [class.btn-dark]="scope === 'global'"
-            [class.btn-outline-secondary]="scope !== 'global'"
-            (click)="onScopeChange('global')">
-            Todos los espacios
-          </button>
-          <button type="button" class="btn"
-            [class.btn-dark]="scope === 'individual'"
-            [class.btn-outline-secondary]="scope !== 'individual'"
-            (click)="onScopeChange('individual')">
-            Espacio individual
-          </button>
-        </div>
- 
-        @if (scope === 'individual') {
-          <div class="mt-3">
-            <p class="text-muted small mb-2">Seleccioná el espacio</p>
-            <div class="d-flex flex-wrap gap-2">
-              @for (space of spaces; track space.uuid) {
-                <button type="button" class="btn btn-sm"
-                  [class.btn-dark]="selectedSpaceId === space.uuid"
-                  [class.btn-outline-secondary]="selectedSpaceId !== space.uuid"
-                  (click)="onSpaceSelect(space.uuid)">
-                  {{ space.nombre }}
-                </button>
-              }
-            </div>
-            @if (!selectedSpaceId) {
-              <div class="form-text text-warning mt-1">
-                Seleccioná un espacio para continuar.
+<div class="container mt-4">
+  <h1 class="mb-4">{{ localNombre }}</h1>
+
+  <form [formGroup]="form" (ngSubmit)="onSubmit()">
+    
+    <ul ngbNav #nav="ngbNav" [(activeId)]="activeTabId" class="nav-tabs">
+      @for (cancha of canchasDetail; track getCanchaId(cancha)) {
+        <li [ngbNavItem]="getCanchaId(cancha)">
+          <a ngbNavLink>{{ getCanchaNombre(cancha) }}</a>
+          <ng-template ngbNavContent>
+            @if (getCanchaFormGroup(getCanchaId(cancha)); as canchaGroup) {
+              <div [formGroup]="canchaGroup" class="mt-3">
+                <div class="mb-3">
+                  <label class="form-label">Duración del turno (minutos)</label>
+                  <select class="form-select" formControlName="duracionTurno">
+                    @for (duracion of duracionesTurno; track duracion) {
+                      <option [value]="duracion">{{ duracion }}</option>
+                    }
+                  </select>
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label d-block">Días y horarios disponibles</label>
+                  <div class="row mb-2 fw-bold">
+                    <div class="col-2">Día</div>
+                    <div class="col-3">Apertura</div>
+                    <div class="col-3">Cierre</div>
+                  </div>
+                  
+                  <div formArrayName="configuracionesDias">
+                    @for (diaControl of getDiasFormArray(getCanchaId(cancha)).controls; track $index; let i = $index) {
+                      <div [formGroupName]="i" class="row mb-2 align-items-center">
+                        <div class="col-2">
+                          <div class="form-check">
+                            <input class="form-check-input" type="checkbox" formControlName="activo">
+                            <label class="form-check-label">{{ diaControl.get('diaSemana')?.value | titlecase }}</label>
+                          </div>
+                        </div>
+                        <div class="col-3">
+                          <input type="time" class="form-control" formControlName="horaInicio" [class.is-invalid]="diaControl.errors?.['required'] || diaControl.errors?.['invalidTimeRange']">
+                        </div>
+                        <div class="col-3">
+                          <input type="time" class="form-control" formControlName="horaFin" [class.is-invalid]="diaControl.errors?.['required'] || diaControl.errors?.['invalidTimeRange']">
+                        </div>
+                      </div>
+                    }
+                  </div>
+                </div>
+
+                <div class="d-flex justify-content-end mt-4 border-top pt-3">
+                  <button type="button" class="btn btn-outline-primary" (click)="aplicarATodas(getCanchaId(cancha))">
+                    Aplicar este horario a todas las canchas
+                  </button>
+                </div>
               </div>
             }
-          </div>
-        }
-      </div>
-    </div>
- 
-    <!-- Days -->
-    <div class="card border-0 shadow-sm mb-4">
-      <div class="card-body">
-        <p class="text-uppercase text-muted small fw-semibold mb-3">Horario de atención</p>
-        <div class="table-responsive">
-          <table class="table table-borderless align-middle mb-0">
-            <thead>
-              <tr>
-                <th class="ps-0" style="width:40px"></th>
-                <th class="text-muted fw-normal small" style="min-width:110px">Día</th>
-                <th class="text-muted fw-normal small">Apertura</th>
-                <th class="text-muted fw-normal small">Cierre</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (day of days; track day.diaSemana; let i = $index) {
-                <tr>
-                  <td class="ps-0">
-                    <div class="form-check form-switch mb-0">
-                      <input class="form-check-input" type="checkbox" role="switch"
-                        [id]="'toggle-' + i"
-                        [(ngModel)]="day.activo"
-                        [name]="'enabled-' + i">
-                    </div>
-                  </td>
-                  <td>
-                    <label [for]="'toggle-' + i" class="mb-0 fw-medium"
-                      [class.text-muted]="!day.activo" style="cursor:pointer">
-                      {{ day.diaSemana }}
-                    </label>
-                  </td>
-                  <td style="max-width:140px">
-                    <input type="time" class="form-control form-control-sm"
-                      [name]="'from-' + i"
-                      [(ngModel)]="day.horaInicio"
-                      [disabled]="!day.activo"
-                      [required]="day.activo"
-                      #fromRef="ngModel">
-                    @if (day.activo && fromRef.invalid && fromRef.touched) {
-                      <div class="form-text text-danger">Requerido</div>
-                    }
-                  </td>
-                  <td style="max-width:140px">
-                    <input type="time" class="form-control form-control-sm"
-                      [name]="'to-' + i"
-                      [(ngModel)]="day.horaFin"
-                      [disabled]="!day.activo"
-                      [required]="day.activo">
-                    @if (day.activo && day.horaInicio && day.horaFin && day.horaInicio >= day.horaFin) {
-                      <div class="form-text text-danger">Debe ser posterior a la apertura.</div>
-                    }
-                  </td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
- 
-    <!-- Slot duration -->
-    <div class="card border-0 shadow-sm mb-4">
-      <div class="card-body">
-        <p class="text-uppercase text-muted small fw-semibold mb-3">Duración del turno</p>
-        <div class="d-flex align-items-center gap-3">
-          <select class="form-select w-auto" name="slotDuration"
-            [(ngModel)]="slotDurationMinutes" required>
-            @for (d of slotDurations; track d) {
-              <option [value]="d">{{ d }} min</option>
-            }
-          </select>
-          <span class="text-muted small">por reserva</span>
-        </div>
-      </div>
-    </div>
- 
-    <!-- Feedback -->
+          </ng-template>
+        </li>
+      }
+    </ul>
+
+    <div [ngbNavOutlet]="nav" class="mb-4 border border-top-0 p-3 shadow-sm bg-white"></div>
+
     @if (saveSuccess) {
-      <div class="alert alert-success py-2">✓ Configuración guardada correctamente.</div>
+      <div class="alert alert-success">Configuración guardada exitosamente.</div>
     }
     @if (saveError) {
-      <div class="alert alert-danger py-2">✗ Ocurrió un error al guardar. Intentá de nuevo.</div>
+      <div class="alert alert-danger">Error al guardar la configuración. Revisa los datos.</div>
     }
- 
-    <!-- Submit -->
-    <div class="d-flex justify-content-end">
-      <button type="submit" class="btn btn-dark px-4"
-        [disabled]="saving || !isFormValid()">
+
+    <div class="d-flex justify-content-end gap-2 mt-4">
+      <button type="button" class="btn btn-secondary" (click)="onCancel()" [disabled]="saving">Cancelar</button>
+      <button type="submit" class="btn btn-primary" [disabled]="saving || form.invalid || canchasDetail.length === 0">
         @if (saving) {
-          <span class="spinner-border spinner-border-sm me-2"></span>
+          <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
         }
-        {{ saving ? 'Guardando...' : 'Guardar configuración' }}
+        Guardar
       </button>
     </div>
- 
   </form>
 </div>
- 

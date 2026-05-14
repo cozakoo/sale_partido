@@ -9,11 +9,12 @@ import java.util.Locale;
 
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
+
+import io.github.salepartido.api.domain.locales.model.Cancha;
+import io.github.salepartido.api.domain.locales.model.ConfiguracionDia;
+import io.github.salepartido.api.domain.locales.model.ConfiguracionHorario;
+import io.github.salepartido.api.domain.locales.model.Local;
 import net.datafaker.Faker;
-import io.github.salepartido.api.domain.canchas.model.Cancha;
-import io.github.salepartido.api.domain.canchas.model.ConfiguracionDia;
-import io.github.salepartido.api.domain.canchas.model.ConfiguracionHorario;
-import io.github.salepartido.api.domain.canchas.model.Local;
 
 @Service
 @Profile("dev")

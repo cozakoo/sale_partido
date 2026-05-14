@@ -1,8 +1,9 @@
-package io.github.salepartido.api.domain.canchas.model;
+package io.github.salepartido.api.domain.locales.model;
 
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -24,7 +25,7 @@ public class ConfiguracionHorario {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private String uuid;
+    private UUID uuid;
 
     @Column(name = "activo", nullable = false)
     private boolean activo;

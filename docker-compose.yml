@@ -31,6 +31,7 @@ services:
       - redis
     volumes:
     - ./backend:/app
+    - ~/.m2:/root/.m2
     working_dir: /app
     command: ./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
     

@@ -1,6 +1,6 @@
 import { ConfiguracionHorario } from "./configuracion-horario"
 
-export interface Cancha {
+export interface CanchaDetail {
   uuid: number
   nombre: string
   configuracionesHorarios: ConfiguracionHorario[]
