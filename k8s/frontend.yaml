@@ -16,7 +16,7 @@ spec:
       containers:
       - name: frontend
         image: salepartido-frontend:latest
-        imagePullPolicy:  IfNotPresent
+        imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 80
 ---

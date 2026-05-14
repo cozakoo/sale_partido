@@ -20,6 +20,7 @@ export class App implements OnInit {
   protected readonly title = signal('frontend');
   textInput = '';
   helloWorlds: HelloWorld[] = [];
+  private readonly BACKEND_URL = 'http://138.36.96.63:32328';
 
   constructor(private http: HttpClient) {}
 
@@ -28,14 +29,14 @@ export class App implements OnInit {
   }
 
   fetchHelloWorlds() {
-    this.http.get<HelloWorld[]>('http://localhost:32328/').subscribe((data) => {
+    this.http.get<HelloWorld[]>(`${this.BACKEND_URL}/`).subscribe((data) => {
       this.helloWorlds = data;
     });
   }
 
   submitText() {
     if (!this.textInput.trim()) return;
-    this.http.post('http://localhost:32328/', { text: this.textInput }).subscribe(() => {
+    this.http.post(`${this.BACKEND_URL}/`, { text: this.textInput }).subscribe(() => {
       this.textInput = '';
       this.fetchHelloWorlds();
     });

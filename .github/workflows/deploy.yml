@@ -3,12 +3,12 @@ name: Deploy Sale Partido to Production
 on:
   push:
     branches:
-      - main # O la rama que uses para producción
+      - main
 
 jobs:
   deploy:
-    runs-on: self-hosted # Esto hará que se ejecute en tu servidor Debian
-    
+    runs-on: self-hosted
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -21,7 +21,15 @@ jobs:
         run: |
           docker build -t salepartido-frontend:latest -f frontend/Dockerfile.prod ./frontend
 
-      - name: Deploy to Kubernetes
+      - name: Import images into containerd
+        run: |
+          docker save salepartido-backend:latest -o /tmp/backend.tar
+          docker save salepartido-frontend:latest -o /tmp/frontend.tar
+          sudo ctr -n k8s.io images import /tmp/backend.tar
+          sudo ctr -n k8s.io images import /tmp/frontend.tar
+          rm /tmp/backend.tar /tmp/frontend.tar
+
+      - name: Apply Kubernetes manifests
         run: |
           kubectl apply -f k8s/namespace.yaml
           kubectl apply -f k8s/configmap.yaml
@@ -30,4 +38,24 @@ jobs:
           kubectl apply -f k8s/redis.yaml
           kubectl apply -f k8s/backend.yaml
           kubectl apply -f k8s/frontend.yaml
-          kubectl apply -f k8s/ingress.yaml
+
+      - name: Restart deployments to use new images
+        run: |
+          kubectl rollout restart deployment/salepartido-backend -n salepartido
+          kubectl rollout restart deployment/salepartido-frontend -n salepartido
+          kubectl rollout status deployment/salepartido-backend -n salepartido --timeout=120s
+          kubectl rollout status deployment/salepartido-frontend -n salepartido --timeout=120s
+
+      - name: Copy built files directly to frontend pod
+        run: |
+          docker create --name temp-frontend salepartido-frontend:latest
+          docker cp temp-frontend:/usr/share/nginx/html/. /tmp/frontend-html
+          docker rm temp-frontend
+          POD=$(kubectl get pods -n salepartido -l app=frontend -o jsonpath='{.items[0].metadata.name}')
+          kubectl cp /tmp/frontend-html/. salepartido/$POD:/usr/share/nginx/html/
+          rm -rf /tmp/frontend-html
+
+      - name: Verify deployment
+        run: |
+          kubectl get pods -n salepartido
+          echo "✅ Deploy completado"
