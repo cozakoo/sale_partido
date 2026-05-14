@@ -1,0 +1,33 @@
+<div style="padding: 20px;">
+  <h1>Hello, {{title()}}</h1>
+
+  <div style="margin-bottom: 20px;">
+    <input type="text" [(ngModel)]="textInput" placeholder="Escribe un texto..." style="padding: 5px; margin-right: 10px;">
+    <button (click)="submitText()" class="btn btn-primary" style="padding: 5px 10px;">Enviar</button>
+  </div>
+
+  <table border="1" style="width: 100%; text-align: left; border-collapse: collapse;">
+    <thead>
+      <tr>
+        <th style="padding: 8px;">UUID</th>
+        <th style="padding: 8px;">Texto</th>
+        <th style="padding: 8px;">Fuente (Cache/DB)</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (item of helloWorlds; track item.uuid) {
+        <tr>
+          <td style="padding: 8px;">{{ item.uuid }}</td>
+          <td style="padding: 8px;">{{ item.text }}</td>
+          <td style="padding: 8px;">{{ item.source }}</td>
+        </tr>
+      } @empty {
+        <tr>
+          <td colspan="3" style="padding: 8px; text-align: center;">No hay datos</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>
+
+<router-outlet />

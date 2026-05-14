@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: salepartido-config
+  namespace: salepartido
+data:
+  SPRING_PORT: "8080"
+  SPRING_CORS: "http://138.36.96.63:31167,http://localhost:4200,http://localhost:31167,http://192.168.0.140:31167"
+  POSTGRES_DATASOURCE_URL: "jdbc:postgresql://salepartido-postgres:5432/salepartido_database"
+  POSTGRES_DATABASE_NAME: "salepartido_database"
+  POSTGRES_USER: "admin"
+  POSTGRES_PORT: "5432"
+  REDIS_HOST: "salepartido-redis"
+  REDIS_PORT: "6379"
+  REDIS_DATABASE: "0"
