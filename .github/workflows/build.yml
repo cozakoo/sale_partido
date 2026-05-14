@@ -25,8 +25,11 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
-      - name: Compile backend
-        run: cd backend && ./mvnw compile test-compile dependency:copy-dependencies --no-transfer-progress
+      - name: Build and test backend
+        run: cd backend && ./mvnw verify --no-transfer-progress
+
+      - name: Copy dependencies for SonarQube
+        run: cd backend && ./mvnw dependency:copy-dependencies -DincludeScope=compile --no-transfer-progress
 
       - uses: SonarSource/sonarqube-scan-action@v6
         env:
