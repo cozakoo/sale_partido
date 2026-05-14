@@ -1,9 +1,13 @@
-name: Build
+name: SonarQube Analysis
 
 on:
   push:
     branches:
-      - sonarqube  # deshabilitado en main, activar cuando SonarQube esté configurado
+      - main
+      - dev
+  pull_request:
+    branches:
+      - main
 
 jobs:
   build:
@@ -13,8 +17,18 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Build backend and run tests
+        run: cd backend && ./mvnw verify --no-transfer-progress
+
       - uses: SonarSource/sonarqube-scan-action@v6
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-          
