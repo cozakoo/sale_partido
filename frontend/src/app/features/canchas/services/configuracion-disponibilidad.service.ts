@@ -41,4 +41,9 @@ export class LocalService {
     return this.http.post<SaveCanchaConfiguracionHorarioResponse>(`${Constantes.ENDPOINT_LOCALES}/${uuid}/configuraciones-horarios`, request);
   }
 
+/*
+    getSemana(fechaInicio: Date): Observable<DiaCalendario[]> {
+    const params = new HttpParams()
+      .set('desde', fechaInicio.toISOString().split('T')[0]);
+    return this.http.get<DiaCalendario[]>(`${this.base}/semana`, { params }); }*/
 }

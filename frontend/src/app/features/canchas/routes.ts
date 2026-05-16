@@ -18,4 +18,11 @@ export const LOCALES_ROUTES: Routes = [
         m => m.ConfiguracionDisponibilidadPage
       ),
   },
+    {
+    path: 'calendario',  
+    loadComponent: () =>
+      import('./components/calendario/calendario.component').then(
+        m => m.CalendarioComponent
+      ),
+  },
 ];
