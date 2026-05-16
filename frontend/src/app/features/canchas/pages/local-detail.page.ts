@@ -26,6 +26,20 @@ import { LocalDetail } from '../models/local-detail';
         </div>
       </div>
       
+      <div class="card shadow-sm mb-4">
+        <div class="card-body">
+          <h5 class="card-title">Canchas</h5>
+          <ul class="list-group list-group-flush">
+            @for (cancha of canchas; track cancha.uuid || $index) {
+              <li class="list-group-item">{{ cancha.nombre || 'Cancha sin nombre' }}</li>
+            }
+            @if (!canchas || canchas.length === 0) {
+              <li class="list-group-item text-muted">No hay canchas registradas</li>
+            }
+          </ul>
+        </div>
+      </div>
+
       <button class="btn btn-outline-secondary" (click)="volver()">
         &laquo; Volver al listado
       </button>
@@ -39,6 +53,7 @@ export class DetalleLocalPage implements OnInit {
 
   localUuid: string | null = null;
   local: LocalDetail | any = null;
+  canchas: any[] = [];
 
   ngOnInit() {
     this.localUuid = this.route.snapshot.paramMap.get('uuid');
@@ -46,6 +61,9 @@ export class DetalleLocalPage implements OnInit {
     if (this.localUuid) {
       this.localService.getLocalDetail(this.localUuid).subscribe(data => {
         this.local = data;
+      });
+      this.localService.getCanchasDetailFromLocal(this.localUuid).subscribe(data => {
+        this.canchas = data;
       });
     }
   }

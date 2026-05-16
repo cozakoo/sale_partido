@@ -17,15 +17,6 @@ import { LocalSummary } from '../models/local-summary';
             <div class="card h-100 shadow-sm" style="cursor: pointer;" (click)="verDetalle(local.uuid)">
               <div class="card-body">
                 <h5 class="card-title">{{ local.nombre }}</h5>
-                <h6 class="card-subtitle mb-3 text-muted">Canchas disponibles:</h6>
-                <ul class="list-group list-group-flush">
-                  @for (cancha of local.canchas || []; track cancha.nombre || cancha.uuid) {
-                    <li class="list-group-item">{{ cancha.nombre }}</li>
-                  }
-                  @if (!local.canchas || local.canchas.length === 0) {
-                    <li class="list-group-item text-muted">No hay canchas registradas</li>
-                  }
-                </ul>
               </div>
               <div class="card-footer bg-transparent text-primary text-end border-top-0">
                 Ver detalle &raquo;
