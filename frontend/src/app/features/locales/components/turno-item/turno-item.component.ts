@@ -6,7 +6,7 @@ import { Turno } from '../../models/calendario.model';
   selector: 'app-turno-item',
   standalone: true,
   imports: [CommonModule],
-  templateUrl: './turno-item.html',   // o template inline
+  templateUrl: './turno-item.component.html',   // o template inline
   styleUrl: './turno-item.component.scss',
   encapsulation: ViewEncapsulation.None  // ← agregá esto
 

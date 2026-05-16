@@ -1,4 +1,4 @@
-import { ConfiguracionDia } from "../features/canchas/models/configuracion-dia";
+import { ConfiguracionDia } from "../features/locales/models/configuracion-dia";
 
 export class Constantes {
 

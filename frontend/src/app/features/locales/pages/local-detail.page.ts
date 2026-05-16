@@ -12,8 +12,11 @@ import { LocalDetail } from '../models/local-detail';
     <div class="container mt-4">
       <div class="d-flex justify-content-between align-items-center mb-4">
         <h2>{{ local?.nombre || 'Cargando local...' }}</h2>
-        <button class="btn btn-primary" (click)="configurarHorarios()">
+        <button class="btn btn-outline-primary" (click)="configurarHorarios()">
           Configurar horarios
+        </button>
+        <button class="btn btn-primary" (click)="verDisponibilidad()">
+          Ver disponibilidad
         </button>
       </div>
 
@@ -25,7 +28,8 @@ import { LocalDetail } from '../models/local-detail';
           </p>
         </div>
       </div>
-      
+    
+
       <div class="card shadow-sm mb-4">
         <div class="card-body">
           <h5 class="card-title">Canchas</h5>
@@ -46,7 +50,7 @@ import { LocalDetail } from '../models/local-detail';
     </div>
   `
 })
-export class DetalleLocalPage implements OnInit {
+export class LocalDetailPage implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private localService = inject(LocalService);
@@ -70,6 +74,10 @@ export class DetalleLocalPage implements OnInit {
 
   configurarHorarios() {
     this.router.navigate(['configuraciones-horarios'], { relativeTo: this.route });
+  }
+
+  verDisponibilidad() {
+    this.router.navigate(['calendario'], { relativeTo: this.route });
   }
 
   volver() {

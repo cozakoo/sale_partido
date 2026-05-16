@@ -1,18 +1,18 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
-import { CalendarioService } from '../../services/calendario.service';
-import { DiaCalendario } from '../../models/calendario.model';
-import { TurnoItemComponent } from '../turno-item/turno-item.component';
+import { TurnoItemComponent } from '../components/turno-item/turno-item.component';
+import { CalendarioDisponibilidadService } from '../services/calendario-disponibilidad.service';
+import { DiaCalendario } from '../models/calendario';
 
 @Component({
-  selector: 'app-calendario',
+  selector: 'app-calendario-disponibilidad',
   standalone: true,
   imports: [CommonModule, TurnoItemComponent],
-  templateUrl: './calendario.component.html',
-  styleUrl: './calendario.component.scss'
+  templateUrl: './calendario-disponibilidad.page.html',
+  styleUrl: './calendario-disponibilidad.page.scss'
 })
-export class CalendarioComponent implements OnInit {
-  private service = inject(CalendarioService);
+export class CalendarioDisponibilidadPage implements OnInit {
+  private service = inject(CalendarioDisponibilidadService);
 
   fechaInicio = this.getLunes(new Date());
   semana: DiaCalendario[] = [];

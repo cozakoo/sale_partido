@@ -20,15 +20,37 @@ import net.datafaker.Faker;
 @Profile("dev")
 public class SeedService {
 
+    private final Faker faker = new Faker(Locale.of("es"));
+
+    private static final String[] NOMBRES_LOCALES = {
+        "Complejo", "Club", "Arena", "Zona", "Center", "Sports"
+    };
+
+    private static final String[] TEMATICAS = {
+        "Gol", "Elite", "Norte", "Sur", "Patagonia", "Fútbol", "Punto", "Master"
+    };
+
+    private static final String[] TIPOS_CANCHA = {
+        "Sintética", "Techada", "Exterior", "Premium"
+    };
+
+    public String generarNombreLocal(Faker faker) {
+        return faker.options().option(NOMBRES_LOCALES)
+                + " "
+                + faker.options().option(TEMATICAS);
+    }
+
+    public String generarNombreCancha(Faker faker, int numero) {
+        return "Cancha " + numero + " - " + faker.options().option(TIPOS_CANCHA);
+    }
+
     public List<Local> generarLocales(int cantidad, int canchasPorLocal) { 
         
         List<Local> locales = new ArrayList<>();
 
-        Faker faker = new Faker(Locale.of("es"));
-
         for (int i = 0; i < cantidad; i++) {
             Local local = new Local();
-            local.setNombre(faker.name().fullName());
+            local.setNombre(generarNombreLocal(faker));
             local.setCanchas(generarCanchas(canchasPorLocal));
             locales.add(local);
         }
@@ -41,11 +63,9 @@ public class SeedService {
         
         List<Cancha> canchas = new ArrayList<>();
 
-        Faker faker = new Faker(Locale.of("es"));
-
         for (int i = 0; i < count; i++) {
             Cancha cancha = new Cancha();
-            cancha.setNombre(faker.name().fullName());
+            cancha.setNombre(generarNombreCancha(faker, i+1));
             cancha.setConfiguracionesHorarios(List.of(generarConfiguracionHorario()));
             canchas.add(cancha);
         }
@@ -54,8 +74,6 @@ public class SeedService {
     }
 
     public ConfiguracionHorario generarConfiguracionHorario() {
-
-        Faker faker = new Faker(Locale.of("es"));
 
         ConfiguracionHorario horario = new ConfiguracionHorario();
         horario.setActivo(true);
@@ -74,16 +92,12 @@ public class SeedService {
 
         List<ConfiguracionDia> configuracionesDias = new ArrayList<>();
 
-        Faker faker = new Faker(Locale.of("es"));
-
         for (DayOfWeek dayOfWeek : diasSemana) {
 
-            int horaInicio = faker.number().numberBetween(8, 22);
-
-            int horasDisponibles = faker.number().numberBetween(3, 14);
-
+            int horaInicio = faker.number().numberBetween(8, 14);
+            int horaFin = faker.number().numberBetween(16, 22);
             LocalTime inicio = LocalTime.of(horaInicio, 0);
-            LocalTime fin = inicio.plusHours(horasDisponibles);
+            LocalTime fin = LocalTime.of(horaFin, 0);
 
             ConfiguracionDia dia = new ConfiguracionDia();
 

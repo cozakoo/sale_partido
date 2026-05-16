@@ -28,7 +28,7 @@ import { LocalSummary } from '../models/local-summary';
     </div>
   `
 })
-export class ListadoLocalesPage implements OnInit {
+export class LocalesListPage implements OnInit {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private localService = inject(LocalService);

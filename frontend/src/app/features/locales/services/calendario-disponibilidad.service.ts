@@ -3,7 +3,7 @@ import { Observable, of } from 'rxjs';
 import { DiaCalendario } from '../models/calendario.model';
 
 @Injectable({ providedIn: 'root' })
-export class CalendarioService {
+export class CalendarioDisponibilidadService {
 
   private SEMANAS: Record<number, DiaCalendario[]> = {
     0: [

@@ -4,12 +4,12 @@ export const LOCALES_ROUTES: Routes = [
   {
     path: '',
     loadComponent: () =>
-      import('./pages/locales-list.page').then(m => m.ListadoLocalesPage)
+      import('./pages/locales-list.page').then(m => m.LocalesListPage)
   },
   {
     path: ':uuid',
     loadComponent: () =>
-      import('./pages/local-detail.page').then(m => m.DetalleLocalPage)
+      import('./pages/local-detail.page').then(m => m.LocalDetailPage)
   },
   {
     path: ':uuid/configuraciones-horarios',
@@ -18,11 +18,11 @@ export const LOCALES_ROUTES: Routes = [
         m => m.ConfiguracionDisponibilidadPage
       ),
   },
-    {
-    path: 'calendario',  
+  {
+    path: ':uuid/calendario',  
     loadComponent: () =>
-      import('./components/calendario/calendario.component').then(
-        m => m.CalendarioComponent
+      import('./components/calendario/calendario-disponibilidad.page').then(
+        m => m.CalendarioDisponibilidadPage
       ),
   },
 ];

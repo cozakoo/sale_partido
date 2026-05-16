@@ -5,7 +5,6 @@ import java.util.List;
 import org.springframework.context.annotation.Profile;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -26,17 +25,18 @@ public class DevCanchaController {
         this.localService = localService;
     }
 
-    @GetMapping("/locales/random/{cantidad}")
+    @GetMapping("/random/{cantidad}")
     public List<Local> generarLocalesRandom(
         @PathVariable("cantidad") int cantidad
     ) {
         return seedService.generarLocales(cantidad, 3);
     }
 
-    @PostMapping("/locales/poblar")
-    public void seed() {
+    @GetMapping("/poblar")
+    public String seed() {
         List<Local> canchas = seedService.generarLocales(50, 3);
         canchas.forEach(localService::guardarLocal);
+        return "Locales poblados con éxito";
     }
 
 
