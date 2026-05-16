@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
-import { DiaCalendario } from '../models/calendario.model';
+import { DiaCalendario } from '../models/calendario';
 
 @Injectable({ providedIn: 'root' })
 export class CalendarioDisponibilidadService {

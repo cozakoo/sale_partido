@@ -21,7 +21,7 @@ export const LOCALES_ROUTES: Routes = [
   {
     path: ':uuid/calendario',  
     loadComponent: () =>
-      import('./components/calendario/calendario-disponibilidad.page').then(
+      import('./pages/calendario-disponibilidad.page').then(
         m => m.CalendarioDisponibilidadPage
       ),
   },

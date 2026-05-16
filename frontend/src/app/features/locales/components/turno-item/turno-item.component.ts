@@ -1,6 +1,6 @@
 import { Component, Input, Output, EventEmitter, ViewEncapsulation } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Turno } from '../../models/calendario.model';
+import { Turno } from '../../models/calendario';
 
 @Component({
   selector: 'app-turno-item',
