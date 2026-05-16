@@ -2,6 +2,7 @@ import { Component, signal, OnInit } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { environment } from '../environments/environment';
 
 interface HelloWorld {
   uuid: string;
@@ -20,7 +21,7 @@ export class App implements OnInit {
   protected readonly title = signal('frontend');
   textInput = '';
   helloWorlds: HelloWorld[] = [];
-  private readonly BACKEND_URL = 'http://138.36.96.63:32328';
+  private readonly BACKEND_URL = environment.apiUrl; //'http://138.36.96.63:32328';
 
   constructor(private http: HttpClient) {}
 
