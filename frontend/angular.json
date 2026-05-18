@@ -44,7 +44,7 @@
 		],
               "budgets": [
                 {
-                  "type": "initial3yy",
+                  "type": "initial",
                   "maximumWarning": "500kB",
                   "maximumError": "1MB"
                 },
@@ -62,18 +62,6 @@
 				    "replace":"src/environments/environment.ts",
 				    "with":"src/environments/environment.test.ts"
 			    }
-		    ],
-		    "budgets": [
-			    {
-                 		"type": "initial3yy",
-                  		"maximumWarning": "500kB",
-                  		"maximumError": "1MB"
-			    },
-                	{
-	                  "type": "anyComponentStyle",
-        	          "maximumWarning": "4kB",
-                	  "maximumError": "8kB"
-                	}
 		    ],
 		    "outputHashing":"all"
 	    },
