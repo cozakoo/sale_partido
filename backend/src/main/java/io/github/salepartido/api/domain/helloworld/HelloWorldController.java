@@ -1,4 +1,4 @@
-package io.github.salepartido.api.domain;
+package io.github.salepartido.api.domain.helloworld;
 
 import java.util.List;
 import java.util.stream.Collectors;

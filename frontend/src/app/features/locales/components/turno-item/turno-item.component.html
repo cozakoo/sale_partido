@@ -1,0 +1,34 @@
+<div class="turno-row" (click)="turno.reserva && toggleDetalle.emit()" [class.clickable]="turno.reserva">
+  <span class="time">{{ turno.horaInicio }} – {{ turno.horaFin }}</span>
+  <span class="dot" [ngClass]="turno.estado"></span>
+  <div class="turno-info">
+    <div class="turno-main">{{ turno.deporte }} · {{ turno.espacioNombre }}</div>
+    <div class="turno-sub" *ngIf="turno.reserva">
+      Org: {{ turno.reserva.organizadorNombre }} ·
+      {{ turno.reserva.cantidadConfirmados }}/{{ turno.reserva.capacidadTotal }} confirmados
+    </div>
+  </div>
+  <span class="badge" [ngClass]="turno.estado">{{ turno.estado }}</span>
+  <span class="chevron" [class.open]="abierto" [style.visibility]="turno.reserva ? 'visible' : 'hidden'">›</span>
+</div>
+
+<div class="detalle" *ngIf="turno.reserva" [class.open]="abierto">
+  <div class="detalle-grid">
+    <div class="detalle-item">
+      <span class="detalle-label">organizador</span>
+      <span class="detalle-valor">{{ turno.reserva.organizadorNombre }}</span>
+    </div>
+    <div class="detalle-item">
+      <span class="detalle-label">estado evento</span>
+      <span class="detalle-valor">{{ turno.reserva.estadoEvento }}</span>
+    </div>
+    <div class="detalle-item">
+      <span class="detalle-label">confirmados</span>
+      <span class="detalle-valor">{{ turno.reserva.cantidadConfirmados }} / {{ turno.reserva.capacidadTotal }}</span>
+    </div>
+    <div class="detalle-item">
+      <span class="detalle-label">horario</span>
+      <span class="detalle-valor">{{ turno.horaInicio }} – {{ turno.horaFin }}</span>
+    </div>
+  </div>
+</div>

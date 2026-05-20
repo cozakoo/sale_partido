@@ -7,7 +7,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import io.github.salepartido.api.security.JwtAuthenticationFilter;
 
 @Configuration
@@ -16,6 +15,18 @@ public class SecurityConfiguration {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http
+            .cors(Customizer.withDefaults())
+            .csrf(csrf -> csrf.disable())
+            .sessionManagement(session -> session
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .authorizeHttpRequests(auth -> auth
+                .anyRequest().permitAll())
+            .httpBasic(basic -> basic.disable());
+
+        return http.build();
+
+        /* Comento esto porque en entorno de desarrollo aún no estamos usando autenticación 
         http
             .cors(Customizer.withDefaults())
             .csrf(csrf -> csrf.disable())
@@ -32,6 +43,7 @@ public class SecurityConfiguration {
             .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+        */
     }
 
     @Bean

@@ -1,0 +1,47 @@
+<div class="container-lg py-4">
+
+<div class="cal">
+  <div class="topbar">
+    <div class="nav-btns">
+      <button (click)="navegar(-1)">‹</button>
+      <button (click)="navegar(1)">›</button>
+    </div>
+    <button class="today-btn" (click)="irHoy()">hoy</button>
+    <span class="range-title">
+      {{ fechaInicio | date:'d MMM' }} – {{ fechaFin | date:'d MMM yyyy' }}
+    </span>
+  </div>
+
+  <div class="semana">
+    <div class="dia-card" *ngFor="let dia of semana; let i = index">
+
+      <div class="dia-header" (click)="toggleDia(i)">
+        <span class="dia-nombre">{{ dia.fecha | date:'EEEE' }}</span>
+        <span class="dia-fecha">{{ dia.fecha | date:'d MMM yyyy' }}</span>
+        <div class="dia-badges">
+          <span class="count-badge" *ngIf="dia.turnos.length > 0">
+            {{ dia.turnos.length }} turno{{ dia.turnos.length !== 1 ? 's' : '' }}
+          </span>
+          <span class="chevron" [class.open]="isDiaAbierto(i)">›</span>
+        </div>
+      </div>
+
+      <div class="turnos" [class.open]="isDiaAbierto(i)">
+        <ng-container *ngIf="dia.turnos.length > 0; else sinTurnos">
+          <ng-container *ngFor="let turno of dia.turnos">
+            <app-turno-item
+              [turno]="turno"
+              [abierto]="isTurnoAbierto(turno.id)"
+              (toggleDetalle)="toggleTurno(turno.id)"
+            />
+          </ng-container>
+        </ng-container>
+        <ng-template #sinTurnos>
+          <div class="sin-turnos">Sin turnos este día</div>
+        </ng-template>
+      </div>
+
+    </div>
+  </div>
+</div>
+</div>
