@@ -1,0 +1,39 @@
+name: SonarQube Analysis
+
+on:
+  push:
+    branches:
+      - main
+      - pre_prod
+      - dev
+  pull_request:
+    branches:
+      - main
+      - pre_prod
+
+jobs:
+  build:
+    name: Build and analyze
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Build and test backend
+        run: cd backend && ./mvnw verify --no-transfer-progress
+
+      - name: Copy dependencies for SonarQube
+        run: cd backend && ./mvnw dependency:copy-dependencies -DincludeScope=compile --no-transfer-progress
+
+      - uses: SonarSource/sonarqube-scan-action@v6
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
