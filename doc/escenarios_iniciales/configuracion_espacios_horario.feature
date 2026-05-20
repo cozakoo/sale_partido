@@ -8,30 +8,37 @@ Característica: Configuración de disponibilidad y duración de turnos
 
   Antecedentes:
     Dado que existe una cancha con número 1 en el sistema
-    Y el propietario ha iniciado sesión en el panel de administración
+    Y el propietario ha iniciado sesión
 
   Escenario: Asignación de horario global de disponibilidad
     Cuando el propietario selecciona la opción de asignar horario global de "Lunes" a "Lunes"
     Y define la franja horaria de "10:00" a "00:00"
     Entonces la cancha debe figurar como "Disponible" en ese rango horario siempre que no existan turnos previos
 
-  Escenario: Configuración de la duración estándar del turno
-    Cuando el propietario establece la duración estándar del turno en "60" minutos
-    Entonces en la información detallada de la cancha se debe visualizar que la duración es de "60 minutos"
+  Escenario: Aplicar configuración de horario a todas las canchas
+    Dado que el propietario está configurando el horario de una cancha
+    Cuando presiona el botón para aplicar ese horario al resto de las canchas
+    Entonces el sistema debe pedir confirmación de la acción
+    Y al confirmar, el horario debe aplicarse a todas las canchas
 
-  Escenario: Reserva exitosa de un turno dentro del horario habilitado
-    Dado que la cancha tiene una duración de turno de "60" minutos
-    Y tiene un horario habilitado de "Lunes a Lunes" de "10:00" a "00:00"
-    Cuando un usuario selecciona y confirma el botón de tomar turno para las "11:00"
-    Entonces el turno debe ser asignado exitosamente al usuario
-    Y el turno de las "11:00" ya no debe estar disponible para otros usuarios
+  Escenario: Configuración de la duración del turno mediante lista predefinida
+    Cuando el propietario va a establecer la duración de los turnos
+    Entonces solo debe poder seleccionar opciones de una lista predefinida de "30", "60", "90" o "120" minutos
+    Y el campo no debe permitir entrada libre de texto, para que sea simple de validar
 
-  Escenario: Restricción de reserva en días marcados como cerrados
-    Cuando el propietario selecciona el día "Lunes" y marca la opción "Cerrado"
-    Entonces el sistema debe impedir que el usuario seleccione el día "Lunes" para tomar un turno
+  Escenario: Validación del formato de hora en 24 horas
+    Cuando el propietario ingresa o visualiza la hora de apertura o cierre
+    Entonces el formato de la hora debe ser en 24 hs (no am/pm)
 
-  Escenario: Prioridad de horario individual sobre horario global (Excepción)
-    Dado que la cancha tiene un horario global de "10:00" a "00:00"
-    Cuando el propietario modifica el horario específico del día "Martes" de "10:00" a "16:00"
-    Y un usuario intenta solicitar un turno el día "Martes" a las "17:00"
-    Entonces el sistema debe informar al usuario que la cancha se encuentra cerrada en ese horario
+  Escenario: Validación de hora de apertura menor a hora de cierre
+    Cuando el propietario define la franja horaria de un día
+    Entonces la hora de apertura debe ser menor a la hora de cierre
+
+  Escenario: Incrementos de tiempo en saltos de 30 minutos
+    Cuando el propietario ajusta los valores de horario o duración de turno
+    Entonces el tiempo debe incrementar en saltos de 30 minutos, para mantener la coherencia de turnos y horarios
+
+  Escenario: Advertencia cuando el horario no es coherente con la duración de turno
+    Cuando el propietario define un horario y una duración de turno
+    Y una cantidad entera de turnos no ocupa todo el horario definido, de manera que sobran minutos
+    Entonces el sistema debe advertir que el horario no es del todo coherente con la duración de turno
