@@ -54,3 +54,4 @@ yarn-error.log*
 **/node_modules/
 *.pid
 /runtime/
+backend/error-log.txt
