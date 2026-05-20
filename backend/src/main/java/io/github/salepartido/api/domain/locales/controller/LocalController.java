@@ -61,34 +61,3 @@ public class LocalController {
     }
 }
 
-
-
-/*
-
-cancha: ConfiguracionHorario[
-    {
-        activo: true,
-        configuracionesDias: ConfiguracionDia[
-            {
-                dia: Lunes
-                horaInicio: 10:00
-                horaFin: 20:00
-            },
-            {
-                dia: Martes
-                horaInicio: 10:00
-                horaFin: 20:00
-            },
-            ...
-        ]
-    },
-    ...
-    
-]
-
-
-
-*/
-
-
-
