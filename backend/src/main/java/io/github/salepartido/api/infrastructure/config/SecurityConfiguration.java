@@ -14,13 +14,14 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import io.github.salepartido.api.security.JwtAuthenticationFilter;
 
 import java.util.Arrays;
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfiguration {
 
     // Lee la variable SPRING_CORS inyectada desde tu backend.yaml
-    @Value("${SPRING_CORS:http://localhost:4200}")
+    @Value("${spring.cors.allowed.origins:}")
     private String allowedOrigins;
 
     @Bean
@@ -42,13 +43,14 @@ public class SecurityConfiguration {
         CorsConfiguration configuration = new CorsConfiguration();
         
         // Separa la cadena por comas para transformar las IPs del ConfigMap en una lista
-        String[] origins = allowedOrigins.split(",");
-        configuration.setAllowedOrigins(Arrays.asList(origins));
+        List<String> origins = Arrays.asList( allowedOrigins.split(",") );
+        configuration.setAllowedOrigins(origins);
         
         // Métodos permitidos para interactuar con Angular sin restricciones
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Cache-Control", "Content-Type"));
+        configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);
+	configuration.setMaxAge(3600L);
         
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
