@@ -21,7 +21,7 @@ import java.util.List;
 public class SecurityConfiguration {
 
     // Lee la variable SPRING_CORS inyectada desde tu backend.yaml
-    @Value("${spring.cors.allowed.origins:}")
+    @Value("${SPRING_CORS:http://localhost:4200}")
     private String allowedOrigins;
 
     @Bean
