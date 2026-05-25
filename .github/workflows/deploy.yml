@@ -56,6 +56,9 @@ jobs:
             sed -i "s/31167/31168/g" k8s/configmap.yaml
             sed -i "s/32328/32329/g" k8s/configmap.yaml
           fi
+          
+          echo "--- backend.yaml service section ---"
+          grep -A5 "nodePort" k8s/backend.yaml || echo "nodePort not found"
 
       - name: Apply Kubernetes manifests
         run: |
