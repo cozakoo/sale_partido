@@ -1,0 +1,45 @@
+#!/bin/bash
+
+# Git hook: valida que los commits sigan el formato
+#
+# Formatos válidos:
+# - feat(E4-H08): descripción
+# - fix(E4-H08): descripción
+# - test(E4-H08): descripción
+# - docs(E4-H08): descripción
+# - refactor(E4-H08): descripción
+# - chore(E4-H08): descripción
+#
+# Este hook se ejecuta automáticamente antes de crear el commit
+
+COMMIT_MSG=$(cat "$1")
+
+# Patrón esperado: tipo(E#-H##): descripción
+PATTERN="^(feat|fix|test|docs|refactor|chore|perf|ci)\(E[1-9]-H[0-9]{2}\):"
+
+if ! echo "$COMMIT_MSG" | grep -qE "$PATTERN"; then
+  echo ""
+  echo "❌ Commit message inválido!"
+  echo ""
+  echo "Formato requerido:"
+  echo "  tipo(E#-H##): descripción"
+  echo ""
+  echo "Ejemplo válido:"
+  echo "  feat(E4-H08): crear local con validaciones"
+  echo ""
+  echo "Tipos permitidos:"
+  echo "  - feat: Nueva funcionalidad"
+  echo "  - fix: Corrección de bug"
+  echo "  - test: Tests"
+  echo "  - docs: Documentación"
+  echo "  - refactor: Refactoring"
+  echo "  - chore: Mantenimiento"
+  echo "  - perf: Performance"
+  echo "  - ci: CI/CD"
+  echo ""
+  echo "Épicas válidas: E1-H01 hasta E9-H99"
+  echo ""
+  exit 1
+fi
+
+exit 0

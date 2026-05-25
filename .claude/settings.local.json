@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(./mvnw clean:*)",
+      "Bash(mvn clean:*)",
+      "Bash(chmod +x scripts/*.sh scripts/git-hooks/commit-msg)",
+      "Bash(node -c scripts/sync-github-projects.js)",
+      "Bash(node -c scripts/validate-hu.js)",
+      "Bash(bash -n scripts/create-branch.sh)",
+      "Bash(bash -n scripts/setup-hooks.sh)",
+      "Bash(bash -n scripts/git-hooks/commit-msg)",
+      "Bash(chmod +x /c/Users/marti/Documents/Proyectos/sale_partido/scripts/init.sh)",
+      "Bash(bash -n scripts/init.sh)",
+      "Bash(node:*)",
+      "Bash(npm install:*)",
+      "Bash(git add:*)",
+      "Bash(cat:*)"
+    ]
+  }
+}

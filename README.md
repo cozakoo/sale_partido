@@ -6,444 +6,293 @@
 
 ---
 
-## 📋 Descripción
+## 📋 Contenido
 
-**Sale Partido** es una plataforma integral que conecta jugadores, propietarios de espacios deportivos y organizadores de eventos. Permite descubrir espacios, reservar, participar en eventos y competencias, todo con un sistema de notificaciones y pagos integrado.
-
-### Características principales
-
-- **Exploración:** Descubrimiento y búsqueda de espacios deportivos con filtros y vista en mapa
-- **Reservas:** Sistema completo de reserva, confirmación y cancelación
-- **Eventos:** Creación y gestión de eventos deportivos
-- **Participación:** Inscripción, reseñas y calificaciones
-- **Competencias:** Torneos, rankings y tablas de posiciones
-- **Notificaciones:** Sistema de alertas por push, email y preferencias
-- **Pagos:** Cobros integrados, transferencias y reconciliación
-- **Analytics:** Estadísticas, reportes y sugerencias automáticas
+1. [Quick Start)](#-quick-start-5-min)
+2. [Descripción](#descripción)
+3. [Comenzar](#comenzar)
+4. [Estructura](#estructura)
+5. [Agentes (IAs)](#agentes--ias)
+6. [Épicas](#épicas)
+7. [Documentación](#documentación)
 
 ---
 
-## 🛠️ Stack Técnico
+## Quick Start (5 min)
 
-| Capa | Tecnología |
-|------|-----------|
-| **Backend** | Java 21 + Spring Boot 3.x + Maven |
-| **Frontend** | TypeScript 5.x + Angular 17+ + SCSS + TailwindCSS |
-| **Base de Datos** | PostgreSQL 15+ |
-| **Caché** | Redis 7+ |
-| **Autenticación** | JWT (HS256) + Spring Security |
-| **API** | REST + Swagger/OpenAPI |
-| **Contenedores** | Docker + Docker Compose |
-| **CI/CD** | GitHub Actions |
-| **Testing** | JUnit 5 + Jasmine/Karma + Playwright (E2E) |
-| **Calidad** | SonarQube + Checkstyle + ESLint |
-
----
-
-## 🚀 Quick Start
-
-### Requisitos previos
-
-- Docker & Docker Compose
-- Git
-- Java 21+ (opcional si usas Docker)
-- Node.js 18+ (opcional si usas Docker)
-
-### Opción 1: Con Docker (recomendado)
+**¿Primero aquí?** → Lee `QUICK_START.md`
 
 ```bash
-# Clonar repositorio
-git clone https://github.com/tu-org/sale-partido.git
+./scripts/init.sh                                      # Setup automático
+node scripts/sync-github-projects.js                  # Descarga HUs
+./scripts/create-branch.sh E4-H08 mi-feature          # Crea rama
+# [Codifica con IA usando agentes/backend.md o frontend.md]
+git commit -m "feat(E4-H08): descripcion"              # Git hook valida
+```
+
+---
+
+## Descripción
+
+Conecta jugadores, propietarios de espacios y organizadores de eventos. Permite descubrir espacios, reservar, participar en eventos, todo integrado con notificaciones y pagos.
+
+**Características:**
+- Exploración + búsqueda con mapa
+- Reservas, confirmación, cancelación
+- Eventos deportivos
+- Participación, reseñas, calificaciones
+- Competencias, rankings
+- Notificaciones push/email
+- Pagos integrados
+- Analytics
+
+---
+
+## Comenzar
+
+### Setup Inicial (UNA sola vez)
+
+```bash
+# Instala git hooks, configura .env, e instala dependencias
+./scripts/init.sh
+
+# Luego: edita .env y agrega tu GITHUB_TOKEN
+# Referencia: ./scripts/README.md
+```
+
+---
+
+### Opción 1: Docker (recomendado)
+
+```bash
+git clone https://github.com/cozakoo/sale-partido.git
 cd sale-partido
-
-# Levantar stack completo
 docker-compose up -d
-
-# Verificar servicios
-docker-compose ps
 ```
 
-Servicios disponibles:
-- **Backend**: http://localhost:8080
-- **Frontend**: http://localhost:4200
-- **Swagger API**: http://localhost:8080/swagger-ui.html
-- **PostgreSQL**: localhost:5432
-- **Redis**: localhost:6379
+Accede:
+- Backend: http://localhost:8080
+- Frontend: http://localhost:4200
+- Swagger: http://localhost:8080/swagger-ui.html
 
-### Opción 2: Setup local
+### Opción 2: Local
 
-#### Backend
-
+**Backend:**
 ```bash
-cd sale-partido-backend
-
-# Instalar dependencias
+cd backend
 ./mvnw clean install
-
-# Ejecutar en dev
-./mvnw spring-boot:run -Dspring-boot.run.arguments="--spring.profiles.active=dev"
+./mvnw spring-boot:run
+# http://localhost:8080
 ```
 
-Backend estará en `http://localhost:8080`
-
-#### Frontend
-
+**Frontend:**
 ```bash
-cd sale-partido-frontend
-
-# Instalar dependencias
+cd frontend
 npm install
-
-# Ejecutar en dev
 ng serve
+# http://localhost:4200
 ```
-
-Frontend estará en `http://localhost:4200`
 
 ---
 
-## 📁 Estructura del Proyecto
+## Estructura
 
 ```
 sale-partido/
-├── sale-partido-backend/               # Backend Spring Boot
-│   ├── src/main/java/com/saleww/
-│   │   ├── domain/                     # DDD: modelos por épica
-│   │   │   ├── exploration/            # E1: Búsqueda espacios
-│   │   │   ├── participation/          # E2: Participación
-│   │   │   ├── events/                 # E3: Eventos
-│   │   │   ├── spaces/                 # E4: Gestión espacios
-│   │   │   ├── reservations/           # E5: Reservas
-│   │   │   ├── notifications/          # E6: Notificaciones
-│   │   │   ├── payments/               # E7: Pagos
-│   │   │   ├── competitions/           # E8: Competencias
-│   │   │   └── analytics/              # E9: Analítica
-│   │   ├── shared/                     # Código común
-│   │   ├── infrastructure/             # Integraciones externas
-│   │   └── config/                     # Configuración
-│   ├── src/test/                       # Tests unitarios e integración
-│   ├── pom.xml
-│   └── Dockerfile
-│
-├── sale-partido-frontend/              # Frontend Angular
-│   ├── src/app/
-│   │   ├── core/                       # Guards, interceptors, servicios críticos
-│   │   ├── shared/                     # Componentes reutilizables
-│   │   └── modules/                    # Features por épica
-│   ├── e2e/                            # Tests E2E con Playwright
-│   ├── package.json
-│   ├── angular.json
-│   └── Dockerfile
-│
-├── infra/                              # Infraestructura
-│   ├── docker-compose.yml              # Dev local
-│   ├── docker-compose.prod.yml         # Producción
-│   └── k8s/                            # Manifiestos Kubernetes (opcional)
-│
-├── doc/
-│   ├── CLAUDE.md                       # Guía completa del proyecto
-│   ├── ARCHITECTURE.md                 # Decisiones técnicas (ADR)
-│   ├── API.md                          # Documentación API
-│   └── DEPLOYMENT.md                   # Guía de despliegue
-│
-└── README.md                           # Este archivo
+├── backend/                    # Spring Boot (Java 21)
+│   └── domain/[epic]/         # DDD por épica
+├── frontend/                   # Angular 20 (TypeScript)
+│   └── src/app/features/      # Features por épica
+├── k8s/                        # Kubernetes manifests
+├── agentes/                    # Instrucciones para IAs
+│   ├── backend.md             # Guía Backend IA
+│   ├── frontend.md            # Guía Frontend IA
+│   ├── infra.md               # Guía DevOps IA
+│   ├── API_CONTRACTS.md       # Contrato Backend ↔ Frontend
+│   └── ONBOARDING.md          # Cómo empezar a codificar
+├── doc/                        # Documentación técnica
+│   ├── Decisiones.md          # Decisiones arquitectónicas
+│   ├── Convenciones_de_branching.md
+│   ├── STACK.md               # Stack técnico detallado
+│   ├── TESTING.md             # Estrategia de testing
+│   └── TROUBLESHOOTING.md     # Errores comunes
+├── SETUP.md                    # Setup rápido
+└── docker-compose.yml         # Local stack
 ```
 
 ---
 
-## ✅ Testing
+## 🤖 Agentes (IAs)
 
-### Ejecutar tests
+**Copia los agentes en tu IA (Claude, ChatGPT, Gemini) antes de codificar.**
 
-#### Backend
+| Agente | Archivo | Especialidad |
+|--------|---------|--------------|
+| **Backineitor** ⚙️ | `/agentes/backend.md` | Backend: Java 21, Spring Boot |
+| **Frontalyx** 🎨 | `/agentes/frontend.md` | Frontend: Angular 20, TypeScript |
+| **Kuberator** ☸️ | `/agentes/infra.md` | DevOps: Kubernetes, CI/CD |
+| **Testeador** ✅ | `/agentes/qa.md` | QA: Testing, cobertura |
 
+**Workflow:**
+1. Abre agente correspondiente
+2. Copia TODO el contenido
+3. Pégalo en tu IA
+4. Pide que implemente tu feature
+5. Corre tests localmente
+6. Commit + PR
+
+Ver: `/agentes/ONBOARDING.md`
+
+---
+
+## Épicas
+
+| # | Nombre | Módulo | Qué incluye |
+|---|--------|--------|------------|
+| **E1** | Exploración | exploration | Búsqueda, filtros, mapa |
+| **E2** | Participación | participation | Inscripción, reseñas |
+| **E3** | Eventos | events | Crear, editar eventos |
+| **E4** | Espacios | locales | ABM, configuración |
+| **E5** | Reservas | reservations | Reserva, cancelación |
+| **E6** | Notificaciones | notifications | Push, email |
+| **E7** | Pagos | payments | Cobros, transferencias |
+| **E8** | Competencias | competitions | Torneos, rankings |
+| **E9** | Analytics | analytics | Reportes |
+
+---
+
+## Documentación
+
+### 🚀 Para empezar
+- **[SETUP.md](SETUP.md)** — Setup rápido (1 minuto)
+- **[/agentes/ONBOARDING.md](/agentes/ONBOARDING.md)** — Cómo desarrollar
+
+### 🏗️ Arquitectura y decisiones
+- **[/doc/architecture/Decisiones.md](/doc/architecture/Decisiones.md)** — Decisiones técnicas tomadas
+- **[/doc/architecture/STACK.md](/doc/architecture/STACK.md)** — Stack técnico (Java 21, Angular 20, PostgreSQL, K8s)
+- **[/agentes/API_CONTRACTS.md](/agentes/API_CONTRACTS.md)** — API endpoints y DTOs
+
+### 💻 Desarrollo
+- **[/agentes/backend.md](/agentes/backend.md)** — Guía Backend (copia en tu IA)
+- **[/agentes/frontend.md](/agentes/frontend.md)** — Guía Frontend (copia en tu IA)
+- **[/doc/workflow/Convenciones_de_branching.md](/doc/workflow/Convenciones_de_branching.md)** — Git workflow, commits
+- **[/doc/workflow/GITHUB_PROJECTS.md](/doc/workflow/GITHUB_PROJECTS.md)** — GitHub Projects, HUs, aceptance criteria
+
+### ✅ Testing
+- **[/doc/workflow/TESTING.md](/doc/workflow/TESTING.md)** — Unit, integration, E2E tests
+  - JUnit 5 + Mockito (backend)
+  - Jasmine + Playwright (frontend)
+  - Cobertura: 80% (backend), 75% (frontend)
+
+### 🔧 DevOps e Infraestructura
+- **[/agentes/infra.md](/agentes/infra.md)** — Kubernetes, containerd, CI/CD
+- **[/doc/guides/TROUBLESHOOTING.md](/doc/guides/TROUBLESHOOTING.md)** — Errores y soluciones
+
+### 📊 Métricas y Calidad
+- Coverage: ≥80% (backend), ≥75% (frontend)
+- Code duplication: <3%
+- API latency P95: <200ms
+- Frontend bundle: <300KB gzip
+- Uptime: >99.5% producción
+
+---
+
+## Quick Commands
+
+### Backend
 ```bash
-cd sale-partido-backend
-
-# Tests unitarios
-./mvnw test
-
-# Tests unitarios + integración
-./mvnw verify
-
-# Verificar cobertura
-./mvnw test jacoco:report
-
-# SonarQube
-./mvnw sonar:sonar
+cd backend
+./mvnw clean install      # Instalar deps
+./mvnw spring-boot:run    # Ejecutar
+./mvnw verify             # Tests + SonarQube
+./mvnw test jacoco:report # Coverage
 ```
 
-**Cobertura requerida:** ≥80% código de negocio
-
-#### Frontend
-
+### Frontend
 ```bash
-cd sale-partido-frontend
-
-# Tests unitarios
-npm run test
-
-# Tests E2E
-npm run e2e
-
-# Lint + Prettier
-npm run lint
+cd frontend
+npm install        # Instalar deps
+ng serve           # Ejecutar
+npm run test       # Tests
+npm run e2e        # E2E tests (Playwright)
+npm run lint       # Linting
 ```
 
-**Cobertura requerida:** ≥75% código de negocio
-
----
-
-## 🔄 Flujo de Trabajo
-
-### Ramas
-
-```
-main (producción)
-├── staging (pre-producción)
-└── dev (integración)
-    └── feature/[E#-H##]-descripcion (trabajo diario)
-```
-
-### Proceso de desarrollo
-
-1. **Crear rama feature**
-   ```bash
-   git checkout -b feature/E1-H03-vista-mapa
-   ```
-
-2. **Desarrollar con TDD**
-   - Escribir test primero
-   - Implementar lo mínimo para pasar
-   - Refactorizar
-
-3. **Commit descriptivo**
-   ```bash
-   git commit -m "[E1-H03] Vista en mapa
-
-   - Implementar MapComponent con Leaflet
-   - Tests: 85% coverage
-   - Integración con SpaceService"
-   ```
-
-4. **Push y Pull Request**
-   ```bash
-   git push origin feature/E1-H03-vista-mapa
-   ```
-   - Descripción clara de cambios
-   - Enlace a issue/HU en Trello
-   - Screenshots si es UI
-
-5. **Code Review**
-   - Mínimo 2 aprobaciones
-   - CI/CD debe pasar ✅
-
-6. **Merge a dev**
-   - Se dispara CD automático a ambiente dev
-
----
-
-## 📊 Épicas del Proyecto
-
-| Épica | Nombre | Descripción |
-|-------|--------|-------------|
-| **E1** | Exploración | Búsqueda de espacios, filtrado, mapa |
-| **E2** | Participación | Inscripción, reseñas, calificaciones |
-| **E3** | Org. Eventos | Creación y gestión de eventos |
-| **E4** | Gestión Espacios | ABM espacios, configuración |
-| **E5** | Reservaciones | Reserva, confirmación, cancelación |
-| **E6** | Notificaciones | Push, email, preferencias |
-| **E7** | Pagos | Cobros, transferencias, reconciliación |
-| **E8** | Competencias | Torneos, rankings, resultados |
-| **E9** | Analytics | Estadísticas y reportes |
-
----
-
-## 🔐 Seguridad
-
-### Authentication
-
-- **JWT (HS256)** con expiración de 1 hora
-- Tokens en `sessionStorage` (NO localStorage)
-- Refresh tokens opcionales (httpOnly cookies)
-
-### Protecciones
-
-- ✅ Rate limiting: 100 req/min por IP
-- ✅ CORS: Solo orígenes conocidos
-- ✅ Input validation en todos los endpoints
-- ✅ SQL injection prevention (JPA parameterized queries)
-- ✅ XSS prevention (Angular escapa HTML)
-- ✅ HTTPS obligatorio en producción
-- ✅ OWASP ZAP escaneo en CI/CD
-
----
-
-## 📈 Métricas
-
-### Técnicas
-
-| Métrica | Objetivo |
-|---------|----------|
-| **Coverage** | ≥80% (backend), ≥75% (frontend) |
-| **Code Duplication** | <3% |
-| **Code Smells** | <10 major issues |
-| **API Latency P95** | <200ms |
-| **Frontend Bundle** | <300KB gzip |
-| **Uptime** | >99.5% producción |
-| **Error Rate** | <0.1% |
-
-### Negocio
-
-| Métrica | Objetivo |
-|---------|----------|
-| Usuarios activos mensuales | +20% por sprint |
-| Tasa de participación | >60% |
-| NPS (Net Promoter Score) | >50 |
-| Retención mes 2 | >40% |
-
----
-
-## 🐛 Troubleshooting
-
-### CI/CD falla
-
+### Docker
 ```bash
-# Ejecutar localmente
-./mvnw clean verify          # Backend
-npm run test && npm run lint # Frontend
+docker-compose up -d   # Levantar stack
+docker-compose ps      # Ver servicios
+docker-compose logs    # Ver logs
 ```
 
-### Puerto ocupado
-
+### Git
 ```bash
-# Backend (8080)
-lsof -i :8080
-kill -9 <PID>
-
-# Frontend (4200)
-ng serve --port 4300
-```
-
-### BD sin datos de test
-
-```bash
-# Reimportar datos
-docker-compose exec postgres psql -U postgres -d sale_partido -f /docker-entrypoint-initdb.d/init.sql
+git checkout -b feature/E4-H08-crear-local
+git add .
+git commit -m "feat(E4): crear local con validaciones"
+git push origin feature/E4-H08-crear-local
 ```
 
 ---
 
-## 📚 Documentación
+## Stack (Resumen)
 
-- **[ARCHITECTURE.md](doc/ARCHITECTURE.md)** — Decisiones técnicas (ADR)
-- **[API.md](doc/API.md)** — Endpoints REST (Swagger auto-generated)
-- **[DEPLOYMENT.md](doc/DEPLOYMENT.md)** — Guía de despliegue a cada ambiente
-- **[CONTRIBUTING.md](doc/CONTRIBUTING.md)** — Cómo contribuir
-- **[CLAUDE.md](doc/CLAUDE.md)** — Guía completa para devs
+| Capa | Tech |
+|------|------|
+| **Backend** | Java 21 + Spring Boot 4.0.6 + Maven |
+| **Frontend** | TypeScript 5.9 + Angular 20.3 + Bootstrap 5 |
+| **DB** | PostgreSQL 15+ |
+| **Cache** | Redis 7+ |
+| **Auth** | JWT (HS256) + Spring Security |
+| **Testing** | JUnit 5 + Mockito + Jasmine + Playwright |
+| **CI/CD** | GitHub Actions |
+| **Infra** | Docker + Kubernetes 1.31.14 + containerd |
 
----
-
-## 🤖 Agentes & Contexto del Proyecto
-
-Para que los agentes (Claude o automatizaciones) tengan contexto completo del proyecto, deben consumir:
-
-### Archivo de referencia: `doc/CLAUDE.md`
-
-El archivo **`doc/CLAUDE.md`** contiene la **fuente única de verdad** del proyecto:
-
-```markdown
-- Arquitectura técnica y stack decisivo
-- Estructura de directorios (backend, frontend, infra)
-- 9 épicas del proyecto (E1-E9)
-- Flujo de desarrollo (sprints, ramas, PRs)
-- Patrones arquitectónicos (capas, DDD)
-- Testing strategy (pirámide, cobertura)
-- Seguridad mínima (JWT, protecciones)
-- Métricas y monitoreo
-- Deployment strategy
-- Checklist y comandos rápidos
-```
-
-### Cómo usar para agentes
-
-1. **Lectura inicial**: Cualquier agente debe leer `doc/CLAUDE.md` para entender:
-   - Estructura del proyecto
-   - Épica a desarrollar
-   - Patrones a seguir
-   - Convenciones de código
-
-2. **Contexto de HU**: Cuando se trabaja en una Historia de Usuario (HU):
-   - Identificar épica (`E1`, `E2`, etc.)
-   - Validar criteria con formato INVEST
-   - Seguir patrón DDD + capas
-   - Aplicar testing strategy (80%+ coverage)
-
-3. **Validaciones antes de commit**:
-   - ✅ Branch naming: `feature/[E#-H##]-descripcion`
-   - ✅ Tests: `./mvnw test` + `npm run test`
-   - ✅ Lint: sin errores
-   - ✅ Commit message: `[E#-H##] Descripción`
-
-### Secciones clave a consumir
-
-| Sección | Para qué | Agentes relevantes |
-| --- | --- | --- |
-| **ARQUITECTURA TÉCNICA** | Entender stack | Backend/Frontend devs |
-| **ESTRUCTURA DIRECTORIOS** | Dónde ir | Cualquiera |
-| **ÉPICAS (E1-E9)** | Contexto negocio | Product/QA |
-| **PATRONES ARQUITECTÓNICOS** | Cómo diseñar | Architects |
-| **TESTING STRATEGY** | Qué testear | QA/devs |
-| **FLUJO DESARROLLO** | Sprint & PRs | DevOps/leads |
-| **SEGURIDAD MÍNIMA** | Qué validar | Security reviewers |
+Detalles: ver **[/doc/architecture/STACK.md](/doc/architecture/STACK.md)**
 
 ---
 
-## 🤝 Contribuir
+## Checklist antes de hacer push
 
-### Pasos
-
-1. Fork el repo
-2. Crea rama feature: `git checkout -b feature/E1-H03-...`
-3. Commit tus cambios: `git commit -m "[E1-H03] Descripción"`
-4. Push a la rama: `git push origin feature/...`
-5. Abre Pull Request a `dev`
-
-### Checklist antes de push
-
-- [ ] Tests ejecutan ✅
+- [ ] Leí `/agentes/ONBOARDING.md`
+- [ ] Usé el agente correspondiente (backend/frontend/infra)
+- [ ] Tests pasan: `./mvnw verify` o `npm run test`
 - [ ] Coverage ≥80% (líneas nuevas)
-- [ ] Lint sin errores
-- [ ] Build exitoso
-- [ ] Commits limpios y descriptivos
+- [ ] Sin linting errors
+- [ ] Branch: `feature/E[#]-H[##]-descripcion`
+- [ ] Commit: Conventional Commits + épica
 - [ ] PR con descripción clara
-- [ ] 2+ code reviews aprobadas
 
 ---
 
-## 📞 Contacto & Equipo
+## Troubleshooting
 
-- **Tech Lead**: Coordinación arquitectónica
-- **Backend Devs**: Desarrollo backend + tests
-- **Frontend Devs**: Desarrollo frontend + responsividad
-- **QA/Testers**: Testing manual + edge cases
-- **DevOps**: CI/CD + infraestructura
-- **Product Owner**: Priorización + requisitos
+**¿Algo no funciona?** Ver:
+- **[/doc/guides/TROUBLESHOOTING.md](/doc/guides/TROUBLESHOOTING.md)** — Errores comunes
+- **[/doc/workflow/TESTING.md](/doc/workflow/TESTING.md)** — Fallos en tests
+- **[/agentes/infra.md](/agentes/infra.md)** — Problemas DevOps
 
 ---
 
-## 📄 Licencia
+## ¿Quién hace qué?
 
-[Especificar licencia del proyecto]
-
----
-
-## 📅 Estado
-
-- **Última actualización**: 29 de abril de 2026
-- **Sprint actual**: Scrum + 2 semanas de sprints
-- **Estado del MVP**: En desarrollo
+| Role | Tarea | Referencia |
+|------|-------|-----------|
+| **Backend Dev** | Codificar servicio | `/agentes/backend.md` |
+| **Frontend Dev** | Codificar componente | `/agentes/frontend.md` |
+| **DevOps** | Deploy, CI/CD | `/agentes/infra.md` |
+| **QA** | Testing, cobertura | `/doc/workflow/TESTING.md` |
+| **Tech Lead** | Decisiones, arquitectura | `/doc/architecture/Decisiones.md` |
 
 ---
 
-**Sale Partido** — Ingeniería de software profesional en acción ⚽🏀
+## Estado
+
+- **Stack:** Java 21, Spring Boot 4.0.6, Angular 20.3.0
+- **MVP:** En desarrollo (E1-E4)
+- **Última actualización:** 24 de mayo 2026
+- **CI/CD:** GitHub Actions + self-hosted K8s
+
+---
+
+**Sale Partido** — Ingeniería de software profesional
