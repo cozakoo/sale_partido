@@ -27,7 +27,17 @@ jobs:
 
       - name: Build Frontend Image
         run: |
-          docker build -t salepartido-frontend:${{ env.IMAGE_TAG }} -f frontend/Dockerfile.prod ./frontend
+          if [ "${{ env.NAMESPACE }}" == "salepartido-preprod" ]; then
+            docker build \
+              --build-arg BUILD_CONFIG=testing \
+              -t salepartido-frontend:${{ env.IMAGE_TAG }} \
+              -f frontend/Dockerfile.prod ./frontend
+          else
+            docker build \
+              --build-arg BUILD_CONFIG=production \
+              -t salepartido-frontend:${{ env.IMAGE_TAG }} \
+              -f frontend/Dockerfile.prod ./frontend
+          fi
 
       - name: Import images into containerd
         run: |
