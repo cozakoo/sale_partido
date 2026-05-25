@@ -13,3 +13,9 @@ data:
   REDIS_HOST: "salepartido-redis"
   REDIS_PORT: "6379"
   REDIS_DATABASE: "0"
+
+# Fix CORS ports for preprod
+  if [ "${{ env.NAMESPACE }}" == "salepartido-preprod" ]; then
+    sed -i "s/31167/31168/g" k8s/configmap.yaml
+    sed -i "s/32328/32329/g" k8s/configmap.yaml
+  fi
