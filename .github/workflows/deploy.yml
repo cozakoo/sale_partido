@@ -53,6 +53,8 @@ jobs:
             sed -i "s/sale-partido.com/preprod.sale-partido.com/g" k8s/ingress.yaml
             sed -i "s/nodePort: 32328/nodePort: 32329/g" k8s/backend.yaml
             sed -i "s/nodePort: 31167/nodePort: 31168/g" k8s/frontend.yaml
+            sed -i "s/31167/31168/g" k8s/configmap.yaml
+            sed -i "s/32328/32329/g" k8s/configmap.yaml
           fi
 
       - name: Apply Kubernetes manifests
