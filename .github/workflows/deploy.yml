@@ -48,9 +48,11 @@ jobs:
           sed -i "s/salepartido-backend:latest/salepartido-backend:${{ env.IMAGE_TAG }}/g" k8s/backend.yaml
           sed -i "s/salepartido-frontend:latest/salepartido-frontend:${{ env.IMAGE_TAG }}/g" k8s/frontend.yaml
           
-          # Optional: Adjust Ingress host for pre_prod
+          # Set nodePorts according to environment
           if [ "${{ env.NAMESPACE }}" == "salepartido-preprod" ]; then
             sed -i "s/sale-partido.com/preprod.sale-partido.com/g" k8s/ingress.yaml
+            sed -i "s/nodePort: 32328/nodePort: 32329/g" k8s/backend.yaml
+            sed -i "s/nodePort: 31167/nodePort: 31168/g" k8s/frontend.yaml
           fi
 
       - name: Apply Kubernetes manifests
