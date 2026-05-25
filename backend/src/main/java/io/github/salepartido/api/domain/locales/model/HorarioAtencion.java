@@ -2,6 +2,7 @@ package io.github.salepartido.api.domain.locales.model;
 
 import java.time.LocalTime;
 import java.util.UUID;
+import java.time.DayOfWeek;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -23,7 +24,7 @@ public class HorarioAtencion {
     private UUID uuid;
 
     @Column(name = "dia", nullable = false, length = 50)
-    private String dia;
+    private DayOfWeek dia;
 
     @Column(name = "horario_apertura", nullable = false)
     private LocalTime horarioApertura;
