@@ -1,0 +1,45 @@
+[
+  {
+    "huId": "E4-H08",
+    "number": 123,
+    "title": "[E4-H08] Crear local con validaciones",
+    "description": "Los propietarios deben poder crear espacios (locales) en el sistema. El sistema debe validar que todos los campos requeridos estén presentes y sean válidos.",
+    "status": "Todo",
+    "epic": "E4",
+    "priority": "High",
+    "owner": "cozakoo",
+    "labels": ["backend"],
+    "acceptanceCriteria": [
+      {
+        "text": "POST /locales endpoint returns 201 Created",
+        "done": false
+      },
+      {
+        "text": "Validates nombre is not empty",
+        "done": false
+      },
+      {
+        "text": "Tests have 85% coverage",
+        "done": false
+      }
+    ],
+    "url": "https://github.com/cozakoo/sale-partido/issues/123",
+    "createdAt": "2026-05-20T10:00:00Z",
+    "updatedAt": "2026-05-24T15:30:00Z"
+  },
+  {
+    "huId": "E4-H09",
+    "number": 124,
+    "title": "E4-H09 HU sin criterios",
+    "description": "Descripción corta",
+    "status": "Backlog",
+    "epic": "E4",
+    "priority": "Low",
+    "owner": null,
+    "labels": [],
+    "acceptanceCriteria": [],
+    "url": "https://github.com/cozakoo/sale-partido/issues/124",
+    "createdAt": "2026-05-20T10:00:00Z",
+    "updatedAt": "2026-05-24T15:30:00Z"
+  }
+]
