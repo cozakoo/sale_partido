@@ -60,7 +60,7 @@ public class SeedService {
             local.setNombre(generarNombreLocal(faker));
             local.setDireccion(faker.options().option(DIRECCIONES));
             local.setCanchas(generarCanchas(canchasPorLocal));
-            local.setDeportes(generarDeportes( deportesPorLocal));
+            //local.setDeportes(generarDeportes( deportesPorLocal));
             local.setHorariosAtencion( generarHorariosAtencionSemanal());
             locales.add(local);
         }
@@ -76,6 +76,7 @@ public class SeedService {
             Cancha cancha = new Cancha();
             cancha.setNombre(generarNombreCancha(faker, i+1));
             cancha.setConfiguracionesHorarios(List.of(generarConfiguracionHorario()));
+            cancha.setDeporte(generarDeportes(1).get(0)); // Asignamos un deporte aleatorio a cada cancha
             canchas.add(cancha);
         }
 
@@ -134,16 +135,14 @@ public class SeedService {
     public List<HorarioAtencion> generarHorariosAtencionSemanal() {
         List<HorarioAtencion> horarios = new ArrayList<>();
 
-        String[] dias =  { "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo" };
-
-        for (String dia: dias ) {
+        for (DayOfWeek dia : DayOfWeek.values()) {
             int apertura = faker.number().numberBetween(8, 12);
             int cierre = faker.number().numberBetween(22, 24);
             LocalTime horaApertura = LocalTime.of(apertura, 0);
             LocalTime horaCierre = LocalTime.of(cierre, 0);
 
             HorarioAtencion horario = new HorarioAtencion();
-            horario.setDia(DayOfWeek.valueOf(dia.toUpperCase()));
+            horario.setDia(dia);
             horario.setHorarioApertura(horaApertura);
             horario.setHorarioCierre(horaCierre);
 

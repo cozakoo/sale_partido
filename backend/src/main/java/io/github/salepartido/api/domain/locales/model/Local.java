@@ -41,15 +41,15 @@ public class Local {
     @JoinColumn(name = "local_uuid")
     private List<Cancha> canchas = new ArrayList<>();
     
-    // RELACIÓN: Muchos a Muchos Unidireccional
-    // La tabla intermedia 'local_deporte' une dos columnas de tipo UUID
-    @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-    @JoinTable(
-        name = "local_deporte",
-        joinColumns = @JoinColumn(name = "local_uuid", referencedColumnName = "uuid"),
-        inverseJoinColumns = @JoinColumn(name = "deporte_uuid", referencedColumnName = "uuid")
-    )
-    private List<Deporte> deportes = new ArrayList<>();
+    // // RELACIÓN: Muchos a Muchos Unidireccional
+    // // La tabla intermedia 'local_deporte' une dos columnas de tipo UUID
+    // @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    // @JoinTable(
+    //     name = "local_deporte",
+    //     joinColumns = @JoinColumn(name = "local_uuid", referencedColumnName = "uuid"),
+    //     inverseJoinColumns = @JoinColumn(name = "deporte_uuid", referencedColumnName = "uuid")
+    // )
+    // private List<Deporte> deportes = new ArrayList<>();
 
     // RELACIÓN: Uno a Muchos Unidireccional
     // Se crea la columna fk 'local_uuid' (tipo UUID) dentro de la tabla 'horarioatencion'
