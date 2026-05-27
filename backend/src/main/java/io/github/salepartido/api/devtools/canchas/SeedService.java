@@ -16,8 +16,7 @@ import io.github.salepartido.api.domain.locales.model.ConfiguracionHorario;
 import io.github.salepartido.api.domain.locales.model.Deporte;
 import io.github.salepartido.api.domain.locales.model.HorarioAtencion;
 import io.github.salepartido.api.domain.locales.model.Local;
-
-import io.github.salepartido.api.domain.locales.repository.DeporteRepository;
+import io.github.salepartido.api.domain.locales.service.DeporteService;
 import net.datafaker.Faker;
 
 @Service
@@ -25,10 +24,10 @@ import net.datafaker.Faker;
 public class SeedService {
 
     private final Faker faker = new Faker(Locale.of("es"));
-    private final DeporteRepository deporteRepository;
+    private final DeporteService deporteService;
 
-    public SeedService(DeporteRepository deporteRepository) {
-        this.deporteRepository = deporteRepository;
+    public SeedService(DeporteService deporteService) {
+        this.deporteService = deporteService;
     }
 
     private static final String[] NOMBRES_LOCALES = {
@@ -79,7 +78,7 @@ public class SeedService {
             Cancha cancha = new Cancha();
             cancha.setNombre(generarNombreCancha(faker, i+1));
             cancha.setConfiguracionesHorarios(List.of(generarConfiguracionHorario()));
-            cancha.setDeporte(obtenerDeporteAleatorioPersistido()); // Asignamos un deporte aleatorio a cada cancha
+            cancha.setDeporte(deporteService.obtenerDeporteAleatorioPersistido()); // Asignamos un deporte aleatorio persistido a cada cancha
             canchas.add(cancha);
         }
         return canchas;
@@ -120,19 +119,9 @@ public class SeedService {
     public List<Deporte> generarDeportes(int numOfDeportes) {
         List<Deporte> deportes = new ArrayList<>();
         for (int i = 0; i < numOfDeportes; i++) {
-            deportes.add(obtenerDeporteAleatorioPersistido());
+            deportes.add(deporteService.obtenerDeporteAleatorioPersistido());
         }
         return deportes;
-    }
-
-    private Deporte obtenerDeporteAleatorioPersistido() {
-        String nombre = faker.options().option("Fútbol", "Tenis", "Paddle", "Vóley", "Básquet");
-        return deporteRepository.findByNombre(nombre)
-                .orElseGet(() -> {
-                    Deporte deporte = new Deporte();
-                    deporte.setNombre(nombre);
-                    return deporteRepository.save(deporte);
-                });
     }
 
     public List<HorarioAtencion> generarHorariosAtencionSemanal() {
