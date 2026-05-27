@@ -119,9 +119,9 @@ public class DisponibilidadService {
                                             r.getCantidadParticipantesConfirmados(),
                                             r.getEstadoEvento()
                                     );
-                                    turnoDTO = new TurnoDTO(finalFecha, finalSlotStart, finalSlotEnd, "OCUPADO", rDto);
+                                    turnoDTO = new TurnoDTO(finalFecha, finalSlotStart, finalSlotEnd, cancha.getNombre(), r.getDeporte(), "OCUPADO", rDto);
                                 } else {
-                                    turnoDTO = new TurnoDTO(finalFecha, finalSlotStart, finalSlotEnd, "LIBRE", null);
+                                    turnoDTO = new TurnoDTO(finalFecha, finalSlotStart, finalSlotEnd, cancha.getNombre(), null, "LIBRE", null);
                                 }
 
                                 turnosList.add(turnoDTO);

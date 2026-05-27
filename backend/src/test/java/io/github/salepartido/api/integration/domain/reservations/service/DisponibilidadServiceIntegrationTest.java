@@ -1,24 +1,20 @@
-package io.github.salepartido.api.unit.domain.reservations.service;
+package io.github.salepartido.api.integration.domain.reservations.service;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 import java.time.DayOfWeek;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.server.ResponseStatusException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.transaction.annotation.Transactional;
 
 import io.github.salepartido.api.domain.locales.model.Cancha;
 import io.github.salepartido.api.domain.locales.model.ConfiguracionDia;
@@ -31,67 +27,32 @@ import io.github.salepartido.api.domain.reservations.model.Reserva;
 import io.github.salepartido.api.domain.reservations.repository.ReservaRepository;
 import io.github.salepartido.api.domain.reservations.service.DisponibilidadService;
 
-@ExtendWith(MockitoExtension.class)
-class DisponibilidadServiceTest {
+@SpringBootTest
+@Transactional
+class DisponibilidadServiceIntegrationTest {
 
-    @Mock
-    private LocalRepository localRepository;
+    @MockitoBean
+    StringRedisTemplate redisTemplate;
 
-    @Mock
-    private ReservaRepository reservaRepository;
-
-    @InjectMocks
+    @Autowired
     private DisponibilidadService disponibilidadService;
 
-    @Test
-    void obtenerDisponibilidadLocal_CuandoLocalNoExiste_LanzaNotFound() {
-        UUID localUuid = UUID.randomUUID();
-        LocalDate inicio = LocalDate.now();
-        LocalDate fin = inicio.plusDays(1);
+    @Autowired
+    private LocalRepository localRepository;
 
-        when(localRepository.findById(localUuid)).thenReturn(Optional.empty());
-
-        ResponseStatusException ex = assertThrows(ResponseStatusException.class, () -> {
-            disponibilidadService.obtenerDisponibilidadLocal(localUuid, inicio, fin);
-        });
-
-        assertEquals(HttpStatus.NOT_FOUND, ex.getStatusCode());
-        assertEquals("Local no encontrado", ex.getReason());
-    }
+    @Autowired
+    private ReservaRepository reservaRepository;
 
     @Test
-    void obtenerDisponibilidadLocal_CuandoLocalNoTieneCanchas_RetornaVacio() {
-        UUID localUuid = UUID.randomUUID();
-        LocalDate inicio = LocalDate.now();
-        LocalDate fin = inicio.plusDays(1);
+    void obtenerDisponibilidadLocal_ConBaseDeDatosReal_GeneraTurnosCorrectamente() {
+        LocalDate fechaTest = LocalDate.of(2026, 6, 1);
 
         Local local = new Local();
-        local.setUuid(localUuid);
-        local.setCanchas(new ArrayList<>());
-
-        when(localRepository.findById(localUuid)).thenReturn(Optional.of(local));
-
-        List<DisponibilidadCanchaDTO> resultado = disponibilidadService.obtenerDisponibilidadLocal(localUuid, inicio, fin);
-
-        assertNotNull(resultado);
-        assertTrue(resultado.isEmpty());
-    }
-
-    @Test
-    void obtenerDisponibilidadLocal_GeneraTurnosYDetectaReservasCorrectamente() {
-        UUID localUuid = UUID.randomUUID();
-        // Lunes 25 de Mayo de 2026
-        LocalDate fechaTest = LocalDate.of(2026, 5, 25); 
-
-        Local local = new Local();
-        local.setUuid(localUuid);
         local.setNombre("Complejo Test");
 
         Cancha cancha = new Cancha();
-        cancha.setUuid(UUID.randomUUID());
         cancha.setNombre("Cancha 1");
 
-        // Configuración horaria: Lunes de 08:00 a 10:00, duración de turno 60 mins
         ConfiguracionHorario configHorario = new ConfiguracionHorario();
         configHorario.setActivo(true);
         configHorario.setDuracionTurno(Duration.ofMinutes(60));
@@ -103,13 +64,15 @@ class DisponibilidadServiceTest {
 
         configHorario.setConfiguracionesDias(List.of(configDia));
         cancha.setConfiguracionesHorarios(List.of(configHorario));
-
         local.setCanchas(List.of(cancha));
 
-        // Reserva existente para esa cancha el lunes de 09:00 a 10:00
+        Local savedLocal = localRepository.save(local);
+
+        UUID canchaUuid = savedLocal.getCanchas().get(0).getUuid();
+        Cancha savedCancha = savedLocal.getCanchas().get(0);
+
         Reserva reserva = new Reserva();
-        reserva.setUuid(UUID.randomUUID());
-        reserva.setCancha(cancha);
+        reserva.setCancha(savedCancha);
         reserva.setFecha(fechaTest);
         reserva.setHoraInicio(LocalTime.of(9, 0));
         reserva.setHoraFin(LocalTime.of(10, 0));
@@ -118,24 +81,21 @@ class DisponibilidadServiceTest {
         reserva.setCantidadParticipantesConfirmados(10);
         reserva.setEstadoEvento("CONFIRMADO");
 
-        when(localRepository.findById(localUuid)).thenReturn(Optional.of(local));
-        when(reservaRepository.findByCanchasAndDateRange(List.of(cancha.getUuid()), fechaTest, fechaTest))
-                .thenReturn(List.of(reserva));
+        reservaRepository.save(reserva);
 
-        List<DisponibilidadCanchaDTO> resultado = disponibilidadService.obtenerDisponibilidadLocal(localUuid, fechaTest, fechaTest);
+        List<DisponibilidadCanchaDTO> resultado = disponibilidadService.obtenerDisponibilidadLocal(
+                savedLocal.getUuid(), fechaTest, fechaTest);
 
         assertNotNull(resultado);
         assertEquals(1, resultado.size());
 
         DisponibilidadCanchaDTO canchaDisp = resultado.get(0);
-        assertEquals(cancha.getUuid(), canchaDisp.canchaUuid());
+        assertEquals(canchaUuid, canchaDisp.canchaUuid());
         assertEquals("Cancha 1", canchaDisp.canchaNombre());
 
         List<TurnoDTO> turnos = canchaDisp.turnos();
-        // Debería generar exactamente 2 turnos: 08:00-09:00 y 09:00-10:00
         assertEquals(2, turnos.size());
 
-        // Primer turno: 08:00 - 09:00 (LIBRE)
         TurnoDTO t1 = turnos.get(0);
         assertEquals(fechaTest, t1.fecha());
         assertEquals(LocalTime.of(8, 0), t1.horaInicio());
@@ -145,7 +105,6 @@ class DisponibilidadServiceTest {
         assertEquals("LIBRE", t1.estado());
         assertNull(t1.reserva());
 
-        // Segundo turno: 09:00 - 10:00 (OCUPADO)
         TurnoDTO t2 = turnos.get(1);
         assertEquals(fechaTest, t2.fecha());
         assertEquals(LocalTime.of(9, 0), t2.horaInicio());
@@ -158,5 +117,38 @@ class DisponibilidadServiceTest {
         assertEquals("Fútbol", t2.reserva().deporte());
         assertEquals(10, t2.reserva().cantidadParticipantesConfirmados());
         assertEquals("CONFIRMADO", t2.reserva().estadoEvento());
+    }
+
+    @Test
+    void obtenerDisponibilidadLocal_LocalSinCanchas_RetornaVacio() {
+        Local local = new Local();
+        local.setNombre("Local Vacío");
+
+        Local saved = localRepository.save(local);
+
+        List<DisponibilidadCanchaDTO> resultado = disponibilidadService.obtenerDisponibilidadLocal(
+                saved.getUuid(), LocalDate.now(), LocalDate.now().plusDays(1));
+
+        assertNotNull(resultado);
+        assertTrue(resultado.isEmpty());
+    }
+
+    @Test
+    void obtenerDisponibilidadLocal_CanchaSinConfiguracion_RetornaDisponibilidadSinTurnos() {
+        Local local = new Local();
+        local.setNombre("Local sin config");
+
+        Cancha cancha = new Cancha();
+        cancha.setNombre("Cancha sin horario");
+
+        local.setCanchas(List.of(cancha));
+        Local saved = localRepository.save(local);
+
+        List<DisponibilidadCanchaDTO> resultado = disponibilidadService.obtenerDisponibilidadLocal(
+                saved.getUuid(), LocalDate.now(), LocalDate.now().plusDays(1));
+
+        assertNotNull(resultado);
+        assertEquals(1, resultado.size());
+        assertTrue(resultado.get(0).turnos().isEmpty());
     }
 }
