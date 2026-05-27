@@ -1,44 +1,56 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
-import { LocalService } from '../services/configuracion-disponibilidad.service';
-import { LocalSummary } from '../models/local-summary';
+import { FormsModule } from '@angular/forms';
+import { BusquedaLocalesService } from '../services/busqueda-locales.service';
+import { LocalSearchResult } from '../models/local-search-result';
 
 @Component({
   selector: 'app-locales-list',
   standalone: true,
-  imports: [CommonModule],
-  template: `
-    <div class="container mt-4">
-      <h1 class="mb-4">Mis Locales</h1>
-      <div class="row">
-        @for (local of locales; track local.uuid) {
-          <div class="col-md-4 mb-4">
-            <div class="card h-100 shadow-sm" style="cursor: pointer;" (click)="verDetalle(local.uuid)">
-              <div class="card-body">
-                <h5 class="card-title">{{ local.nombre }}</h5>
-              </div>
-              <div class="card-footer bg-transparent text-primary text-end border-top-0">
-                Ver detalle &raquo;
-              </div>
-            </div>
-          </div>
-        }
-      </div>
-    </div>
-  `
+  imports: [CommonModule, FormsModule],
+  templateUrl: './locales-list.page.html',
+  styleUrl: './locales-list.page.scss',
 })
-export class LocalesListPage implements OnInit {
+export class LocalesListPage {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
-  private localService = inject(LocalService);
+  private busquedaService = inject(BusquedaLocalesService);
 
-  locales: LocalSummary[] | any[] = [];
+  resultados = signal<LocalSearchResult[]>([]);
+  buscando = signal(false);
 
-  ngOnInit() {
-    this.localService.getLocalesSummary().subscribe(data => {
-      this.locales = data;
-    });
+  textoBusqueda = '';
+  ubicacionSeleccionada = '';
+  deporteSeleccionado = '';
+
+  ubicaciones = this.busquedaService.getUbicaciones();
+  deportes = this.busquedaService.getDeportes();
+
+  constructor() {
+    this.buscar();
+  }
+
+  buscar() {
+    this.buscando.set(true);
+
+    this.busquedaService
+      .buscar({
+        texto: this.textoBusqueda,
+        ubicacion: this.ubicacionSeleccionada || undefined,
+        deporte: this.deporteSeleccionado || undefined,
+      })
+      .subscribe({
+        next: (data) => this.resultados.set(data),
+        complete: () => this.buscando.set(false),
+      });
+  }
+
+  limpiarFiltros() {
+    this.textoBusqueda = '';
+    this.ubicacionSeleccionada = '';
+    this.deporteSeleccionado = '';
+    this.buscar();
   }
 
   verDetalle(uuid: string) {
