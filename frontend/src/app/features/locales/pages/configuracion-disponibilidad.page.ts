@@ -197,6 +197,38 @@ export class ConfiguracionDisponibilidadPage implements OnInit {
       }
     });
   }
+
+  hasInconsistentSchedule(canchaId: any): boolean {
+    const canchaGroup = this.getCanchaFormGroup(canchaId);
+    if (!canchaGroup) return false;
+    
+    const duracionTurno = canchaGroup.get('duracionTurno')?.value;
+    if (!duracionTurno) return false;
+
+    const dias = canchaGroup.get('configuracionesDias') as FormArray;
+    for (let control of dias.controls) {
+      if (control.get('activo')?.value) {
+        const hIni = control.get('horaInicio')?.value;
+        const hFin = control.get('horaFin')?.value;
+        if (hIni && hFin) {
+          const mIni = this.timeToMinutes(hIni);
+          const mFin = this.timeToMinutes(hFin);
+          if (mIni < mFin) {
+            const diff = mFin - mIni;
+            if (diff % duracionTurno !== 0) {
+              return true;
+            }
+          }
+        }
+      }
+    }
+    return false;
+  }
+
+  timeToMinutes(time: string): number {
+    const [h, m] = time.split(':').map(Number);
+    return h * 60 + m;
+  }
  
   onSubmit(): void {
     if (this.form.invalid || this.canchasDetail.length === 0) return;

@@ -39,18 +39,24 @@
                           </div>
                         </div>
                         <div class="col-3">
-                          <input type="time" class="form-control" formControlName="horaInicio" [class.is-invalid]="diaControl.errors?.['required'] || diaControl.errors?.['invalidTimeRange']">
+                          <input type="time" step="1800" class="form-control" formControlName="horaInicio" [class.is-invalid]="diaControl.errors?.['required'] || diaControl.errors?.['invalidTimeRange']">
                         </div>
                         <div class="col-3">
-                          <input type="time" class="form-control" formControlName="horaFin" [class.is-invalid]="diaControl.errors?.['required'] || diaControl.errors?.['invalidTimeRange']">
+                          <input type="time" step="1800" class="form-control" formControlName="horaFin" [class.is-invalid]="diaControl.errors?.['required'] || diaControl.errors?.['invalidTimeRange']">
                         </div>
                       </div>
                     }
                   </div>
                 </div>
 
+                @if (hasInconsistentSchedule(getCanchaId(cancha))) {
+                  <div class="alert alert-warning advertencia-coherencia">
+                    El horario no es del todo coherente con la duración de turno.
+                  </div>
+                }
+
                 <div class="d-flex justify-content-end mt-4 border-top pt-3">
-                  <button type="button" class="btn btn-outline-primary" (click)="aplicarATodas(getCanchaId(cancha))">
+                  <button type="button" class="btn btn-outline-primary" (click)="aplicarATodas(getCanchaId(cancha))" [disabled]="canchaGroup.invalid">
                     Aplicar este horario a todas las canchas
                   </button>
                 </div>

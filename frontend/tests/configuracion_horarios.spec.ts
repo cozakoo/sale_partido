@@ -83,6 +83,7 @@ test.describe('Configuración de disponibilidad y duración de turnos', () => {
 
   test('Escenario: Validación de hora de apertura menor a hora de cierre', async ({ page }) => {
     const lunesRow = page.locator('.row').filter({ hasText: 'Lunes' }).first();
+    await lunesRow.locator('input[type="checkbox"]').check();
     await lunesRow.locator('input[formControlName="horaInicio"]').fill('22:00');
     await lunesRow.locator('input[formControlName="horaFin"]').fill('08:00');
     
@@ -92,8 +93,11 @@ test.describe('Configuración de disponibilidad y duración de turnos', () => {
 
   test('Escenario: Advertencia de coherencia de horario vs duración', async ({ page }) => {
     await page.locator('select[formControlName="duracionTurno"]').selectOption('60');
-    await page.locator('input[formControlName="horaInicio"]').first().fill('10:00');
-    await page.locator('input[formControlName="horaFin"]').first().fill('10:45'); // Incoherente con 60 min
+    
+    const lunesRow = page.locator('.row').filter({ hasText: 'Lunes' }).first();
+    await lunesRow.locator('input[type="checkbox"]').check();
+    await lunesRow.locator('input[formControlName="horaInicio"]').first().fill('10:00');
+    await lunesRow.locator('input[formControlName="horaFin"]').first().fill('10:45'); // Incoherente con 60 min
     
     await expect(page.locator('.advertencia-coherencia')).toBeVisible();
   });
