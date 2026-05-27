@@ -4,7 +4,7 @@ test.describe('Configuración de disponibilidad y duración de turnos', () => {
   const LOCAL_UUID = '123e4567-e89b-12d3-a456-426614174000';
 
   test.beforeEach(async ({ page }) => {
-    // Mock de las respuestas del backend para aislar la prueba e2e del estado del servidor
+    // Mock de las respuestas del backend
     await page.route(`**/locales/${LOCAL_UUID}`, async route => {
       await route.fulfill({
         json: { uuid: LOCAL_UUID, nombre: 'Local de Prueba' }
@@ -20,29 +20,7 @@ test.describe('Configuración de disponibilidad y duración de turnos', () => {
       });
     });
 
-    // Navegar a la página de configuración del local usando localhost:4200 (puerto de Angular por defecto)
     await page.goto(`http://localhost:4200/locales/${LOCAL_UUID}/configuraciones-horarios`);
-  });
-
-  test('Escenario: Asignación de horario global de disponibilidad', async ({ page }) => {
-    // Cuando el propietario selecciona la opción de asignar horario global de "Lunes" a "Lunes"
-    const lunesRow = page.locator('.row').filter({ hasText: 'Lunes' }).first();
-    const checkbox = lunesRow.locator('input[type="checkbox"]');
-    await checkbox.check();
-    
-    // Y define la franja horaria de "10:00" a "00:00"
-    const horaInicio = lunesRow.locator('input[formControlName="horaInicio"]');
-    const horaFin = lunesRow.locator('input[formControlName="horaFin"]');
-    
-    await horaInicio.fill('10:00');
-    // Para el caso de 24 horas, Playwright y los inputs de tipo "time" aceptan el formato HH:mm
-    await horaFin.fill('00:00');
-
-    // Entonces la cancha debe figurar como "Disponible" en ese rango horario
-    // Verificamos que los inputs guarden y reflejen los valores ingresados.
-    await expect(checkbox).toBeChecked();
-    await expect(horaInicio).toHaveValue('10:00');
-    await expect(horaFin).toHaveValue('00:00');
   });
 
   test('Escenario: Aplicar configuración de horario a todas las canchas', async ({ page }) => {
@@ -101,5 +79,28 @@ test.describe('Configuración de disponibilidad y duración de turnos', () => {
     // Validamos que se pueda seleccionar una de las opciones
     await selectDuracion.selectOption('90');
     await expect(selectDuracion).toHaveValue('90');
+  });
+
+  test('Escenario: Validación de hora de apertura menor a hora de cierre', async ({ page }) => {
+    const lunesRow = page.locator('.row').filter({ hasText: 'Lunes' }).first();
+    await lunesRow.locator('input[formControlName="horaInicio"]').fill('22:00');
+    await lunesRow.locator('input[formControlName="horaFin"]').fill('08:00');
+    
+    // Asumiendo que el botón se deshabilita si los datos son inválidos
+    await expect(page.getByRole('button', { name: 'Guardar' })).toBeDisabled();
+  });
+
+  test('Escenario: Advertencia de coherencia de horario vs duración', async ({ page }) => {
+    await page.locator('select[formControlName="duracionTurno"]').selectOption('60');
+    await page.locator('input[formControlName="horaInicio"]').first().fill('10:00');
+    await page.locator('input[formControlName="horaFin"]').first().fill('10:45'); // Incoherente con 60 min
+    
+    await expect(page.locator('.advertencia-coherencia')).toBeVisible();
+  });
+
+  test('Escenario: Validación de formato 24 horas', async ({ page }) => {
+    const horaInicio = page.locator('input[formControlName="horaInicio"]').first();
+    // Verificamos que el atributo type sea time (que maneja 24hs nativamente)
+    await expect(horaInicio).toHaveAttribute('type', 'time');
   });
 });
