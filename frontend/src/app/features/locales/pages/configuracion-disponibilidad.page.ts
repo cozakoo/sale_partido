@@ -157,7 +157,24 @@ export class ConfiguracionDisponibilidadPage implements OnInit {
     return cancha.nombre || 'Cancha sin nombre';
   }
 
+  translateDay(day: string): string {
+    const map: Record<string, string> = {
+      'MONDAY': 'Lunes',
+      'TUESDAY': 'Martes',
+      'WEDNESDAY': 'Miércoles',
+      'THURSDAY': 'Jueves',
+      'FRIDAY': 'Viernes',
+      'SATURDAY': 'Sábado',
+      'SUNDAY': 'Domingo'
+    };
+    return map[day.toUpperCase()] || day;
+  }
+
   aplicarATodas(sourceId: any): void {
+    if (!window.confirm('¿Estás seguro de que quieres aplicar este horario a todas las canchas?')) {
+      return;
+    }
+
     const sourceGroup = this.getCanchaFormGroup(sourceId);
     if (!sourceGroup) return;
 

@@ -70,7 +70,7 @@ test.describe('Configuración de disponibilidad y duración de turnos', () => {
     
     // Y al confirmar, el horario debe aplicarse a todas las canchas
     // Navegamos a la tab de la "Cancha 2" para verificar la aplicación.
-    await page.getByRole('link', { name: 'Cancha 2' }).click();
+    await page.getByText('Cancha 2').click();
     
     // Validamos que los valores se hayan copiado a la otra pestaña (Cancha 2)
     const lunesRowCancha2 = page.locator('.row').filter({ hasText: 'Lunes' }).last();
@@ -85,6 +85,7 @@ test.describe('Configuración de disponibilidad y duración de turnos', () => {
     
     // Entonces solo debe poder seleccionar opciones de una lista predefinida de "30", "60", "90" o "120" minutos
     const options = selectDuracion.locator('option');
+    await expect(options).toHaveCount(4);
     const optionValues = await options.evaluateAll(opts => opts.map(o => o.textContent?.trim()));
     
     // Validamos que la lista contenga las opciones predefinidas.
