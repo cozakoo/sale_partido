@@ -13,8 +13,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -51,7 +49,7 @@ public class Local {
     // )
     // private List<Deporte> deportes = new ArrayList<>();
 
-    // RELACIÓN: Uno a Muchos Unidireccional
+    // RELACIÓN: Uno (Local) a Muchos (HorarioAtencion) Unidireccional
     // Se crea la columna fk 'local_uuid' (tipo UUID) dentro de la tabla 'horarioatencion'
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @JoinColumn(name = "local_uuid", referencedColumnName = "uuid", nullable = false) 

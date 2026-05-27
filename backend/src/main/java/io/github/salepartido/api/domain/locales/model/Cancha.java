@@ -37,9 +37,9 @@ public class Cancha {
     @JoinColumn(name = "cancha_uuid")
     private List<ConfiguracionHorario> configuracionesHorarios = new ArrayList<>();
 
-        // RELACIÓN: Muchos (Cancha) a Uno (Deporte)
+    // RELACIÓN: Muchos (Cancha) a Uno (Deporte)
     // Visibilidad desde Cancha: cada cancha referencia a un deporte
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false, cascade = { jakarta.persistence.CascadeType.PERSIST, jakarta.persistence.CascadeType.MERGE })
     @JoinColumn(name = "deporte_uuid", referencedColumnName = "uuid", nullable = false)
     private Deporte deporte;
 

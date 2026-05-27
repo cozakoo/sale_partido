@@ -16,6 +16,8 @@ import io.github.salepartido.api.domain.locales.model.ConfiguracionHorario;
 import io.github.salepartido.api.domain.locales.model.Deporte;
 import io.github.salepartido.api.domain.locales.model.HorarioAtencion;
 import io.github.salepartido.api.domain.locales.model.Local;
+
+import io.github.salepartido.api.domain.locales.repository.DeporteRepository;
 import net.datafaker.Faker;
 
 @Service
@@ -23,6 +25,11 @@ import net.datafaker.Faker;
 public class SeedService {
 
     private final Faker faker = new Faker(Locale.of("es"));
+    private final DeporteRepository deporteRepository;
+
+    public SeedService(DeporteRepository deporteRepository) {
+        this.deporteRepository = deporteRepository;
+    }
 
     private static final String[] NOMBRES_LOCALES = {
         "Complejo", "Club", "Arena", "Zona", "Center", "Sports"
@@ -51,9 +58,7 @@ public class SeedService {
     }
 
     public List<Local> generarLocales(int cantidad, int canchasPorLocal) { 
-        
         List<Local> locales = new ArrayList<>();
-        int deportesPorLocal = 1;
 
         for (int i = 0; i < cantidad; i++) {
             Local local = new Local();
@@ -65,26 +70,22 @@ public class SeedService {
             locales.add(local);
         }
         return locales;
-
     }
 
     public List<Cancha> generarCanchas(int count) {
-        
         List<Cancha> canchas = new ArrayList<>();
 
         for (int i = 0; i < count; i++) {
             Cancha cancha = new Cancha();
             cancha.setNombre(generarNombreCancha(faker, i+1));
             cancha.setConfiguracionesHorarios(List.of(generarConfiguracionHorario()));
-            cancha.setDeporte(generarDeportes(1).get(0)); // Asignamos un deporte aleatorio a cada cancha
+            cancha.setDeporte(obtenerDeporteAleatorioPersistido()); // Asignamos un deporte aleatorio a cada cancha
             canchas.add(cancha);
         }
-
         return canchas;
     }
 
     public ConfiguracionHorario generarConfiguracionHorario() {
-
         ConfiguracionHorario horario = new ConfiguracionHorario();
         horario.setActivo(true);
         horario.setDuracionTurno(
@@ -94,43 +95,45 @@ public class SeedService {
                 )
         );
         horario.setConfiguracionesDias(generarConfiguracionesDias(DayOfWeek.values()));
-
         return horario;
     }
 
     public List<ConfiguracionDia> generarConfiguracionesDias(DayOfWeek[] diasSemana) {
-
         List<ConfiguracionDia> configuracionesDias = new ArrayList<>();
 
         for (DayOfWeek dayOfWeek : diasSemana) {
-
             int horaInicio = faker.number().numberBetween(8, 14);
             int horaFin = faker.number().numberBetween(16, 22);
             LocalTime inicio = LocalTime.of(horaInicio, 0);
             LocalTime fin = LocalTime.of(horaFin, 0);
 
             ConfiguracionDia dia = new ConfiguracionDia();
-
             dia.setDiaSemana(dayOfWeek);
             dia.setHoraInicio(inicio);
             dia.setHoraFin(fin);
 
             configuracionesDias.add(dia);
         }
-
         return configuracionesDias;
     }
 
-    public List<Deporte> generarDeportes( int numOfDeportes ) {
+    public List<Deporte> generarDeportes(int numOfDeportes) {
         List<Deporte> deportes = new ArrayList<>();
-
-        for (int i = 1; i <= numOfDeportes; i++) {
-            Deporte deporte = new Deporte();
-            deporte.setNombre(faker.options().option("Fútbol", "Tenis", "Paddle", "Vóley", "Básquet"));
-            deportes.add(deporte);
+        for (int i = 0; i < numOfDeportes; i++) {
+            deportes.add(obtenerDeporteAleatorioPersistido());
         }
         return deportes;
-    } 
+    }
+
+    private Deporte obtenerDeporteAleatorioPersistido() {
+        String nombre = faker.options().option("Fútbol", "Tenis", "Paddle", "Vóley", "Básquet");
+        return deporteRepository.findByNombre(nombre)
+                .orElseGet(() -> {
+                    Deporte deporte = new Deporte();
+                    deporte.setNombre(nombre);
+                    return deporteRepository.save(deporte);
+                });
+    }
 
     public List<HorarioAtencion> generarHorariosAtencionSemanal() {
         List<HorarioAtencion> horarios = new ArrayList<>();
@@ -148,7 +151,7 @@ public class SeedService {
 
             horarios.add(horario);
         }
-
         return horarios;
     }
+    
 }

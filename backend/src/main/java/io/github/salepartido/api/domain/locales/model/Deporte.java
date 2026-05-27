@@ -23,7 +23,7 @@ public class Deporte {
     private UUID uuid;
 
     // Cambiado de 'deporte' a 'nombre'
-    @Column(name = "nombre", nullable = false, length = 50)
+    @Column(name = "nombre", nullable = false, length = 50, unique = true)
     private String nombre; 
 
 }

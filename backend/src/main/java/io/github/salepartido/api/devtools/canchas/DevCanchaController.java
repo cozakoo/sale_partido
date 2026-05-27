@@ -34,8 +34,8 @@ public class DevCanchaController {
 
     @GetMapping("/poblar")
     public String seed() {
-        List<Local> canchas = seedService.generarLocales(50, 3);
-        canchas.forEach(localService::guardarLocal);
+        List<Local> locales= seedService.generarLocales(50, 3);
+        locales.forEach(localService::guardarLocal);
         return "Locales poblados con éxito";
     }
 
