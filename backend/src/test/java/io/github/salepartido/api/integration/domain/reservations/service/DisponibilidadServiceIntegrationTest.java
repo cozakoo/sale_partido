@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import io.github.salepartido.api.domain.locales.model.Cancha;
 import io.github.salepartido.api.domain.locales.model.ConfiguracionDia;
 import io.github.salepartido.api.domain.locales.model.ConfiguracionHorario;
+import io.github.salepartido.api.domain.locales.model.Deporte;
 import io.github.salepartido.api.domain.locales.model.Local;
 import io.github.salepartido.api.domain.locales.repository.LocalRepository;
 import io.github.salepartido.api.domain.reservations.controller.dto.DisponibilidadCanchaDTO;
@@ -49,9 +50,14 @@ class DisponibilidadServiceIntegrationTest {
 
         Local local = new Local();
         local.setNombre("Complejo Test");
+        local.setDireccion("Av. Test 123");
+
+        var deporte = new Deporte();
+        deporte.setNombre("Fútbol");
 
         Cancha cancha = new Cancha();
         cancha.setNombre("Cancha 1");
+        cancha.setDeporte(deporte);
 
         ConfiguracionHorario configHorario = new ConfiguracionHorario();
         configHorario.setActivo(true);
@@ -123,6 +129,7 @@ class DisponibilidadServiceIntegrationTest {
     void obtenerDisponibilidadLocal_LocalSinCanchas_RetornaVacio() {
         Local local = new Local();
         local.setNombre("Local Vacío");
+        local.setDireccion("Av. Test 456");
 
         Local saved = localRepository.save(local);
 
@@ -137,9 +144,14 @@ class DisponibilidadServiceIntegrationTest {
     void obtenerDisponibilidadLocal_CanchaSinConfiguracion_RetornaDisponibilidadSinTurnos() {
         Local local = new Local();
         local.setNombre("Local sin config");
+        local.setDireccion("Av. Test 789");
+
+        var deporte = new Deporte();
+        deporte.setNombre("Fútbol");
 
         Cancha cancha = new Cancha();
         cancha.setNombre("Cancha sin horario");
+        cancha.setDeporte(deporte);
 
         local.setCanchas(List.of(cancha));
         Local saved = localRepository.save(local);
