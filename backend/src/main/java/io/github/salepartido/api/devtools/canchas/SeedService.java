@@ -14,9 +14,12 @@ import org.springframework.stereotype.Service;
 import io.github.salepartido.api.domain.locales.model.Cancha;
 import io.github.salepartido.api.domain.locales.model.ConfiguracionDia;
 import io.github.salepartido.api.domain.locales.model.ConfiguracionHorario;
+import io.github.salepartido.api.domain.locales.model.Deporte;
+import io.github.salepartido.api.domain.locales.model.HorarioAtencion;
 import io.github.salepartido.api.domain.locales.model.Local;
 import io.github.salepartido.api.domain.reservations.model.Reserva;
 import io.github.salepartido.api.domain.reservations.repository.ReservaRepository;
+import io.github.salepartido.api.domain.locales.service.DeporteService;
 import net.datafaker.Faker;
 
 @Service
@@ -25,6 +28,12 @@ public class SeedService {
 
     private final ReservaRepository reservaRepository;
     private final Faker faker = new Faker(Locale.of("es"));
+    private final DeporteService deporteService;
+
+    public SeedService(DeporteService deporteService, ReservaRepository reservaRepository) {
+        this.deporteService = deporteService;
+        this.reservaRepository = reservaRepository;
+    }
 
     private static final String[] NOMBRES_LOCALES = {
         "Complejo", "Club", "Arena", "Zona", "Center", "Sports"
@@ -38,9 +47,10 @@ public class SeedService {
         "Sintética", "Techada", "Exterior", "Premium"
     };
 
-    public SeedService(ReservaRepository reservaRepository) {
-        this.reservaRepository = reservaRepository;
-    }
+
+    private static final String[] DIRECCIONES = {
+        "Avda. Roca 1300", "Juan B. Justo 1200", "Calle 123", "9 de Julio 1234", "San Martín 567", "Libertad 890","Av. Córdoba 456", "Belgrano 789", "Mitre 321", "Sarmiento 654","Av. San Juan 987", "Pueyrredón 432", "Av. Santa Fe 876", "Rivadavia 543", "Corrientes 678", "Entre Ríos 345", "Independencia 901", "Belgrano 234", "Corrientes 567"
+    };
 
     public String generarNombreLocal(Faker faker) {
         return faker.options().option(NOMBRES_LOCALES)
@@ -53,36 +63,34 @@ public class SeedService {
     }
 
     public List<Local> generarLocales(int cantidad, int canchasPorLocal) { 
-        
         List<Local> locales = new ArrayList<>();
 
         for (int i = 0; i < cantidad; i++) {
             Local local = new Local();
             local.setNombre(generarNombreLocal(faker));
+            local.setDireccion(faker.options().option(DIRECCIONES));
             local.setCanchas(generarCanchas(canchasPorLocal));
+            //local.setDeportes(generarDeportes( deportesPorLocal));
+            local.setHorariosAtencion( generarHorariosAtencionSemanal());
             locales.add(local);
         }
-
         return locales;
-
     }
 
     public List<Cancha> generarCanchas(int count) {
-        
         List<Cancha> canchas = new ArrayList<>();
 
         for (int i = 0; i < count; i++) {
             Cancha cancha = new Cancha();
             cancha.setNombre(generarNombreCancha(faker, i+1));
             cancha.setConfiguracionesHorarios(List.of(generarConfiguracionHorario()));
+            cancha.setDeporte(deporteService.obtenerDeporteAleatorioPersistido()); // Asignamos un deporte aleatorio persistido a cada cancha
             canchas.add(cancha);
         }
-
         return canchas;
     }
 
     public ConfiguracionHorario generarConfiguracionHorario() {
-
         ConfiguracionHorario horario = new ConfiguracionHorario();
         horario.setActivo(true);
         horario.setDuracionTurno(
@@ -92,30 +100,25 @@ public class SeedService {
                 )
         );
         horario.setConfiguracionesDias(generarConfiguracionesDias(DayOfWeek.values()));
-
         return horario;
     }
 
     public List<ConfiguracionDia> generarConfiguracionesDias(DayOfWeek[] diasSemana) {
-
         List<ConfiguracionDia> configuracionesDias = new ArrayList<>();
 
         for (DayOfWeek dayOfWeek : diasSemana) {
-
             int horaInicio = faker.number().numberBetween(8, 14);
             int horaFin = faker.number().numberBetween(16, 22);
             LocalTime inicio = LocalTime.of(horaInicio, 0);
             LocalTime fin = LocalTime.of(horaFin, 0);
 
             ConfiguracionDia dia = new ConfiguracionDia();
-
             dia.setDiaSemana(dayOfWeek);
             dia.setHoraInicio(inicio);
             dia.setHoraFin(fin);
 
             configuracionesDias.add(dia);
         }
-
         return configuracionesDias;
     }
 
@@ -177,5 +180,33 @@ public class SeedService {
         }
         reservaRepository.saveAll(reservas);
     }
+    
 
+    public List<Deporte> generarDeportes(int numOfDeportes) {
+        List<Deporte> deportes = new ArrayList<>();
+        for (int i = 0; i < numOfDeportes; i++) {
+            deportes.add(deporteService.obtenerDeporteAleatorioPersistido());
+        }
+        return deportes;
+    }
+
+    public List<HorarioAtencion> generarHorariosAtencionSemanal() {
+        List<HorarioAtencion> horarios = new ArrayList<>();
+
+        for (DayOfWeek dia : DayOfWeek.values()) {
+            int apertura = faker.number().numberBetween(8, 12);
+            int cierre = faker.number().numberBetween(22, 24);
+            LocalTime horaApertura = LocalTime.of(apertura, 0);
+            LocalTime horaCierre = LocalTime.of(cierre, 0);
+
+            HorarioAtencion horario = new HorarioAtencion();
+            horario.setDia(dia);
+            horario.setHorarioApertura(horaApertura);
+            horario.setHorarioCierre(horaCierre);
+
+            horarios.add(horario);
+        }
+        return horarios;
+    }
+    
 }

@@ -10,11 +10,6 @@ Característica: Configuración de disponibilidad y duración de turnos
     Dado que existe una cancha con número 1 en el sistema
     Y el propietario ha iniciado sesión
 
-  Escenario: Asignación de horario global de disponibilidad
-    Cuando el propietario selecciona la opción de asignar horario global de "Lunes" a "Lunes"
-    Y define la franja horaria de "10:00" a "00:00"
-    Entonces la cancha debe figurar como "Disponible" en ese rango horario siempre que no existan turnos previos
-
   Escenario: Aplicar configuración de horario a todas las canchas
     Dado que el propietario está configurando el horario de una cancha
     Cuando presiona el botón para aplicar ese horario al resto de las canchas

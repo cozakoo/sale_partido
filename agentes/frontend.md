@@ -198,7 +198,7 @@ npm run e2e:headed       # E2E con navegador visible
 cd frontend
 
 # Setup
-npm install
+npm ci
 
 # Dev
 ng serve

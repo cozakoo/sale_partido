@@ -11,7 +11,9 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -34,5 +36,11 @@ public class Cancha {
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "cancha_uuid")
     private List<ConfiguracionHorario> configuracionesHorarios = new ArrayList<>();
+
+    // RELACIÓN: Muchos (Cancha) a Uno (Deporte)
+    // Visibilidad desde Cancha: cada cancha referencia a un deporte
+    @ManyToOne(fetch = FetchType.LAZY, optional = false, cascade = { jakarta.persistence.CascadeType.PERSIST, jakarta.persistence.CascadeType.MERGE })
+    @JoinColumn(name = "deporte_uuid", referencedColumnName = "uuid", nullable = false)
+    private Deporte deporte;
 
 }
