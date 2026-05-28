@@ -1,8 +1,8 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
-import { LocalService } from '../services/configuracion-disponibilidad.service';
-import { LocalDetail } from '../models/local-detail';
+import { BusquedaLocalesService } from '../services/busqueda-locales.service';
+import { LocalSearchResult } from '../models/local-search-result';
 
 @Component({
   selector: 'app-local-detail',
@@ -10,39 +10,47 @@ import { LocalDetail } from '../models/local-detail';
   imports: [CommonModule],
   template: `
     <div class="container mt-4">
-      <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>{{ local?.nombre || 'Cargando local...' }}</h2>
-        <button class="btn btn-outline-primary" (click)="configurarHorarios()">
-          Configurar horarios
-        </button>
-        <button class="btn btn-primary" (click)="verDisponibilidad()">
-          Ver disponibilidad
-        </button>
-      </div>
-
-      <div class="card shadow-sm mb-4">
-        <div class="card-body">
-          <h5 class="card-title">Información General</h5>
-          <p class="card-text">
-            Desde este panel puedes administrar la información de tu local, gestionar las reservas y la disponibilidad.
-          </p>
+      @if (localSearch) {
+        <div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-2">
+          <div>
+            <h2 class="mb-1">{{ localSearch.nombre }}</h2>
+            <p class="text-muted mb-0">
+              📍 {{ localSearch.ubicacion }} &middot; 🕐 {{ localSearch.horario }}
+            </p>
+          </div>
+          <div class="d-flex gap-2">
+            <button class="btn btn-outline-primary" (click)="configurarHorarios()">
+              Configurar horarios
+            </button>
+            <button class="btn btn-primary" (click)="verDisponibilidad()">
+              Ver disponibilidad
+            </button>
+          </div>
         </div>
-      </div>
-    
 
-      <div class="card shadow-sm mb-4">
-        <div class="card-body">
-          <h5 class="card-title">Canchas</h5>
-          <ul class="list-group list-group-flush">
-            @for (cancha of canchas; track cancha.uuid || $index) {
-              <li class="list-group-item">{{ cancha.nombre || 'Cancha sin nombre' }}</li>
-            }
-            @if (!canchas || canchas.length === 0) {
-              <li class="list-group-item text-muted">No hay canchas registradas</li>
-            }
-          </ul>
+        <div class="card shadow-sm mb-4">
+          <div class="card-body">
+            <h5 class="card-title">Información General</h5>
+            <p class="card-text">{{ localSearch.descripcion }}</p>
+            <p class="small text-muted mb-0">📞 {{ localSearch.telefono }}</p>
+          </div>
         </div>
-      </div>
+
+        <div class="card shadow-sm mb-4">
+          <div class="card-body">
+            <h5 class="card-title">Deportes</h5>
+            <div>
+              @for (deporte of localSearch.deportes; track deporte) {
+                <span class="badge bg-primary bg-opacity-10 text-primary me-1 fs-6">{{ deporte }}</span>
+              }
+            </div>
+          </div>
+        </div>
+      } @else {
+        <div class="text-center py-5 text-muted">
+          <p class="fs-5">Cargando local...</p>
+        </div>
+      }
 
       <button class="btn btn-outline-secondary" (click)="volver()">
         &laquo; Volver al listado
@@ -53,22 +61,18 @@ import { LocalDetail } from '../models/local-detail';
 export class LocalDetailPage implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
-  private localService = inject(LocalService);
+  private busquedaService = inject(BusquedaLocalesService);
 
-  localUuid: string | null = null;
-  local: LocalDetail | any = null;
-  canchas: any[] = [];
+  localSearch: LocalSearchResult | null = null;
 
   ngOnInit() {
-    this.localUuid = this.route.snapshot.paramMap.get('uuid');
-    
-    if (this.localUuid) {
-      this.localService.getLocalDetail(this.localUuid).subscribe(data => {
-        this.local = data;
-      });
-      this.localService.getCanchasDetailFromLocal(this.localUuid).subscribe(data => {
-        this.canchas = data;
-      });
+    const uuid = this.route.snapshot.paramMap.get('uuid');
+
+    if (uuid) {
+      const mock = this.busquedaService.obtenerPorUuid(uuid);
+      if (mock) {
+        this.localSearch = mock;
+      }
     }
   }
 
