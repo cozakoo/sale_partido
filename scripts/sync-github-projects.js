@@ -44,15 +44,27 @@ async function syncHUs() {
                 fieldValues(first: 20) {
                   nodes {
                     ... on ProjectV2ItemFieldSingleSelectValue {
-                      field { name }
+                      field {
+                        ... on ProjectV2Field { name }
+                        ... on ProjectV2IterationField { name }
+                        ... on ProjectV2SingleSelectField { name }
+                      }
                       name
                     }
                     ... on ProjectV2ItemFieldDateValue {
-                      field { name }
+                      field {
+                        ... on ProjectV2Field { name }
+                        ... on ProjectV2IterationField { name }
+                        ... on ProjectV2SingleSelectField { name }
+                      }
                       date
                     }
                     ... on ProjectV2ItemFieldTextValue {
-                      field { name }
+                      field {
+                        ... on ProjectV2Field { name }
+                        ... on ProjectV2IterationField { name }
+                        ... on ProjectV2SingleSelectField { name }
+                      }
                       text
                     }
                   }

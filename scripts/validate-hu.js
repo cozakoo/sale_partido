@@ -10,7 +10,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const HUS_FILE = path.join(__dirname, '../doc/HUS.json');
+const HUS_FILE = path.join(__dirname, '../doc/data/HUS.json');
 
 const INVEST_CRITERIA = {
   independent: 'Independiente de otras HUs',
