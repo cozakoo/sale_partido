@@ -86,7 +86,7 @@ export class CalendarioDisponibilidadPage implements OnInit {
       reserva: dto.reserva ? {
         organizadorNombre: dto.reserva.nombreOrganizador,
         cantidadConfirmados: dto.reserva.cantidadParticipantesConfirmados,
-        capacidadTotal: 0,
+        capacidad: dto.reserva.capacidad,
         estadoEvento: dto.reserva.estadoEvento.toLowerCase() as EstadoEvento
       } : undefined
     };

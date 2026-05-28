@@ -4,6 +4,8 @@ export interface ReservaBackendDTO {
   deporte: string;
   cantidadParticipantesConfirmados: number;
   estadoEvento: string;
+   capacidad: number;
+
 }
 
 export interface TurnoBackendDTO {
