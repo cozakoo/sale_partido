@@ -114,6 +114,56 @@ Actualiza horarios de una local.
 
 ---
 
+### GET /locales/{uuid}/disponibilidad
+Obtiene la disponibilidad (turnos libres y ocupados) de todas las canchas de un local en un rango de fechas.
+
+**Query params:**
+- `fechaInicio` (requerido): Fecha de inicio ISO 8601 (`2026-06-01`)
+- `fechaFin` (requerido): Fecha de fin ISO 8601 (`2026-06-07`)
+- Rango máximo: 31 días
+
+**Path:** `/locales/550e8400-e29b-41d4-a716-446655440000/disponibilidad?fechaInicio=2026-06-01&fechaFin=2026-06-07`
+
+**Respuesta:**
+```json
+[
+  {
+    "canchaUuid": "660e8400-e29b-41d4-a716-446655440001",
+    "canchaNombre": "Cancha 1",
+    "turnos": [
+      {
+        "fecha": "2026-06-01",
+        "horaInicio": "09:00",
+        "horaFin": "10:00",
+        "espacioNombre": "Cancha 1",
+        "deporte": null,
+        "estado": "LIBRE",
+        "reserva": null
+      },
+      {
+        "fecha": "2026-06-01",
+        "horaInicio": "10:00",
+        "horaFin": "11:00",
+        "espacioNombre": "Cancha 1",
+        "deporte": "Fútbol",
+        "estado": "OCUPADO",
+        "reserva": {
+          "uuid": "770e8400-e29b-41d4-a716-446655440002",
+          "nombreOrganizador": "Juan Pérez",
+          "deporte": "Fútbol",
+          "cantidadParticipantesConfirmados": 10,
+          "estadoEvento": "CONFIRMADO"
+        }
+      }
+    ]
+  }
+]
+```
+
+**Status:** 200 OK | 400 Bad Request | 404 Not Found
+
+---
+
 ## E4 — Canchas (Recintos)
 
 ### GET /canchas
