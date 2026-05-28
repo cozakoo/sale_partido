@@ -22,3 +22,9 @@ export interface DiaCalendario {
   fecha: Date;
   turnos: Turno[];
 }
+
+export interface FilterSelection {
+  estados: EstadoTurno[];
+  espacios: string[];
+  deportes: string[];
+}
