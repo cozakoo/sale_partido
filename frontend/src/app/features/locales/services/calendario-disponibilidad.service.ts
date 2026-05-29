@@ -7,11 +7,6 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 @Injectable({ providedIn: 'root' })
 export class CalendarioDisponibilidadService {
   private http = inject(HttpClient);
-  private addDays(fecha: Date, dias: number): Date {
-    const d = new Date(fecha);
-    d.setDate(d.getDate() + dias);
-    return d;
-  }
 
   private formatearFechaLocal(d: Date): string {
     // Formatear en timezone local (no convertir a UTC como toISOString())

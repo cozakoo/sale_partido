@@ -5,8 +5,8 @@
     <div class="turno-main">{{ turno().deporte }} · {{ turno().espacioNombre }}</div>
     @if (turno().reserva) {
       <div class="turno-sub">
-        Org: {{ turno().reserva.organizadorNombre }} ·
-        {{ turno().reserva.cantidadConfirmados }}/{{ turno().reserva.capacidad}} confirmados
+        Org: {{ turno().reserva!.organizadorNombre }} ·
+        {{ turno().reserva!.cantidadConfirmados }}/{{ turno().reserva!.capacidad}} confirmados
       </div>
     }
   </div>

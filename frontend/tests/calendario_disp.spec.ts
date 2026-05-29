@@ -89,7 +89,8 @@ test.describe('Visualización de disponibilidad y gestión de turnos', () => {
   });
 
   test('Escenario: Consultar historial de turnos finalizados', async ({ page }) => {
-    // Hacemos un mock específico simulando una fecha en el pasado
+    // Hacemos un mock específico simulando un turno finalizado (ocupado en el pasado)
+    // Usamos una fecha de la semana actual para que sea visible en el calendario
     await page.route(`**/locales/${LOCAL_UUID}/disponibilidad*`, async route => {
       await route.fulfill({
         json: [
@@ -98,10 +99,10 @@ test.describe('Visualización de disponibilidad y gestión de turnos', () => {
             canchaNombre: 'Cancha 1',
             turnos: [
               {
-                fecha: '2026-05-18', // Fecha de la semana pasada
+                fecha: '2026-05-26', // Lunes de la semana actual (hace poco)
                 horaInicio: '18:00:00',
                 horaFin: '19:00:00',
-                estado: 'OCUPADO', // Un turno finalizado es un turno que estuvo ocupado en el pasado
+                estado: 'OCUPADO', // Un turno finalizado es un turno que estuvo ocupado
                 deporte: 'Tenis',
                 espacioNombre: 'Cancha 1',
                 reserva: {
@@ -109,7 +110,7 @@ test.describe('Visualización de disponibilidad y gestión de turnos', () => {
                   nombreOrganizador: 'María Gómez',
                   deporte: 'Tenis',
                   cantidadParticipantesConfirmados: 4,
-                  estadoEvento: 'CONFIRMADO', // O podría ser FINALIZADO si el modelo lo soporta
+                  estadoEvento: 'FINALIZADO', // Estado de evento finalizado
                   capacidad: 4
                 }
               }
