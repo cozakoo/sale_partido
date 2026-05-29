@@ -29,7 +29,13 @@ export class CalendarioDisponibilidadPage implements OnInit {
   turnosAbiertos: Record<string, boolean> = {};
 
   semana = signal<DiaCalendario[]>([]);
+  vista = signal<'dia' | 'semana'>('semana');
 
+  diaSeleccionado = signal(0);
+
+  cambiarVista(vista: 'dia' | 'semana') {
+    this.vista.set(vista);
+  }
   seleccionFiltros = signal<FilterSelection>({
     estados: [],
     espacios: [],
@@ -95,6 +101,12 @@ export class CalendarioDisponibilidadPage implements OnInit {
       }
     });
   }
+  private formatFecha(fecha: Date): string {
+    const year = fecha.getFullYear();
+    const month = String(fecha.getMonth() + 1).padStart(2, '0');
+    const day = String(fecha.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
 
   private mapearASemana(canchas: DisponibilidadCanchaBackendDTO[]): DiaCalendario[] {
     const diasMap = new Map<string, DiaCalendario>();
@@ -102,7 +114,7 @@ export class CalendarioDisponibilidadPage implements OnInit {
     for (let i = 0; i < 7; i++) {
       const d = new Date(this.fechaInicio);
       d.setDate(d.getDate() + i);
-      const key = d.toISOString().split('T')[0];
+      const key = this.formatFecha(d);  // <- fix
       diasMap.set(key, { fecha: d, turnos: [] });
     }
 
@@ -139,17 +151,61 @@ export class CalendarioDisponibilidadPage implements OnInit {
     };
   }
 
-  private mapearEstado(dto: TurnoBackendDTO): EstadoTurno {
-    if (dto.estado === 'LIBRE') return 'libre';
-    if (dto.reserva?.estadoEvento === 'PENDIENTE') return 'incompleto';
-    return 'ocupado';
+private mapearEstado(dto: TurnoBackendDTO): EstadoTurno {
+  if (dto.estado === 'LIBRE') {
+    return 'libre';
+  }
+ 
+  const ahora = new Date();
+  const fechaFinTurno = this.crearFechaHora(dto.fecha, dto.horaFin);
+ 
+  if (fechaFinTurno < ahora) {
+    return 'finalizado';
+  }
+ 
+  switch (dto.reserva?.estadoEvento) {
+    case 'PENDIENTE':
+      return 'incompleto';
+    case 'CONFIRMADO':
+    case 'FINALIZADO':
+    default:
+      return 'ocupado';
+  }
+}
+
+
+  private crearFechaHora(fecha: string, hora: string): Date {
+    const [year, month, day] = fecha.split('-').map(Number);
+    const [hours, minutes] = hora.split(':').map(Number);
+
+    return new Date(year, month - 1, day, hours, minutes);
   }
 
   navegar(delta: number) {
-    this.offsetSemana += delta;
+    if (this.vista() === 'semana') {
+      const d = new Date(this.fechaInicio);
+      d.setDate(d.getDate() + delta * 7);
+      this.fechaInicio = d;
+      this.cargarSemana();
+      return;
+    }
+
+    // Vista día
+    const nuevoIndex = this.diaSeleccionado() + delta;
+
+    if (nuevoIndex >= 0 && nuevoIndex <= 6) {
+      // Sigue dentro de la semana cargada, solo mover índice
+      this.diaSeleccionado.set(nuevoIndex);
+      return;
+    }
+
+    // Cruzó el límite de la semana, cargar semana anterior/siguiente
     const d = new Date(this.fechaInicio);
     d.setDate(d.getDate() + delta * 7);
     this.fechaInicio = d;
+
+    // Posicionar en el extremo correcto
+    this.diaSeleccionado.set(nuevoIndex < 0 ? 6 : 0);
     this.cargarSemana();
   }
 
@@ -182,18 +238,25 @@ export class CalendarioDisponibilidadPage implements OnInit {
   limpiarFiltros() {
     this.seleccionFiltros.set({ estados: [], espacios: [], deportes: [] });
   }
-
   get fechaFin(): Date {
-    const d = new Date(this.fechaInicio);
+    const year = this.fechaInicio.getFullYear();
+    const month = this.fechaInicio.getMonth();
+    const day = this.fechaInicio.getDate();
+    const d = new Date(year, month, day);
     d.setDate(d.getDate() + 6);
     return d;
   }
-
   private getLunes(fecha: Date): Date {
-    const d = new Date(fecha);
-    const dia = d.getDay();
-    const diff = dia === 0 ? -6 : 1 - dia;
+    const year = fecha.getFullYear();
+    const month = fecha.getMonth();
+    const day = fecha.getDate();
+    console.log('getLunes input → year:', year, 'month:', month, 'day:', day);
+    const d = new Date(year, month, day);
+    const diaSemana = d.getDay();
+    console.log('diaSemana:', diaSemana);
+    const diff = diaSemana === 0 ? -6 : 1 - diaSemana;
     d.setDate(d.getDate() + diff);
+    console.log('lunes calculado:', d);
     return d;
   }
 }

@@ -81,7 +81,12 @@
 
   &.open { display: block; }
 }
-
+.badge, .dot {
+  &.finalizado {
+    background-color: #6c757d; // gris apagado, diferente al ocupado
+    color: white;
+  }
+}
 .detalle-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
