@@ -63,14 +63,14 @@ public class DisponibilidadController {
         if (fechaInicio == null || fechaFin == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Las fechas de inicio y fin son obligatorias");
         }
-/*
+
         if (fechaInicio.isBefore(LocalDate.now())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La fecha de inicio no puede ser anterior a la fecha actual");
         }
 
         if (fechaInicio.isAfter(fechaFin)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La fecha de inicio no puede ser posterior a la fecha de fin");
-        }  */
+        }  
 
         long daysBetween = ChronoUnit.DAYS.between(fechaInicio, fechaFin);
         if (daysBetween > 31) {

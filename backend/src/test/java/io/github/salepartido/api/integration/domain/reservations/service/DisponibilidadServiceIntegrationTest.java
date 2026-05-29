@@ -58,7 +58,7 @@ class DisponibilidadServiceIntegrationTest {
         Cancha cancha = new Cancha();
         cancha.setNombre("Cancha 1");
         cancha.setDeporte(deporte);
-
+        cancha.setCapacidad(10);
         ConfiguracionHorario configHorario = new ConfiguracionHorario();
         configHorario.setActivo(true);
         configHorario.setDuracionTurno(Duration.ofMinutes(60));
@@ -152,7 +152,7 @@ class DisponibilidadServiceIntegrationTest {
         Cancha cancha = new Cancha();
         cancha.setNombre("Cancha sin horario");
         cancha.setDeporte(deporte);
-
+        cancha.setCapacidad(10);    
         local.setCanchas(List.of(cancha));
         Local saved = localRepository.save(local);
 
