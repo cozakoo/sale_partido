@@ -2,6 +2,8 @@ package io.github.salepartido.api.domain.locales.service;
 
 import java.time.DayOfWeek;
 import java.time.Duration;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -22,6 +24,7 @@ import io.github.salepartido.api.domain.locales.repository.CanchaRepository;
 import io.github.salepartido.api.domain.locales.repository.LocalRepository;
 import io.github.salepartido.api.domain.locales.controller.dto.CanchaConfiguracionDTO;
 import io.github.salepartido.api.domain.locales.controller.dto.ConfiguracionDiaDTO;
+import io.github.salepartido.api.domain.locales.controller.dto.FiltroViewModel;
 import io.github.salepartido.api.domain.locales.controller.dto.SaveCanchasConfiguracionesHorariosRequest;
 import io.github.salepartido.api.domain.locales.controller.dto.SaveCanchasConfiguracionesHorariosResponse;
 
@@ -50,6 +53,123 @@ public class LocalService {
 
     public Optional<Local> buscarLocalPorId(UUID uuid) {
         return localRepository.findById(uuid);
+    }
+
+    public List<Local> buscarLocales(FiltroViewModel filtro) {
+        List<Local> locales = localRepository.findAll();
+
+        LocalDate fechaFiltro = parseFecha(filtro.fecha());
+        LocalTime desde = parseHora(filtro.horarioDisponible() != null ? filtro.horarioDisponible().desde() : null);
+        LocalTime hasta = parseHora(filtro.horarioDisponible() != null ? filtro.horarioDisponible().hasta() : null);
+
+        return locales.stream()
+            .filter(this::localActivo)
+            .filter(local -> matchesUbicacion(local, filtro.ubicacion(), filtro.zona()))
+            .filter(local -> matchesTipoDeporte(local, filtro.tipoDeporte()))
+            .filter(local -> matchesFecha(local, fechaFiltro))
+            .filter(local -> matchesHorarioDisponible(local, fechaFiltro, desde, hasta))
+            .collect(Collectors.toList());
+    }
+
+    private boolean localActivo(Local local) {
+        return local.getCanchas() != null && local.getCanchas().stream()
+            .flatMap(cancha -> cancha.getConfiguracionesHorarios() != null ? cancha.getConfiguracionesHorarios().stream() : List.<io.github.salepartido.api.domain.locales.model.ConfiguracionHorario>of().stream())
+            .anyMatch(io.github.salepartido.api.domain.locales.model.ConfiguracionHorario::isActivo);
+    }
+
+    private boolean matchesUbicacion(Local local, String ubicacion, String zona) {
+        if ((ubicacion == null || ubicacion.isBlank()) && (zona == null || zona.isBlank())) {
+            return true;
+        }
+
+        String direccion = local.getDireccion() != null ? local.getDireccion().toLowerCase() : "";
+        return (ubicacion != null && !ubicacion.isBlank() && direccion.contains(ubicacion.toLowerCase()))
+            || (zona != null && !zona.isBlank() && direccion.contains(zona.toLowerCase()));
+    }
+
+    private boolean matchesTipoDeporte(Local local, String tipoDeporte) {
+        if (tipoDeporte == null || tipoDeporte.isBlank()) {
+            return true;
+        }
+
+        return local.getCanchas() != null && local.getCanchas().stream()
+            .anyMatch(cancha -> cancha.getDeporte() != null && tipoDeporte.equalsIgnoreCase(cancha.getDeporte().getNombre()));
+    }
+
+    private boolean matchesFecha(Local local, LocalDate fechaFiltro) {
+        if (fechaFiltro == null) {
+            return true;
+        }
+
+        DayOfWeek diaSemana = fechaFiltro.getDayOfWeek();
+        return local.getCanchas() != null && local.getCanchas().stream()
+            .flatMap(cancha -> cancha.getConfiguracionesHorarios() != null ? cancha.getConfiguracionesHorarios().stream() : List.<io.github.salepartido.api.domain.locales.model.ConfiguracionHorario>of().stream())
+            .filter(io.github.salepartido.api.domain.locales.model.ConfiguracionHorario::isActivo)
+            .flatMap(config -> config.getConfiguracionesDias() != null ? config.getConfiguracionesDias().stream() : List.<io.github.salepartido.api.domain.locales.model.ConfiguracionDia>of().stream())
+            .anyMatch(dia -> dia.getDiaSemana() == diaSemana);
+    }
+
+    private boolean matchesHorarioDisponible(Local local, LocalDate fechaFiltro, LocalTime desde, LocalTime hasta) {
+        if (desde == null && hasta == null) {
+            return true;
+        }
+
+        // Si no se especifica fecha, se valida contra cualquier día activo de la semana.
+        return local.getCanchas() != null && local.getCanchas().stream()
+            .flatMap(cancha -> cancha.getConfiguracionesHorarios() != null ? cancha.getConfiguracionesHorarios().stream() : List.<io.github.salepartido.api.domain.locales.model.ConfiguracionHorario>of().stream())
+            .filter(io.github.salepartido.api.domain.locales.model.ConfiguracionHorario::isActivo)
+            .flatMap(config -> config.getConfiguracionesDias() != null ? config.getConfiguracionesDias().stream() : List.<io.github.salepartido.api.domain.locales.model.ConfiguracionDia>of().stream())
+            .anyMatch(dia -> {
+                if (fechaFiltro != null && dia.getDiaSemana() != fechaFiltro.getDayOfWeek()) {
+                    return false;
+                }
+                LocalTime inicio = dia.getHoraInicio();
+                LocalTime fin = dia.getHoraFin();
+                if (desde != null && hasta != null) {
+                    return !fin.isBefore(desde) && !inicio.isAfter(hasta);
+                }
+                if (desde != null) {
+                    return !fin.isBefore(desde);
+                }
+                return !inicio.isAfter(hasta);
+            });
+    }
+
+    private LocalDate parseFecha(String fecha) {
+        if (fecha == null || fecha.isBlank()) {
+            return null;
+        }
+
+        String normalized = fecha.trim().toLowerCase();
+        if (FiltroViewModel.FECHA_HOY.equals(normalized)) {
+            return LocalDate.now();
+        }
+        if (FiltroViewModel.FECHA_MANANA.equals(normalized)) {
+            return LocalDate.now().plusDays(1);
+        }
+
+        try {
+            return LocalDate.parse(normalized);
+        } catch (Exception ex) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Fecha inválida: " + fecha);
+        }
+    }
+
+    private LocalTime parseHora(String hora) {
+        if (hora == null || hora.isBlank()) {
+            return null;
+        }
+
+        String normalized = hora.trim().replace("hs", "").replace("HS", "").trim();
+        if (normalized.endsWith(".") || normalized.endsWith("h")) {
+            normalized = normalized.substring(0, normalized.length() - 1).trim();
+        }
+
+        try {
+            return LocalTime.parse(normalized);
+        } catch (Exception ex) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Horario inválido: " + hora + ". Use el formato HH:mm o HH:mm hs.");
+        }
     }
 
     /* 

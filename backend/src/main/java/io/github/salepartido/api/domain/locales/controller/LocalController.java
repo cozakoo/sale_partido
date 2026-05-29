@@ -10,6 +10,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import io.github.salepartido.api.domain.locales.service.LocalService;
 import io.github.salepartido.api.domain.locales.controller.dto.*;
+import io.github.salepartido.api.domain.locales.controller.dto.FiltroViewModel;
 import io.github.salepartido.api.domain.locales.controller.mapper.LocalMapper;
 import io.github.salepartido.api.domain.locales.controller.mapper.CanchaMapper;
 import io.github.salepartido.api.domain.locales.model.Local;
@@ -33,6 +34,13 @@ public class LocalController {
     public List<LocalSummary> getLocales() {
         return localService.obtenerTodosLosLocales().stream()
                 .map(localMapper::toSummary)
+                .collect(Collectors.toList());
+    }
+
+    @PostMapping("/busqueda")
+    public List<LocalViewModel> buscarLocales(@RequestBody FiltroViewModel filtro) {
+        return localService.buscarLocales(filtro).stream()
+                .map(localMapper::toViewModel)
                 .collect(Collectors.toList());
     }
 

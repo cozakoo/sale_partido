@@ -26,7 +26,9 @@ public class CanchaMapper {
         return new CanchaViewModel(
             cancha.getUuid(),
             cancha.getNombre(),
-            cancha.getDeporte() != null ? cancha.getDeporte().getNombre() : null
+            cancha.getDeporte() != null ? cancha.getDeporte().getNombre() : null,
+            cancha.getConfiguracionesHorarios() != null ?
+                cancha.getConfiguracionesHorarios().stream().map(this::toConfiguracionHorarioDTO).collect(Collectors.toList()) : List.of()
         );
     }
 
