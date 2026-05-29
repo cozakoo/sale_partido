@@ -4,7 +4,7 @@
     "number": 54,
     "title": "[E1-H01] Búsqueda de Locales (8)",
     "state": "OPEN",
-    "status": "Análisis",
+    "status": "En desarrollo",
     "epic": "E1",
     "priority": "Medium",
     "assignees": [],
@@ -59,6 +59,70 @@
     "url": "https://github.com/cozakoo/sale_partido/issues/10"
   },
   {
+    "huId": "UNKNOWN-101",
+    "number": 101,
+    "title": "Variables de entorno en tests e2e",
+    "state": "OPEN",
+    "status": "Backlog",
+    "epic": "UNKNOWN",
+    "priority": "Medium",
+    "assignees": [],
+    "url": "https://github.com/cozakoo/sale_partido/issues/101"
+  },
+  {
+    "huId": "UNKNOWN-104",
+    "number": 104,
+    "title": "Definicion de tareas",
+    "state": "OPEN",
+    "status": "Backlog",
+    "epic": "UNKNOWN",
+    "priority": "Medium",
+    "assignees": [
+      "mauri995"
+    ],
+    "url": "https://github.com/cozakoo/sale_partido/issues/104"
+  },
+  {
+    "huId": "UNKNOWN-106",
+    "number": 106,
+    "title": "Definición de tareas",
+    "state": "CLOSED",
+    "status": "Análisis",
+    "epic": "UNKNOWN",
+    "priority": "Medium",
+    "assignees": [
+      "wfusiman",
+      "fncotrena"
+    ],
+    "url": "https://github.com/cozakoo/sale_partido/issues/106"
+  },
+  {
+    "huId": "UNKNOWN-108",
+    "number": 108,
+    "title": "Implementación y corrección de frontend",
+    "state": "OPEN",
+    "status": "Análisis",
+    "epic": "UNKNOWN",
+    "priority": "Medium",
+    "assignees": [
+      "fncotrena"
+    ],
+    "url": "https://github.com/cozakoo/sale_partido/issues/108"
+  },
+  {
+    "huId": "UNKNOWN-109",
+    "number": 109,
+    "title": "Integración de frontend con backend",
+    "state": "CLOSED",
+    "status": "Terminado",
+    "epic": "UNKNOWN",
+    "priority": "Medium",
+    "assignees": [
+      "fncotrena"
+    ],
+    "url": "https://github.com/cozakoo/sale_partido/issues/109"
+  },
+  {
     "huId": "UNKNOWN-11",
     "number": 11,
     "title": "API de configuración",
@@ -72,11 +136,68 @@
     "url": "https://github.com/cozakoo/sale_partido/issues/11"
   },
   {
+    "huId": "UNKNOWN-110",
+    "number": 110,
+    "title": "Desarrollar frontend de búsqueda de locales",
+    "state": "OPEN",
+    "status": "Análisis",
+    "epic": "UNKNOWN",
+    "priority": "Medium",
+    "assignees": [
+      "cozakoo"
+    ],
+    "url": "https://github.com/cozakoo/sale_partido/issues/110"
+  },
+  {
+    "huId": "UNKNOWN-113",
+    "number": 113,
+    "title": "Tareas técnicas - Sprint 3",
+    "state": "OPEN",
+    "status": "Análisis",
+    "epic": "UNKNOWN",
+    "priority": "Medium",
+    "assignees": [],
+    "url": "https://github.com/cozakoo/sale_partido/issues/113"
+  },
+  {
+    "huId": "UNKNOWN-115",
+    "number": 115,
+    "title": "Scripts para entorno de desarrollo con Node",
+    "state": "OPEN",
+    "status": "Análisis",
+    "epic": "UNKNOWN",
+    "priority": "Medium",
+    "assignees": [],
+    "url": "https://github.com/cozakoo/sale_partido/issues/115"
+  },
+  {
+    "huId": "UNKNOWN-116",
+    "number": 116,
+    "title": "Reemplazar draw.io por plantUML",
+    "state": "OPEN",
+    "status": "Análisis",
+    "epic": "UNKNOWN",
+    "priority": "Medium",
+    "assignees": [],
+    "url": "https://github.com/cozakoo/sale_partido/issues/116"
+  },
+  {
+    "huId": "UNKNOWN-117",
+    "number": 117,
+    "title": "Repasar la división de tareas",
+    "state": "OPEN",
+    "status": "Análisis",
+    "epic": "UNKNOWN",
+    "priority": "Medium",
+    "assignees": [],
+    "url": "https://github.com/cozakoo/sale_partido/issues/117"
+  },
+  {
     "huId": "UNKNOWN-12",
     "number": 12,
     "title": "ViewModel de disponibilidad de un local",
-    "state": "OPEN",
-    "status": "Backlog",
+    "state": "CLOSED",
+    "status": "Terminado",
     "epic": "UNKNOWN",
     "priority": "Medium",
     "assignees": [
@@ -85,11 +206,22 @@
     "url": "https://github.com/cozakoo/sale_partido/issues/12"
   },
   {
+    "huId": "UNKNOWN-124",
+    "number": 124,
+    "title": "Resolver deuda técnica",
+    "state": "OPEN",
+    "status": "Análisis",
+    "epic": "UNKNOWN",
+    "priority": "Medium",
+    "assignees": [],
+    "url": "https://github.com/cozakoo/sale_partido/issues/124"
+  },
+  {
     "huId": "UNKNOWN-13",
     "number": 13,
     "title": "ViewModel de detalle de un turno",
-    "state": "OPEN",
-    "status": "Backlog",
+    "state": "CLOSED",
+    "status": "Terminado",
     "epic": "UNKNOWN",
     "priority": "Medium",
     "assignees": [
@@ -106,7 +238,7 @@
     "epic": "UNKNOWN",
     "priority": "Medium",
     "assignees": [
-      "GabrielSorrentino"
+      "cozakoo"
     ],
     "url": "https://github.com/cozakoo/sale_partido/issues/14"
   },
@@ -114,11 +246,13 @@
     "huId": "UNKNOWN-15",
     "number": 15,
     "title": "API de disponibilidad",
-    "state": "OPEN",
-    "status": "Backlog",
+    "state": "CLOSED",
+    "status": "Terminado",
     "epic": "UNKNOWN",
     "priority": "Medium",
-    "assignees": [],
+    "assignees": [
+      "cozakoo"
+    ],
     "url": "https://github.com/cozakoo/sale_partido/issues/15"
   },
   {
@@ -138,8 +272,8 @@
     "huId": "UNKNOWN-18",
     "number": 18,
     "title": "Diseño de tests E2E frontend",
-    "state": "OPEN",
-    "status": "En desarrollo",
+    "state": "CLOSED",
+    "status": "Terminado",
     "epic": "UNKNOWN",
     "priority": "Medium",
     "assignees": [
@@ -257,8 +391,8 @@
     "huId": "UNKNOWN-46",
     "number": 46,
     "title": "Entorno de pre_produccion",
-    "state": "OPEN",
-    "status": "Análisis",
+    "state": "CLOSED",
+    "status": "Terminado",
     "epic": "UNKNOWN",
     "priority": "Medium",
     "assignees": [],
@@ -282,31 +416,35 @@
   {
     "huId": "UNKNOWN-55",
     "number": 55,
-    "title": "ViewModel de Busqueda de Locales",
+    "title": "ViewModel o DTO de Busqueda de Locales",
     "state": "OPEN",
-    "status": "Análisis",
+    "status": "Backlog",
     "epic": "UNKNOWN",
     "priority": "Medium",
-    "assignees": [],
+    "assignees": [
+      "wfusiman"
+    ],
     "url": "https://github.com/cozakoo/sale_partido/issues/55"
   },
   {
     "huId": "UNKNOWN-56",
     "number": 56,
     "title": "Implementar filtros ",
-    "state": "OPEN",
-    "status": "Análisis",
+    "state": "CLOSED",
+    "status": "Terminado",
     "epic": "UNKNOWN",
     "priority": "Medium",
-    "assignees": [],
+    "assignees": [
+      "cozakoo"
+    ],
     "url": "https://github.com/cozakoo/sale_partido/issues/56"
   },
   {
     "huId": "UNKNOWN-57",
     "number": 57,
     "title": "Insertar Datos en BD del Modelo de Dominio",
-    "state": "OPEN",
-    "status": "Análisis",
+    "state": "CLOSED",
+    "status": "Terminado",
     "epic": "UNKNOWN",
     "priority": "Medium",
     "assignees": [
@@ -319,10 +457,12 @@
     "number": 58,
     "title": "Implementar navegación semanal",
     "state": "OPEN",
-    "status": "Análisis",
+    "status": "Backlog",
     "epic": "UNKNOWN",
     "priority": "Medium",
-    "assignees": [],
+    "assignees": [
+      "GabrielSorrentino"
+    ],
     "url": "https://github.com/cozakoo/sale_partido/issues/58"
   },
   {
@@ -330,10 +470,12 @@
     "number": 59,
     "title": "Api Busqueda de Locales<GET>",
     "state": "OPEN",
-    "status": "Análisis",
+    "status": "Backlog",
     "epic": "UNKNOWN",
     "priority": "Medium",
-    "assignees": [],
+    "assignees": [
+      "ariandres11"
+    ],
     "url": "https://github.com/cozakoo/sale_partido/issues/59"
   },
   {
@@ -341,62 +483,31 @@
     "number": 60,
     "title": "Api Busqueda de Locales <Post>",
     "state": "OPEN",
-    "status": "Análisis",
+    "status": "Backlog",
     "epic": "UNKNOWN",
     "priority": "Medium",
     "assignees": [],
     "url": "https://github.com/cozakoo/sale_partido/issues/60"
   },
   {
-    "huId": "UNKNOWN-61",
-    "number": 61,
-    "title": "Crear componentes principales (Frontend)",
-    "state": "OPEN",
-    "status": "Análisis",
-    "epic": "UNKNOWN",
-    "priority": "Medium",
-    "assignees": [],
-    "url": "https://github.com/cozakoo/sale_partido/issues/61"
-  },
-  {
-    "huId": "UNKNOWN-62",
-    "number": 62,
-    "title": "Reserva y persistencia de turnos y borrado de mock",
-    "state": "OPEN",
-    "status": "Análisis",
-    "epic": "UNKNOWN",
-    "priority": "Medium",
-    "assignees": [],
-    "url": "https://github.com/cozakoo/sale_partido/issues/62"
-  },
-  {
-    "huId": "UNKNOWN-63",
-    "number": 63,
-    "title": "Desarrollar test",
-    "state": "OPEN",
-    "status": "Análisis",
-    "epic": "UNKNOWN",
-    "priority": "Medium",
-    "assignees": [],
-    "url": "https://github.com/cozakoo/sale_partido/issues/63"
-  },
-  {
     "huId": "UNKNOWN-64",
     "number": 64,
     "title": "Test Busqueda de Locales",
-    "state": "OPEN",
-    "status": "Análisis",
+    "state": "CLOSED",
+    "status": "Terminado",
     "epic": "UNKNOWN",
     "priority": "Medium",
-    "assignees": [],
+    "assignees": [
+      "ariandres11"
+    ],
     "url": "https://github.com/cozakoo/sale_partido/issues/64"
   },
   {
     "huId": "UNKNOWN-66",
     "number": 66,
     "title": "Investigación sobre SonarQube",
-    "state": "OPEN",
-    "status": "Análisis",
+    "state": "CLOSED",
+    "status": "Terminado",
     "epic": "UNKNOWN",
     "priority": "Medium",
     "assignees": [
@@ -408,19 +519,21 @@
     "huId": "UNKNOWN-67",
     "number": 67,
     "title": "Configuración del CORS dependiendo del entorno (main/pre_prod",
-    "state": "OPEN",
-    "status": "Análisis",
+    "state": "CLOSED",
+    "status": "Terminado",
     "epic": "UNKNOWN",
     "priority": "Medium",
-    "assignees": [],
+    "assignees": [
+      "wfusiman"
+    ],
     "url": "https://github.com/cozakoo/sale_partido/issues/67"
   },
   {
     "huId": "UNKNOWN-68",
     "number": 68,
     "title": "Incorporación de Agente",
-    "state": "OPEN",
-    "status": "En desarrollo",
+    "state": "CLOSED",
+    "status": "Terminado",
     "epic": "UNKNOWN",
     "priority": "Medium",
     "assignees": [
@@ -445,11 +558,13 @@
     "huId": "UNKNOWN-70",
     "number": 70,
     "title": "Corrección de frontend",
-    "state": "OPEN",
-    "status": "Backlog",
+    "state": "CLOSED",
+    "status": "Terminado",
     "epic": "UNKNOWN",
     "priority": "Medium",
-    "assignees": [],
+    "assignees": [
+      "Fabian-VM"
+    ],
     "url": "https://github.com/cozakoo/sale_partido/issues/70"
   },
   {
@@ -460,7 +575,9 @@
     "status": "Backlog",
     "epic": "UNKNOWN",
     "priority": "Medium",
-    "assignees": [],
+    "assignees": [
+      "mauri995"
+    ],
     "url": "https://github.com/cozakoo/sale_partido/issues/71"
   },
   {
@@ -471,7 +588,9 @@
     "status": "Backlog",
     "epic": "UNKNOWN",
     "priority": "Medium",
-    "assignees": [],
+    "assignees": [
+      "Fabian-VM"
+    ],
     "url": "https://github.com/cozakoo/sale_partido/issues/72"
   },
   {
@@ -528,7 +647,9 @@
     "status": "Terminado",
     "epic": "UNKNOWN",
     "priority": "Medium",
-    "assignees": [],
+    "assignees": [
+      "GabrielSorrentino"
+    ],
     "url": "https://github.com/cozakoo/sale_partido/issues/79"
   },
   {
@@ -548,8 +669,8 @@
     "huId": "UNKNOWN-84",
     "number": 84,
     "title": "Tareas técnicas - Sprint 2",
-    "state": "OPEN",
-    "status": "Análisis",
+    "state": "CLOSED",
+    "status": "Terminado",
     "epic": "UNKNOWN",
     "priority": "Medium",
     "assignees": [],
@@ -569,47 +690,29 @@
     "url": "https://github.com/cozakoo/sale_partido/issues/85"
   },
   {
-    "huId": "UNKNOWN-86",
-    "number": 86,
-    "title": "Componente de disponibilidad de un local (frontend)",
-    "state": "OPEN",
-    "status": "Análisis",
-    "epic": "UNKNOWN",
-    "priority": "Medium",
-    "assignees": [],
-    "url": "https://github.com/cozakoo/sale_partido/issues/86"
-  },
-  {
-    "huId": "UNKNOWN-87",
-    "number": 87,
-    "title": "Componente de detalle de un turno (frontend)",
-    "state": "OPEN",
-    "status": "Análisis",
-    "epic": "UNKNOWN",
-    "priority": "Medium",
-    "assignees": [],
-    "url": "https://github.com/cozakoo/sale_partido/issues/87"
-  },
-  {
     "huId": "UNKNOWN-88",
     "number": 88,
     "title": "Frontend Tests E2E",
-    "state": "OPEN",
-    "status": "Análisis",
+    "state": "CLOSED",
+    "status": "Terminado",
     "epic": "UNKNOWN",
     "priority": "Medium",
-    "assignees": [],
+    "assignees": [
+      "ariandres11"
+    ],
     "url": "https://github.com/cozakoo/sale_partido/issues/88"
   },
   {
     "huId": "UNKNOWN-89",
     "number": 89,
-    "title": "Tests API",
-    "state": "OPEN",
-    "status": "Análisis",
+    "title": "Diseño de Tests unitario ",
+    "state": "CLOSED",
+    "status": "Terminado",
     "epic": "UNKNOWN",
     "priority": "Medium",
-    "assignees": [],
+    "assignees": [
+      "wfusiman"
+    ],
     "url": "https://github.com/cozakoo/sale_partido/issues/89"
   },
   {
@@ -629,8 +732,8 @@
     "huId": "UNKNOWN-92",
     "number": 92,
     "title": "Personalizarlo con el contexto del proyecto",
-    "state": "OPEN",
-    "status": "Análisis",
+    "state": "CLOSED",
+    "status": "Terminado",
     "epic": "UNKNOWN",
     "priority": "Medium",
     "assignees": [],
@@ -640,8 +743,8 @@
     "huId": "UNKNOWN-93",
     "number": 93,
     "title": "incorporar el github proyect",
-    "state": "OPEN",
-    "status": "Análisis",
+    "state": "CLOSED",
+    "status": "Terminado",
     "epic": "UNKNOWN",
     "priority": "Medium",
     "assignees": [],
@@ -651,11 +754,22 @@
     "huId": "UNKNOWN-94",
     "number": 94,
     "title": "incorporaion de historial",
-    "state": "OPEN",
-    "status": "Análisis",
+    "state": "CLOSED",
+    "status": "Terminado",
     "epic": "UNKNOWN",
     "priority": "Medium",
     "assignees": [],
     "url": "https://github.com/cozakoo/sale_partido/issues/94"
+  },
+  {
+    "huId": "UNKNOWN-99",
+    "number": 99,
+    "title": "Corrección de guías de instalación",
+    "state": "OPEN",
+    "status": "Backlog",
+    "epic": "UNKNOWN",
+    "priority": "Medium",
+    "assignees": [],
+    "url": "https://github.com/cozakoo/sale_partido/issues/99"
   }
 ]
