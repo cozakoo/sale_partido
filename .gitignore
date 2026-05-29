@@ -55,3 +55,4 @@ yarn-error.log*
 *.pid
 /runtime/
 backend/error-log.txt
+.claude/settings.local.json
