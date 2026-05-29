@@ -20,13 +20,13 @@ export class CalendarioDisponibilidadPage implements OnInit {
 
   localUuid!: string;
   fechaInicio = this.getLunes(new Date());
-  offsetSemana = 0;
+  offsetSemana = signal(0);
 
-  loading = false;
-  loadError = false;
+  loading = signal(false);
+  loadError = signal(false);
 
-  diasAbiertos: Record<number, boolean> = {};
-  turnosAbiertos: Record<string, boolean> = {};
+  diasAbiertos = signal<Record<number, boolean>>({});
+  turnosAbiertos = signal<Record<string, boolean>>({});
 
   semana = signal<DiaCalendario[]>([]);
 
@@ -81,17 +81,17 @@ export class CalendarioDisponibilidadPage implements OnInit {
   }
 
   cargarSemana() {
-    this.loading = true;
-    this.loadError = false;
+    this.loading.set(true);
+    this.loadError.set(false);
 
     this.service.getDisponibilidad(this.localUuid, this.fechaInicio, this.fechaFin).subscribe({
       next: data => {
         this.semana.set(this.mapearASemana(data));
-        this.loading = false;
+        this.loading.set(false);
       },
       error: () => {
-        this.loadError = true;
-        this.loading = false;
+        this.loadError.set(true);
+        this.loading.set(false);
       }
     });
   }
@@ -154,7 +154,7 @@ export class CalendarioDisponibilidadPage implements OnInit {
   }
 
   navegar(delta: number) {
-    this.offsetSemana += delta;
+    this.offsetSemana.update(v => v + delta);
     const d = new Date(this.fechaInicio);
     d.setDate(d.getDate() + delta * 7);
     this.fechaInicio = d;
@@ -162,25 +162,31 @@ export class CalendarioDisponibilidadPage implements OnInit {
   }
 
   irHoy() {
-    this.offsetSemana = 0;
+    this.offsetSemana.set(0);
     this.fechaInicio = this.getLunes(new Date());
     this.cargarSemana();
   }
 
   toggleDia(i: number) {
-    this.diasAbiertos[i] = !this.diasAbiertos[i];
+    this.diasAbiertos.update(v => ({
+      ...v,
+      [i]: !v[i]
+    }));
   }
 
   isDiaAbierto(i: number): boolean {
-    return this.diasAbiertos[i] !== false;
+    return this.diasAbiertos()[i] !== false;
   }
 
   toggleTurno(id: string) {
-    this.turnosAbiertos[id] = !this.turnosAbiertos[id];
+    this.turnosAbiertos.update(v => ({
+      ...v,
+      [id]: !v[id]
+    }));
   }
 
   isTurnoAbierto(id: string): boolean {
-    return !!this.turnosAbiertos[id];
+    return !!this.turnosAbiertos()[id];
   }
 
   onFiltrosCambiar(seleccion: FilterSelection) {
