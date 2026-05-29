@@ -12,36 +12,46 @@
     </span>
   </div>
 
+  <app-barra-filtros
+    [opciones]="opcionesFiltros()"
+    [seleccion]="seleccionFiltros()"
+    (seleccionChange)="onFiltrosCambiar($event)"
+    (limpiar)="limpiarFiltros()"
+  />
+
   <div class="semana">
-    <div class="dia-card" *ngFor="let dia of semana; let i = index">
+    @for (dia of semanaFiltrada(); track dia.fecha; let i = $index) {
+      <div class="dia-card">
 
-      <div class="dia-header" (click)="toggleDia(i)">
-        <span class="dia-nombre">{{ dia.fecha | date:'EEEE' }}</span>
-        <span class="dia-fecha">{{ dia.fecha | date:'d MMM yyyy' }}</span>
-        <div class="dia-badges">
-          <span class="count-badge" *ngIf="dia.turnos.length > 0">
-            {{ dia.turnos.length }} turno{{ dia.turnos.length !== 1 ? 's' : '' }}
-          </span>
-          <span class="chevron" [class.open]="isDiaAbierto(i)">›</span>
+        <div class="dia-header" (click)="toggleDia(i)">
+          <span class="dia-nombre">{{ dia.fecha | date:'EEEE' }}</span>
+          <span class="dia-fecha">{{ dia.fecha | date:'d MMM yyyy' }}</span>
+          <div class="dia-badges">
+            @if (dia.turnos.length > 0) {
+              <span class="count-badge">
+                {{ dia.turnos.length }} turno{{ dia.turnos.length !== 1 ? 's' : '' }}
+              </span>
+            }
+            <span class="chevron" [class.open]="isDiaAbierto(i)">›</span>
+          </div>
         </div>
-      </div>
 
-      <div class="turnos" [class.open]="isDiaAbierto(i)">
-        <ng-container *ngIf="dia.turnos.length > 0; else sinTurnos">
-          <ng-container *ngFor="let turno of dia.turnos">
-            <app-turno-item
-              [turno]="turno"
-              [abierto]="isTurnoAbierto(turno.id)"
-              (toggleDetalle)="toggleTurno(turno.id)"
-            />
-          </ng-container>
-        </ng-container>
-        <ng-template #sinTurnos>
-          <div class="sin-turnos">Sin turnos este día</div>
-        </ng-template>
-      </div>
+        <div class="turnos" [class.open]="isDiaAbierto(i)">
+          @if (dia.turnos.length > 0) {
+            @for (turno of dia.turnos; track turno.id) {
+              <app-turno-item
+                [turno]="turno"
+                [abierto]="isTurnoAbierto(turno.id)"
+                (toggleDetalle)="toggleTurno(turno.id)"
+              />
+            }
+          } @else {
+            <div class="sin-turnos">Sin turnos este día</div>
+          }
+        </div>
 
-    </div>
+      </div>
+    }
   </div>
 </div>
 </div>
