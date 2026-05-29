@@ -18,7 +18,7 @@ public class CanchaMapper {
 
     public CanchaSummary toSummary(Cancha cancha) {
         if (cancha == null) return null;
-        return new CanchaSummary(cancha.getUuid(), cancha.getNombre());
+        return new CanchaSummary(cancha.getUuid(), cancha.getNombre(), cancha.getCapacidad());
     }
 
     public CanchaViewModel toViewModel(Cancha cancha) {
@@ -27,6 +27,7 @@ public class CanchaMapper {
             cancha.getUuid(),
             cancha.getNombre(),
             cancha.getDeporte() != null ? cancha.getDeporte().getNombre() : null,
+            cancha.getCapacidad(),
             cancha.getConfiguracionesHorarios() != null ?
                 cancha.getConfiguracionesHorarios().stream().map(this::toConfiguracionHorarioDTO).collect(Collectors.toList()) : List.of()
         );
@@ -37,6 +38,7 @@ public class CanchaMapper {
         return new CanchaDetail(
             cancha.getUuid(),
             cancha.getNombre(),
+            cancha.getCapacidad(),
             cancha.getConfiguracionesHorarios() != null ?
                 cancha.getConfiguracionesHorarios().stream().map(this::toConfiguracionHorarioDTO).collect(Collectors.toList()) : List.of()
         );

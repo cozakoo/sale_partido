@@ -6,5 +6,6 @@ import java.util.List;
 public record CanchaDetail(
     UUID uuid,
     String nombre,
+    Integer capacidad,
     List<ConfiguracionHorarioDTO> configuracionesHorarios
 ) {}

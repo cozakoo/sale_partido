@@ -7,5 +7,6 @@ public record CanchaViewModel(
     UUID uuid,
     String nombre,
     String deporte,
+    Integer capacidad,
     List<ConfiguracionHorarioDTO> configuracionesHorarios
 ) {}
