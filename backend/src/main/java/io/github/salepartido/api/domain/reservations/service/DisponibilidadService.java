@@ -116,6 +116,7 @@ public class DisponibilidadService {
                                             r.getUuid(),
                                             r.getNombreOrganizador(),
                                             r.getDeporte(),
+                                            cancha.getCapacidad(),
                                             r.getCantidadParticipantesConfirmados(),
                                             r.getEstadoEvento()
                                     );

@@ -43,4 +43,7 @@ public class Cancha {
     @JoinColumn(name = "deporte_uuid", referencedColumnName = "uuid", nullable = false)
     private Deporte deporte;
 
+    @Column(name = "capacidad", nullable = false)
+    private Integer capacidad;
+
 }
