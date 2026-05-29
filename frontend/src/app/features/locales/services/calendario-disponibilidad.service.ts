@@ -13,11 +13,18 @@ export class CalendarioDisponibilidadService {
     return d;
   }
 
- 
-    getDisponibilidad(localUuid: string, fechaInicio: Date, fechaFin: Date): Observable<DisponibilidadCanchaBackendDTO[]> {
+  private formatearFechaLocal(d: Date): string {
+    // Formatear en timezone local (no convertir a UTC como toISOString())
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  getDisponibilidad(localUuid: string, fechaInicio: Date, fechaFin: Date): Observable<DisponibilidadCanchaBackendDTO[]> {
     const params = new HttpParams()
-      .set('fechaInicio', fechaInicio.toISOString().split('T')[0])
-      .set('fechaFin', fechaFin.toISOString().split('T')[0]);
+      .set('fechaInicio', this.formatearFechaLocal(fechaInicio))
+      .set('fechaFin', this.formatearFechaLocal(fechaFin));
 
     return this.http.get<DisponibilidadCanchaBackendDTO[]>(
       `${Constantes.ENDPOINT_LOCALES}/${localUuid}/disponibilidad`,

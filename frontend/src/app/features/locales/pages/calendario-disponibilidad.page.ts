@@ -102,7 +102,7 @@ export class CalendarioDisponibilidadPage implements OnInit {
     for (let i = 0; i < 7; i++) {
       const d = new Date(this.fechaInicio);
       d.setDate(d.getDate() + i);
-      const key = d.toISOString().split('T')[0];
+      const key = this.formatearFechaLocal(d); // Usa timezone local, no UTC
       diasMap.set(key, { fecha: d, turnos: [] });
     }
 
@@ -143,6 +143,14 @@ export class CalendarioDisponibilidadPage implements OnInit {
     if (dto.estado === 'LIBRE') return 'libre';
     if (dto.reserva?.estadoEvento === 'PENDIENTE') return 'incompleto';
     return 'ocupado';
+  }
+
+  private formatearFechaLocal(d: Date): string {
+    // Formatear en timezone local (no convertir a UTC como toISOString())
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 
   navegar(delta: number) {
