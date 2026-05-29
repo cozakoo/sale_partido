@@ -4,8 +4,9 @@ export type EstadoEvento = 'pendiente' | 'confirmado' | 'finalizado' | 'cancelad
 export interface DetalleReserva {
   organizadorNombre: string;
   cantidadConfirmados: number;
-  capacidadTotal: number;
+  capacidad: number;
   estadoEvento: EstadoEvento;
+
 }
 
 export interface Turno {

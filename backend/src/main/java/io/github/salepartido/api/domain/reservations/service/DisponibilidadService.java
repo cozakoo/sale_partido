@@ -116,12 +116,14 @@ public class DisponibilidadService {
                                             r.getUuid(),
                                             r.getNombreOrganizador(),
                                             r.getDeporte(),
+                                            cancha.getCapacidad(),
                                             r.getCantidadParticipantesConfirmados(),
                                             r.getEstadoEvento()
                                     );
                                     turnoDTO = new TurnoDTO(finalFecha, finalSlotStart, finalSlotEnd, cancha.getNombre(), r.getDeporte(), "OCUPADO", rDto);
                                 } else {
-                                    turnoDTO = new TurnoDTO(finalFecha, finalSlotStart, finalSlotEnd, cancha.getNombre(), null, "LIBRE", null);
+                                    String deporteCancha = cancha.getDeporte() != null ? cancha.getDeporte().getNombre() : null;
+                                    turnoDTO = new TurnoDTO(finalFecha, finalSlotStart, finalSlotEnd, cancha.getNombre(), deporteCancha, "LIBRE", null);
                                 }
 
                                 turnosList.add(turnoDTO);

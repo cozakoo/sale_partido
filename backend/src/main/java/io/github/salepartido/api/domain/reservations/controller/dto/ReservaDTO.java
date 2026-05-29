@@ -15,6 +15,9 @@ public record ReservaDTO(
     @Schema(description = "Deporte", example = "Fútbol")
     String deporte,
 
+    @Schema(description = "Capacidad", example = "10")
+    Integer capacidad,
+
     @Schema(description = "Cantidad de participantes confirmados", example = "10")
     Integer cantidadParticipantesConfirmados,
 

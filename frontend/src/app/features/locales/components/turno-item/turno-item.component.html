@@ -5,7 +5,7 @@
     <div class="turno-main">{{ turno.deporte }} · {{ turno.espacioNombre }}</div>
     <div class="turno-sub" *ngIf="turno.reserva">
       Org: {{ turno.reserva.organizadorNombre }} ·
-      {{ turno.reserva.cantidadConfirmados }}/{{ turno.reserva.capacidadTotal }} confirmados
+      {{ turno.reserva.cantidadConfirmados }}/{{ turno.reserva.capacidad}} confirmados
     </div>
   </div>
   <span class="badge" [ngClass]="turno.estado">{{ turno.estado }}</span>
@@ -24,7 +24,7 @@
     </div>
     <div class="detalle-item">
       <span class="detalle-label">confirmados</span>
-      <span class="detalle-valor">{{ turno.reserva.cantidadConfirmados }} / {{ turno.reserva.capacidadTotal }}</span>
+      <span class="detalle-valor">{{ turno.reserva.cantidadConfirmados }} / {{ turno.reserva.capacidad }}</span>
     </div>
     <div class="detalle-item">
       <span class="detalle-label">horario</span>
