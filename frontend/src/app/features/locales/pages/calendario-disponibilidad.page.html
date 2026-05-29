@@ -15,7 +15,7 @@
 
       <span class="range-title text-center flex-grow-1">
         @if (vista() === 'semana') {
-        {{ fechaInicio | date:'d MMM' }} – {{ fechaFin | date:'d MMM yyyy' }}
+        {{ fechaInicio() | date:'d MMM' }} – {{ fechaFin | date:'d MMM yyyy' }}
         } @else {
         {{ semanaFiltrada()[diaSeleccionado()].fecha | date:'EEEE d MMM yyyy' }}
         }
