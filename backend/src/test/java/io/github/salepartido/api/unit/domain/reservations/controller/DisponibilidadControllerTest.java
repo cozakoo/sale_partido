@@ -130,10 +130,6 @@ class DisponibilidadControllerTest {
 
     @Test
     void getDisponibilidad_ConRangoMayorA31Dias_RetornaBadRequest() throws Exception {
-        // Arrange
-        LocalDate inicioLargo = LocalDate.of(2026, 6, 1);
-        LocalDate finLargo = LocalDate.of(2026, 7, 5); // 34 días
-
         // Act & Assert
         mockMvc.perform(get("/locales/{uuid}/disponibilidad", localUuid)
                         .param("fechaInicio", "2026-06-01")
