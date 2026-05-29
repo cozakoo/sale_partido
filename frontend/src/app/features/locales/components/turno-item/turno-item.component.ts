@@ -1,18 +1,15 @@
-import { Component, Input, Output, EventEmitter, ViewEncapsulation } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, input, output, ChangeDetectionStrategy } from '@angular/core';
 import { Turno } from '../../models/calendario';
 
 @Component({
   selector: 'app-turno-item',
   standalone: true,
-  imports: [CommonModule],
-  templateUrl: './turno-item.component.html',   // o template inline
+  templateUrl: './turno-item.component.html',
   styleUrl: './turno-item.component.scss',
-  encapsulation: ViewEncapsulation.None  // ← agregá esto
-
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class TurnoItemComponent {
-  @Input() turno!: Turno;
-  @Input() abierto = false;
-  @Output() toggleDetalle = new EventEmitter<void>();
+  turno = input.required<Turno>();
+  abierto = input(false);
+  toggleDetalle = output<void>();
 }

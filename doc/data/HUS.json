@@ -87,6 +87,23 @@
     "acceptanceCriteria": []
   },
   {
+    "huId": "UNKNOWN-101",
+    "number": 101,
+    "title": "Variables de entorno en tests e2e",
+    "description": "La IP y puerto del servicio de la API está hardcodeada. En entorno de desarrollo es localhost:8080 pero en otros entornos puede cambiar\n\nTampoco se deberian hardcodear los endpoints\n\nUtilizar variables de entorno o alguna otra forma, para no hardcodear en los tests E2E\n",
+    "status": "Backlog",
+    "epic": "UNKNOWN",
+    "priority": "Medium",
+    "owner": null,
+    "labels": [
+      "Infraestructura"
+    ],
+    "createdAt": "2026-05-26T21:22:52Z",
+    "updatedAt": "2026-05-28T02:08:31Z",
+    "url": "https://github.com/cozakoo/sale_partido/issues/101",
+    "acceptanceCriteria": []
+  },
+  {
     "huId": "UNKNOWN-11",
     "number": 11,
     "title": "API de configuración",
@@ -145,7 +162,7 @@
     "number": 14,
     "title": "Algoritmo de generación de turnos",
     "description": "Implementar un algoritmo para generar los turnos en base a las configuraciones de disponibilidad y los turnos existentes.\n\n**Criterios**\n- El turno no tiene que ser anterior a la fecha actual.\n- El usuario debe indicar local, espacio, fecha y horario del turno que desea reservar.\n\n**Afecta a**\n- Backend\n- Frontend\n- Base de datos (por cuándo se persistirán las reservas de los turnos).",
-    "status": "Backlog",
+    "status": "Terminado",
     "epic": "UNKNOWN",
     "priority": "Medium",
     "owner": "cozakoo",
@@ -154,7 +171,7 @@
       "⊞ Desarrollo (Kanban)"
     ],
     "createdAt": "2026-05-07T16:52:04Z",
-    "updatedAt": "2026-05-28T22:02:42Z",
+    "updatedAt": "2026-05-29T02:06:12Z",
     "url": "https://github.com/cozakoo/sale_partido/issues/14",
     "acceptanceCriteria": []
   },
@@ -380,7 +397,7 @@
     "number": 55,
     "title": "ViewModel o DTO de Busqueda de Locales",
     "description": "Objetivo\n\nDefinir los modelos de vista necesarios para la funcionalidad de búsqueda de locales deportivos, incluyendo la representación de los datos mostrados en pantalla y los filtros de búsqueda aplicados desde el frontend.\n\nColumna Kanban\nAnalisis\n\nResponsables\nBackend Developer\nFrontend Developer\n\nLugares de trabajo\nBackend API (Spring Boot):\nbackend\\src\\main\\java\\io\\github\\salepartido\\api\\domain\\locales\\controller\\\nbackend\\src\\main\\java\\io\\github\\salepartido\\api\\domain\\locales\\service\n\nProyecto de dominio\nbackend\\src\\main\\java\\io\\github\\salepartido\\api\\domain\\locales\\model\nbackend\\src\\main\\java\\io\\github\\salepartido\\api\\domain\\locales\\repository\nbackend\\src\\main\\java\\io\\github\\salepartido\\api\\domain\\locales\\controller\\dto\n\nBase de datos PostgreSQL:\nsalepartido-database\n\nGithub Projects\nRama: feature/api-get-busqueda-locales\nOrigen: develop\n\nAgentes IA\nNo definido\n\nEntradas\nHistoria de usuario: Búsqueda de locales deportivos\nCriterios de aceptación\nModelo de dominio actual\nDecisiones de arquitectura\n\nSalidas\nLocalViewModel: Modelo utilizado para representar los datos mostrados en la pantalla de búsqueda de locales.\n\nDatos del local:\nnombre\nubicación\ndeportes disponibles\nlista de canchas\n\nDatos de cancha:\nnombre\ndeporte (tipo de cancha)\n\nNota: el atributo “deporte” se encuentra ligado a cancha en BD y los \"deportes disponibles\" en local se calculan segun los deportes de las canchas que posee el local.\n\nFiltroViewModel: Modelo utilizado para representar los filtros de búsqueda enviados desde el frontend hacia la API.\n\nFiltros incluidos\nubicación/zona\nfecha\ntipo de deporte\nhorario disponible\nConsideraciones\nla fecha debe soportar:\nhoy\nmañana\nfecha específica\nel horario disponible debe soportar rangos:\nejemplo: 17:00 hs a 21:00 hs\n",
-    "status": "Backlog",
+    "status": "Terminado",
     "epic": "UNKNOWN",
     "priority": "Medium",
     "owner": "wfusiman",
@@ -389,7 +406,7 @@
       "⊞ Desarrollo (Kanban)"
     ],
     "createdAt": "2026-05-19T20:48:23Z",
-    "updatedAt": "2026-05-29T01:08:49Z",
+    "updatedAt": "2026-05-29T01:58:33Z",
     "url": "https://github.com/cozakoo/sale_partido/issues/55",
     "acceptanceCriteria": []
   },
@@ -434,16 +451,16 @@
     "number": 58,
     "title": "Implementar navegación semanal",
     "description": "en el frontend dada la lista de disponibilidad \n\n Permitir navegar entre semanas.\nAcciones\nSemana anterior\nSemana siguiente\nVolver a semana actual\n",
-    "status": "Backlog",
+    "status": "Terminado",
     "epic": "UNKNOWN",
     "priority": "Medium",
-    "owner": "GabrielSorrentino",
+    "owner": "cozakoo",
     "labels": [
       "Desarrollador",
       "⊞ Desarrollo (Kanban)"
     ],
     "createdAt": "2026-05-19T21:10:31Z",
-    "updatedAt": "2026-05-27T23:49:02Z",
+    "updatedAt": "2026-05-29T02:05:50Z",
     "url": "https://github.com/cozakoo/sale_partido/issues/58",
     "acceptanceCriteria": []
   },
@@ -471,16 +488,16 @@
     "number": 60,
     "title": "Api Busqueda de Locales <Post>",
     "description": "Objetivo\nImplementar el endpoint POST de búsqueda de locales deportivos, permitiendo recibir los filtros aplicados desde el frontend mediante FiltroViewModel y devolver una lista de locales junto con sus canchas y configuraciones horarias utilizando List<LocalViewModel>.\n\nColumna Kanban\nDesarrollo\n\nResponsables\nBackend Developer\n\nLugares de trabajo\nBackend API (Spring Boot):\nbackend\\src\\main\\java\\io\\github\\salepartido\\api\\domain\\locales\\controller\\\nbackend\\src\\main\\java\\io\\github\\salepartido\\api\\domain\\locales\\service\n\nProyecto de dominio\nbackend\\src\\main\\java\\io\\github\\salepartido\\api\\domain\\locales\\model\nbackend\\src\\main\\java\\io\\github\\salepartido\\api\\domain\\locales\\repository\nbackend\\src\\main\\java\\io\\github\\salepartido\\api\\domain\\locales\\controller\\dto\n\nBase de datos PostgreSQL:\nsalepartido-database\n\nGithub Projects\nRama: feature/api-get-busqueda-locales\nOrigen: develop\n\nAgentes IA\nNo definido\n\nEntradas\nHistoria de usuario: Búsqueda de locales deportivos\nCriterios de aceptación\nLocalViewModel\nFiltroViewModel\nModelo de dominio actual\nDecisiones de arquitectura\n\nSalidas\nController: Endpoint POST encargado de recibir los filtros de búsqueda desde el frontend.\n\nEntrada al Endpoint:\nFiltroViewModel\n\nSalida del Endpoint:\nList<LocalViewModel>\n\nLa respuesta debe incluir:\nlocales\ncanchas asociadas\nconfiguraciones horarias\nService: Servicio encargado de realizar la búsqueda en base de datos aplicando los filtros definidos en FiltroViewModel.\n\nLa búsqueda debe discriminar por:\nubicación/zona\nfecha\ntipo de deporte\nhorario disponible\n\nIncluyendo:\ninformación del local\ncanchas asociadas\nconfiguraciones horarias\nConsideraciones\nLa respuesta debe mapear correctamente hacia LocalViewModel\nLos filtros deben poder combinarse entre sí\nLa búsqueda debe incluir únicamente locales activos\nLas relaciones entre Local, Cancha y ConfiguracionHorarios deben resolverse correctamente\nLa estructura de respuesta debe ser compatible con frontend Angular",
-    "status": "Backlog",
+    "status": "Terminado",
     "epic": "UNKNOWN",
     "priority": "Medium",
-    "owner": null,
+    "owner": "wfusiman",
     "labels": [
       "Desarrollador",
       "⊞ Desarrollo (Kanban)"
     ],
     "createdAt": "2026-05-19T21:14:05Z",
-    "updatedAt": "2026-05-27T22:59:40Z",
+    "updatedAt": "2026-05-29T02:19:58Z",
     "url": "https://github.com/cozakoo/sale_partido/issues/60",
     "acceptanceCriteria": []
   },
@@ -631,18 +648,16 @@
     "huId": "UNKNOWN-73",
     "number": 73,
     "title": "Verificación de arquitectura",
-    "description": "**Objetivo**\nVerificar que la implementación respeta las decisiones arquitectónicas, convenciones técnicas y límites definidos para el sistema.\n\n**Entradas**\n- Código implementado\n- Decisiones de arquitectura\n- Decisiones de desarrollo\n\n**Salida**\n- Verificación arquitectónica documentada\n- Desalineamientos identificados o corregidos\n- Actualización del documento de deuda técnica\n\n**Lugar**\n- Repositorio completo y documentación técnica\n\n**Definición de completado**\n- Los desalineamientos detectados fueron corregidos o documentados\n- La implementación mantiene coherencia con la arquitectura y convenciones definidas\n\n",
+    "description": "**Objetivo**  \nDado el poco tiempo que queda, el objetivo es únicamente verificar que la implementación de las historias #2 `[E4-H03] Configuración de turnos y horarios de espacios` , #9 `[E5-H01] Calendario de disponibilidad y ocupación` y #54 `[E1-H01] Búsqueda de Locales` respetan las decisiones arquitectónicas y de desarrollo.\nEn caso de identificar desalineamientos agregarlos a la deuda técnica\n\n**Lugares de trabajo**  \n- Proyecto completo (repositorio Github)\n- Rama `dev`\n- Entorno de desarrollo para realizar las correcciones\n\n**Agentes IA**  \n- No definido\n\n**Entradas**  \n- Funcionalidades implementadas\n- Documentación de decisiones de desarrollo\n- Documentación de decisiones de arquitectura\n\n**Salidas**  \n- Verificación del cumplimiento de las decisiones de arquitectura\n- Actualización del documento de deuda técnica en función de los desalineamientos no solucionados\n\n**Definición de completado**  \n- Los desalineamientos detectados fueron documentados\n",
     "status": "Backlog",
     "epic": "UNKNOWN",
     "priority": "Medium",
     "owner": "GabrielSorrentino",
     "labels": [
-      "Desarrollador",
-      "Arquitecto",
-      "⊞ Verificacion (Kanban)"
+      "Arquitecto"
     ],
     "createdAt": "2026-05-20T01:59:36Z",
-    "updatedAt": "2026-05-26T21:01:11Z",
+    "updatedAt": "2026-05-29T02:29:09Z",
     "url": "https://github.com/cozakoo/sale_partido/issues/73",
     "acceptanceCriteria": []
   },
@@ -650,43 +665,25 @@
     "huId": "UNKNOWN-74",
     "number": 74,
     "title": "Verificación funcional y UX",
-    "description": "**Objetivo**\nValidar que la funcionalidad implementada cumple la experiencia esperada por el usuario y mantiene coherencia con los escenarios definidos.\n\n**Entradas**\n- Funcionalidad implementada\n- Escenarios funcionales\n- Tests automatizados\n\n**Salida**\n- Validación funcional realizada\n- Bugs identificados y corregidos\n\n**Lugar**\nAplicación en entorno de desarrollo\n\n**Definición de completado**\n- Los escenarios definidos funcionan correctamente\n- No existen errores funcionales críticos abiertos\n- La experiencia de usuario es consistente con lo esperado\n- La funcionalidad resulta entendible para el usuario final\n- Los mensajes y flujos son claros\n- Los tests relevantes pasan correctamente\n",
+    "description": "**Objetivo**  \nValidar que la funcionalidad implementada cumple la experiencia esperada por el usuario y mantiene coherencia con los escenarios definidos.\n\n**Lugares de trabajo**  \n- Proyecto completo (repositorio Github)\n- Rama `feature/E4-H03/verificacion-funcional`, a partir de la rama `dev`\n- Entorno de desarrollo para probar funcionalidades y realizar las correcciones necesarias\n\n**Agentes IA**  \n- QA\n\n**Entradas**  \n- Funcionalidades implementadas\n- Historia de usuario\n- Escenarios Gherkin\n- Tests desarrollados\n\n**Salidas**  \n- Validación funcional \n- Bugs identificados y corregidos (si aparecen)\n\n**Definición de completado**  \n- La implementación cumple con la historia de usuario y escenarios\n- La experiencia de usuario es consistente con lo esperado\n- Todos los tests definidos pasan correctamente\n",
     "status": "Backlog",
     "epic": "UNKNOWN",
     "priority": "Medium",
     "owner": null,
     "labels": [
-      "Desarrollador",
       "QA",
       "⊞ Verificacion (Kanban)"
     ],
     "createdAt": "2026-05-20T02:57:25Z",
-    "updatedAt": "2026-05-26T21:01:17Z",
+    "updatedAt": "2026-05-29T02:07:11Z",
     "url": "https://github.com/cozakoo/sale_partido/issues/74",
-    "acceptanceCriteria": []
-  },
-  {
-    "huId": "UNKNOWN-75",
-    "number": 75,
-    "title": "Validación con Product Owners",
-    "description": "**Objetivo**\nValidar que la funcionalidad implementada satisface la necesidad de negocio planteada por la historia de usuario. Realizar las correcciones necesarias.\n\n**Entradas**\n- Funcionalidad verificada\n- Historia de usuario\n\n**Salida**\n- Historia aceptada\n\n**Lugar**\nEntorno de prueba o demostración\n\n**Definición de completado**\n- Product Owners realizaron la validación funcional\n- Las observaciones relevantes fueron registradas\n- La historia posee estado de aceptación definido\n- La funcionalidad resuelve el problema esperado\n- No existen discrepancias relevantes entre requerimiento e implementación\n",
-    "status": "Backlog",
-    "epic": "UNKNOWN",
-    "priority": "Medium",
-    "owner": null,
-    "labels": [
-      "✖ Eliminar"
-    ],
-    "createdAt": "2026-05-20T02:59:11Z",
-    "updatedAt": "2026-05-29T01:22:31Z",
-    "url": "https://github.com/cozakoo/sale_partido/issues/75",
     "acceptanceCriteria": []
   },
   {
     "huId": "UNKNOWN-76",
     "number": 76,
     "title": "Despliegue y verificación operativa",
-    "description": "**Objetivo**\nRealizar el pasaje de la funcionalidad al entorno productivo y verificar su correcto funcionamiento operativo.\n\n**Entradas**\n- Historia validada\n- Build aprobada para despliegue\n\n**Salida**\n- Funcionalidad desplegada en producción\n\n**Lugar**\n- Infraestructura y repositorios del proyecto\n\n**Definición de completado**\n- La aplicación funciona correctamente en producción\n- No existen errores críticos posteriores al despliegue\n- Los mecanismos de monitoreo y logs funcionan correctamente\n- La funcionalidad es observable y diagnosticable en producción\n",
+    "description": "\n**Objetivo**  \nRealizar el pasaje de la funcionalidad al entorno de producción y verificar su correcto funcionamiento operativo.\n\n**Lugares de trabajo**  \n- Proyecto completo (repositorio Github)\n- Ramas `pre_prod` y `main`\n\n**Agentes IA**  \n- Infraestructura\n\n**Entradas**  \n- Nuevas funcionalidades implementadas (validadas previamente)\n\n**Salidas**\n- Funcionalidad desplegada en producción\n\n**Definición de completado**  \n- La aplicación funciona correctamente en producción\n- No existen errores críticos posteriores al despliegue\n- Los mecanismos de monitoreo y logs funcionan correctamente\n",
     "status": "Backlog",
     "epic": "UNKNOWN",
     "priority": "Medium",
@@ -696,7 +693,7 @@
       "⊞ Despliegue (Kanban)"
     ],
     "createdAt": "2026-05-20T03:01:16Z",
-    "updatedAt": "2026-05-28T15:03:39Z",
+    "updatedAt": "2026-05-29T02:13:02Z",
     "url": "https://github.com/cozakoo/sale_partido/issues/76",
     "acceptanceCriteria": []
   },
@@ -747,7 +744,7 @@
     "owner": null,
     "labels": [],
     "createdAt": "2026-05-20T22:29:50Z",
-    "updatedAt": "2026-05-28T21:45:47Z",
+    "updatedAt": "2026-05-29T02:19:12Z",
     "url": "https://github.com/cozakoo/sale_partido/issues/84",
     "acceptanceCriteria": []
   },

@@ -55,3 +55,15 @@ yarn-error.log*
 *.pid
 /runtime/
 backend/error-log.txt
+.claude/settings.local.json
+
+# Documentación de QA (local)
+*.QA.md
+EJECUTAR_QA.md
+GUIAS.md
+PROXIMOS_PASOS.md
+QA_E5-H01.md
+REPORTE_QA_E5-H01_FINAL.md
+SETUP_INTERACTIVO.md
+SETUP_LOCAL.md
+scripts/setup-local.sh
