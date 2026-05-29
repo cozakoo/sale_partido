@@ -107,7 +107,7 @@ class DisponibilidadServiceIntegrationTest {
         assertEquals(LocalTime.of(8, 0), t1.horaInicio());
         assertEquals(LocalTime.of(9, 0), t1.horaFin());
         assertEquals("Cancha 1", t1.espacioNombre());
-        assertNull(t1.deporte());
+        assertEquals("Fútbol", t1.deporte());
         assertEquals("LIBRE", t1.estado());
         assertNull(t1.reserva());
 
