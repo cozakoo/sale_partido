@@ -1,49 +1,47 @@
-import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, input, output, ChangeDetectionStrategy } from '@angular/core';
 import { EstadoTurno, FilterSelection } from '../../models/calendario';
 
 @Component({
   selector: 'app-barra-filtros',
   standalone: true,
-  imports: [CommonModule],
   templateUrl: './barra-filtros.component.html',
   styleUrl: './barra-filtros.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BarraFiltrosComponent {
-  @Input({ required: true }) opciones!: {
+  opciones = input.required<{
     estados: EstadoTurno[];
     espacios: string[];
     deportes: string[];
-  };
+  }>();
 
-  @Input({ required: true }) seleccion!: FilterSelection;
+  seleccion = input.required<FilterSelection>();
 
-  @Output() seleccionChange = new EventEmitter<FilterSelection>();
-  @Output() limpiar = new EventEmitter<void>();
+  seleccionChange = output<FilterSelection>();
+  limpiar = output<void>();
 
   toggleEstado(valor: EstadoTurno) {
-    const nuevos = this.seleccion.estados.includes(valor)
-      ? this.seleccion.estados.filter(e => e !== valor)
-      : [...this.seleccion.estados, valor];
+    const nuevos = this.seleccion().estados.includes(valor)
+      ? this.seleccion().estados.filter(e => e !== valor)
+      : [...this.seleccion().estados, valor];
 
-    this.emitir({ ...this.seleccion, estados: nuevos });
+    this.emitir({ ...this.seleccion(), estados: nuevos });
   }
 
   toggleEspacio(valor: string) {
-    const nuevos = this.seleccion.espacios.includes(valor)
-      ? this.seleccion.espacios.filter(e => e !== valor)
-      : [...this.seleccion.espacios, valor];
+    const nuevos = this.seleccion().espacios.includes(valor)
+      ? this.seleccion().espacios.filter(e => e !== valor)
+      : [...this.seleccion().espacios, valor];
 
-    this.emitir({ ...this.seleccion, espacios: nuevos });
+    this.emitir({ ...this.seleccion(), espacios: nuevos });
   }
 
   toggleDeporte(valor: string) {
-    const nuevos = this.seleccion.deportes.includes(valor)
-      ? this.seleccion.deportes.filter(d => d !== valor)
-      : [...this.seleccion.deportes, valor];
+    const nuevos = this.seleccion().deportes.includes(valor)
+      ? this.seleccion().deportes.filter(d => d !== valor)
+      : [...this.seleccion().deportes, valor];
 
-    this.emitir({ ...this.seleccion, deportes: nuevos });
+    this.emitir({ ...this.seleccion(), deportes: nuevos });
   }
 
   private emitir(seleccion: FilterSelection) {

@@ -4,9 +4,12 @@ import org.springframework.stereotype.Component;
 import io.github.salepartido.api.domain.locales.model.Local;
 import io.github.salepartido.api.domain.locales.controller.dto.LocalDetail;
 import io.github.salepartido.api.domain.locales.controller.dto.LocalSummary;
+import io.github.salepartido.api.domain.locales.controller.dto.LocalViewModel;
+import io.github.salepartido.api.domain.locales.controller.dto.CanchaViewModel;
 
 import java.util.stream.Collectors;
 import java.util.List;
+import java.util.Objects;
 
 @Component
 public class LocalMapper {
@@ -25,6 +28,27 @@ public class LocalMapper {
         if (local == null) return null;
         return new LocalDetail(local.getUuid(), local.getNombre(), local.getCanchas() != null ? 
             local.getCanchas().stream().map(canchaMapper::toSummary).collect(Collectors.toList()) : List.of()
+        );
+    }
+
+    public LocalViewModel toViewModel(Local local) {
+        if (local == null) return null;
+
+        List<CanchaViewModel> canchas = local.getCanchas() != null ?
+            local.getCanchas().stream().map(canchaMapper::toViewModel).collect(Collectors.toList()) : List.of();
+
+        List<String> deportesDisponibles = canchas.stream()
+            .map(CanchaViewModel::deporte)
+            .filter(Objects::nonNull)
+            .distinct()
+            .collect(Collectors.toList());
+
+        return new LocalViewModel(
+            local.getUuid(),
+            local.getNombre(),
+            local.getDireccion(),
+            deportesDisponibles,
+            canchas
         );
     }
 }

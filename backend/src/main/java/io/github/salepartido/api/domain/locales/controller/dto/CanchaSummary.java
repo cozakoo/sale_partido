@@ -4,4 +4,5 @@ import java.util.UUID;
 
 public record CanchaSummary(
     UUID uuid,
-    String nombre) {}
+    String nombre,
+    Integer capacidad) {}

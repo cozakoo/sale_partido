@@ -55,6 +55,7 @@ public class CanchaController {
     public CanchaSummary createCancha(@Valid @RequestBody CanchaRequestDTO request) {
         Cancha cancha = new Cancha();
         cancha.setNombre(request.name());
+        cancha.setCapacidad(request.capacidad());
         
         Cancha saved = canchaService.guardarCancha(cancha);
         return canchaMapper.toSummary(saved);
@@ -66,6 +67,7 @@ public class CanchaController {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cancha no encontrada"));
 
         existing.setNombre(request.name());
+        existing.setCapacidad(request.capacidad());
         
         Cancha updated = canchaService.guardarCancha(existing);
         return canchaMapper.toSummary(updated);

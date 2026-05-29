@@ -19,14 +19,14 @@ export class CalendarioDisponibilidadPage implements OnInit {
   private route = inject(ActivatedRoute);
 
   localUuid!: string;
-  fechaInicio = this.getLunes(new Date());
-  offsetSemana = 0;
+  fechaInicio = signal(this.getLunes(new Date()));
+  offsetSemana = signal(0);
 
-  loading = false;
-  loadError = false;
+  loading = signal(false);
+  loadError = signal(false);
 
-  diasAbiertos: Record<number, boolean> = {};
-  turnosAbiertos: Record<string, boolean> = {};
+  diasAbiertos = signal<Record<number, boolean>>({});
+  turnosAbiertos = signal<Record<string, boolean>>({});
 
   semana = signal<DiaCalendario[]>([]);
   vista = signal<'dia' | 'semana'>('semana');
@@ -87,34 +87,28 @@ export class CalendarioDisponibilidadPage implements OnInit {
   }
 
   cargarSemana() {
-    this.loading = true;
-    this.loadError = false;
+    this.loading.set(true);
+    this.loadError.set(false);
 
-    this.service.getDisponibilidad(this.localUuid, this.fechaInicio, this.fechaFin).subscribe({
+    this.service.getDisponibilidad(this.localUuid, this.fechaInicio(), this.fechaFin).subscribe({
       next: data => {
         this.semana.set(this.mapearASemana(data));
-        this.loading = false;
+        this.loading.set(false);
       },
       error: () => {
-        this.loadError = true;
-        this.loading = false;
+        this.loadError.set(true);
+        this.loading.set(false);
       }
     });
-  }
-  private formatFecha(fecha: Date): string {
-    const year = fecha.getFullYear();
-    const month = String(fecha.getMonth() + 1).padStart(2, '0');
-    const day = String(fecha.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
   }
 
   private mapearASemana(canchas: DisponibilidadCanchaBackendDTO[]): DiaCalendario[] {
     const diasMap = new Map<string, DiaCalendario>();
 
     for (let i = 0; i < 7; i++) {
-      const d = new Date(this.fechaInicio);
+      const d = new Date(this.fechaInicio());
       d.setDate(d.getDate() + i);
-      const key = this.formatFecha(d);  // <- fix
+      const key = this.formatearFechaLocal(d); // Usa timezone local, no UTC
       diasMap.set(key, { fecha: d, turnos: [] });
     }
 
@@ -151,28 +145,27 @@ export class CalendarioDisponibilidadPage implements OnInit {
     };
   }
 
-private mapearEstado(dto: TurnoBackendDTO): EstadoTurno {
-  if (dto.estado === 'LIBRE') {
-    return 'libre';
-  }
- 
-  const ahora = new Date();
-  const fechaFinTurno = this.crearFechaHora(dto.fecha, dto.horaFin);
- 
-  if (fechaFinTurno < ahora) {
-    return 'finalizado';
-  }
- 
-  switch (dto.reserva?.estadoEvento) {
-    case 'PENDIENTE':
-      return 'incompleto';
-    case 'CONFIRMADO':
-    case 'FINALIZADO':
-    default:
-      return 'ocupado';
-  }
-}
+  private mapearEstado(dto: TurnoBackendDTO): EstadoTurno {
+    if (dto.estado === 'LIBRE') {
+      return 'libre';
+    }
 
+    const ahora = new Date();
+    const fechaFinTurno = this.crearFechaHora(dto.fecha, dto.horaFin);
+
+    if (fechaFinTurno < ahora) {
+      return 'finalizado';
+    }
+
+    switch (dto.reserva?.estadoEvento) {
+      case 'PENDIENTE':
+        return 'incompleto';
+      case 'CONFIRMADO':
+      case 'FINALIZADO':
+      default:
+        return 'ocupado';
+    }
+  }
 
   private crearFechaHora(fecha: string, hora: string): Date {
     const [year, month, day] = fecha.split('-').map(Number);
@@ -181,11 +174,19 @@ private mapearEstado(dto: TurnoBackendDTO): EstadoTurno {
     return new Date(year, month - 1, day, hours, minutes);
   }
 
+  private formatearFechaLocal(d: Date): string {
+    // Formatear en timezone local (no convertir a UTC como toISOString())
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
   navegar(delta: number) {
     if (this.vista() === 'semana') {
-      const d = new Date(this.fechaInicio);
+      const d = new Date(this.fechaInicio());
       d.setDate(d.getDate() + delta * 7);
-      this.fechaInicio = d;
+      this.fechaInicio.set(d);
       this.cargarSemana();
       return;
     }
@@ -200,9 +201,9 @@ private mapearEstado(dto: TurnoBackendDTO): EstadoTurno {
     }
 
     // Cruzó el límite de la semana, cargar semana anterior/siguiente
-    const d = new Date(this.fechaInicio);
+    const d = new Date(this.fechaInicio());
     d.setDate(d.getDate() + delta * 7);
-    this.fechaInicio = d;
+    this.fechaInicio.set(d);
 
     // Posicionar en el extremo correcto
     this.diaSeleccionado.set(nuevoIndex < 0 ? 6 : 0);
@@ -210,25 +211,31 @@ private mapearEstado(dto: TurnoBackendDTO): EstadoTurno {
   }
 
   irHoy() {
-    this.offsetSemana = 0;
-    this.fechaInicio = this.getLunes(new Date());
+    this.offsetSemana.set(0);
+    this.fechaInicio.set(this.getLunes(new Date()));
     this.cargarSemana();
   }
 
   toggleDia(i: number) {
-    this.diasAbiertos[i] = !this.diasAbiertos[i];
+    this.diasAbiertos.update(v => ({
+      ...v,
+      [i]: !v[i]
+    }));
   }
 
   isDiaAbierto(i: number): boolean {
-    return this.diasAbiertos[i] !== false;
+    return this.diasAbiertos()[i] !== false;
   }
 
   toggleTurno(id: string) {
-    this.turnosAbiertos[id] = !this.turnosAbiertos[id];
+    this.turnosAbiertos.update(v => ({
+      ...v,
+      [id]: !v[id]
+    }));
   }
 
   isTurnoAbierto(id: string): boolean {
-    return !!this.turnosAbiertos[id];
+    return !!this.turnosAbiertos()[id];
   }
 
   onFiltrosCambiar(seleccion: FilterSelection) {
@@ -238,14 +245,17 @@ private mapearEstado(dto: TurnoBackendDTO): EstadoTurno {
   limpiarFiltros() {
     this.seleccionFiltros.set({ estados: [], espacios: [], deportes: [] });
   }
+
   get fechaFin(): Date {
-    const year = this.fechaInicio.getFullYear();
-    const month = this.fechaInicio.getMonth();
-    const day = this.fechaInicio.getDate();
+    const f = this.fechaInicio();
+    const year = f.getFullYear();
+    const month = f.getMonth();
+    const day = f.getDate();
     const d = new Date(year, month, day);
     d.setDate(d.getDate() + 6);
     return d;
   }
+
   private getLunes(fecha: Date): Date {
     const year = fecha.getFullYear();
     const month = fecha.getMonth();

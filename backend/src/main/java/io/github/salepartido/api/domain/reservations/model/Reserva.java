@@ -1,7 +1,6 @@
 package io.github.salepartido.api.domain.reservations.model;
 
 import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.UUID;
 
 import io.github.salepartido.api.domain.locales.model.Cancha;

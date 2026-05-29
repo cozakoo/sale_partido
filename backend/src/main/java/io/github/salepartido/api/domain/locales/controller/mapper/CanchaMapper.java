@@ -6,6 +6,7 @@ import io.github.salepartido.api.domain.locales.model.ConfiguracionHorario;
 import io.github.salepartido.api.domain.locales.model.ConfiguracionDia;
 import io.github.salepartido.api.domain.locales.controller.dto.CanchaDetail;
 import io.github.salepartido.api.domain.locales.controller.dto.CanchaSummary;
+import io.github.salepartido.api.domain.locales.controller.dto.CanchaViewModel;
 import io.github.salepartido.api.domain.locales.controller.dto.ConfiguracionDiaDTO;
 import io.github.salepartido.api.domain.locales.controller.dto.ConfiguracionHorarioDTO;
 
@@ -17,7 +18,19 @@ public class CanchaMapper {
 
     public CanchaSummary toSummary(Cancha cancha) {
         if (cancha == null) return null;
-        return new CanchaSummary(cancha.getUuid(), cancha.getNombre());
+        return new CanchaSummary(cancha.getUuid(), cancha.getNombre(), cancha.getCapacidad());
+    }
+
+    public CanchaViewModel toViewModel(Cancha cancha) {
+        if (cancha == null) return null;
+        return new CanchaViewModel(
+            cancha.getUuid(),
+            cancha.getNombre(),
+            cancha.getDeporte() != null ? cancha.getDeporte().getNombre() : null,
+            cancha.getCapacidad(),
+            cancha.getConfiguracionesHorarios() != null ?
+                cancha.getConfiguracionesHorarios().stream().map(this::toConfiguracionHorarioDTO).collect(Collectors.toList()) : List.of()
+        );
     }
 
     public CanchaDetail toDetail(Cancha cancha) {
@@ -25,6 +38,7 @@ public class CanchaMapper {
         return new CanchaDetail(
             cancha.getUuid(),
             cancha.getNombre(),
+            cancha.getCapacidad(),
             cancha.getConfiguracionesHorarios() != null ?
                 cancha.getConfiguracionesHorarios().stream().map(this::toConfiguracionHorarioDTO).collect(Collectors.toList()) : List.of()
         );
