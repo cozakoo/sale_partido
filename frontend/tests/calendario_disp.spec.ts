@@ -1,4 +1,13 @@
 import { test, expect } from '@playwright/test';
+// Helpers para fechas dinámicas
+function fechaFutura(diasDesdeHoy: number): string {
+  const d = new Date();
+  d.setDate(d.getDate() + diasDesdeHoy);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
 
 test.describe('Visualización de disponibilidad y gestión de turnos', () => {
 
@@ -14,7 +23,7 @@ test.describe('Visualización de disponibilidad y gestión de turnos', () => {
             canchaNombre: 'Cancha 1',
             turnos: [
               {
-                fecha: '2026-05-25',
+                fecha: fechaFutura(2),   // siempre futuro → "ocupado"
                 horaInicio: '10:00:00',
                 horaFin: '11:00:00',
                 estado: 'OCUPADO',
@@ -30,7 +39,7 @@ test.describe('Visualización de disponibilidad y gestión de turnos', () => {
                 }
               },
               {
-                fecha: '2026-05-25',
+                fecha: fechaFutura(2),   // mismo día que el anterior
                 horaInicio: '11:00:00',
                 horaFin: '12:00:00',
                 estado: 'LIBRE',
@@ -78,15 +87,12 @@ test.describe('Visualización de disponibilidad y gestión de turnos', () => {
 
     // Hacemos click en el row del turno para abrir el detalle
     await row.click();
-
     const detalle = turnoOcupado.locator('.detalle');
-
     await expect(detalle).toHaveClass(/open/);
 
     await expect(detalle.locator('.detalle-item').filter({ hasText: 'organizador' }).locator('.detalle-valor')).toHaveText('Juan Pérez');
     await expect(detalle.locator('.detalle-item').filter({ hasText: 'estado evento' }).locator('.detalle-valor')).toHaveText('confirmado', { ignoreCase: true });
     await expect(detalle.locator('.detalle-item').filter({ hasText: 'confirmados' }).locator('.detalle-valor')).toHaveText('10 / 10');
-    // El deporte se muestra en el main del row
     await expect(turnoOcupado.locator('.turno-main')).toContainText('Fútbol');
   });
 
@@ -127,7 +133,7 @@ test.describe('Visualización de disponibilidad y gestión de turnos', () => {
     ]);
 
     // Cuando el propietario selecciona un turno ocupado en una fecha pasada (historial)
-    const turnoHistorico = page.locator('app-turno-item').filter({ hasText: 'ocupado' }).first();
+    const turnoHistorico = page.locator('app-turno-item').filter({ hasText: 'finalizado' }).first();
     await turnoHistorico.locator('.turno-row').click();
 
     // Entonces se visualizan los datos del historial

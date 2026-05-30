@@ -213,6 +213,15 @@ export class CalendarioDisponibilidadPage implements OnInit {
   irHoy() {
     this.offsetSemana.set(0);
     this.fechaInicio.set(this.getLunes(new Date()));
+
+    if (this.vista() === 'dia') {
+      // Buscar el índice del día de hoy dentro de la semana
+      const hoy = this.formatearFechaLocal(new Date());
+      const semana = this.semanaFiltrada();
+      const index = semana.findIndex(dia => this.formatearFechaLocal(dia.fecha) === hoy);
+      this.diaSeleccionado.set(index >= 0 ? index : 0);
+    }
+
     this.cargarSemana();
   }
 
@@ -260,13 +269,10 @@ export class CalendarioDisponibilidadPage implements OnInit {
     const year = fecha.getFullYear();
     const month = fecha.getMonth();
     const day = fecha.getDate();
-    console.log('getLunes input → year:', year, 'month:', month, 'day:', day);
     const d = new Date(year, month, day);
     const diaSemana = d.getDay();
-    console.log('diaSemana:', diaSemana);
     const diff = diaSemana === 0 ? -6 : 1 - diaSemana;
     d.setDate(d.getDate() + diff);
-    console.log('lunes calculado:', d);
     return d;
   }
 }
