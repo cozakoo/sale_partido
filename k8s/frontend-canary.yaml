@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: salepartido-frontend-canary
+  namespace: salepartido
+  labels:
+    app: salepartido-frontend
+    track: canary
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: salepartido-frontend
+      track: canary
+  template:
+    metadata:
+      labels:
+        app: salepartido-frontend
+        track: canary
+    spec:
+      containers:
+      - name: frontend
+        image: salepartido-frontend:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 80
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 15
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 5
+          failureThreshold: 2
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"

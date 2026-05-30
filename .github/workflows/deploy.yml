@@ -7,85 +7,308 @@ on:
       - pre_prod
 
 jobs:
-  deploy:
-    name: Deploy to ${{ github.ref == 'refs/heads/main' && 'Production' || 'Pre-Prod (Demos)' }}
+  # ============================================================================
+  # BUILD — Construir imágenes Docker
+  # ============================================================================
+  build:
+    name: Build Docker Images
     runs-on: self-hosted
-    environment:
-      name: ${{ github.ref == 'refs/heads/main' && 'production' || 'pre_prod' }}
-    
-    env:
-      NAMESPACE: ${{ github.ref == 'refs/heads/main' && 'salepartido' || 'salepartido-preprod' }}
-      IMAGE_TAG: ${{ github.ref == 'refs/heads/main' && 'latest' || 'preprod' }}
+    outputs:
+      image-tag: ${{ env.IMAGE_TAG }}
+      namespace: ${{ env.NAMESPACE }}
+      is-production: ${{ github.ref == 'refs/heads/main' }}
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Determine environment
+        run: |
+          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
+            echo "NAMESPACE=salepartido" >> $GITHUB_ENV
+            echo "IMAGE_TAG=latest" >> $GITHUB_ENV
+            echo "BUILD_CONFIG=production" >> $GITHUB_ENV
+          else
+            echo "NAMESPACE=salepartido-preprod" >> $GITHUB_ENV
+            echo "IMAGE_TAG=preprod" >> $GITHUB_ENV
+            echo "BUILD_CONFIG=testing" >> $GITHUB_ENV
+          fi
+
       - name: Build Backend Image
         run: |
           docker build -t salepartido-backend:${{ env.IMAGE_TAG }} -f backend/Dockerfile.prod ./backend
+          echo "✅ Backend image built: salepartido-backend:${{ env.IMAGE_TAG }}"
 
       - name: Build Frontend Image
         run: |
-          if [ "${{ env.NAMESPACE }}" == "salepartido-preprod" ]; then
-            BUILD_CONFIG=testing
-          else
-            BUILD_CONFIG=production
-          fi
-          echo "Building frontend with config : $BUILD_CONFIG"
+          echo "Building frontend with config: ${{ env.BUILD_CONFIG }}"
           docker build \
-            --build-arg BUILD_CONFIG=$BUILD_CONFIG \
+            --build-arg BUILD_CONFIG=${{ env.BUILD_CONFIG }} \
             -t salepartido-frontend:${{ env.IMAGE_TAG }} \
             -f frontend/Dockerfile.prod ./frontend
-          
+          echo "✅ Frontend image built: salepartido-frontend:${{ env.IMAGE_TAG }}"
 
-      - name: Import images into containerd
+  # ============================================================================
+  # PRE_PROD DEPLOY — Deploy directo sin canary (staging)
+  # ============================================================================
+  deploy-preprod:
+    name: Deploy to Pre-Prod (Staging)
+    runs-on: self-hosted
+    needs: build
+    if: github.ref == 'refs/heads/pre_prod'
+    environment:
+      name: pre_prod
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Import Docker images into containerd
         run: |
-          docker save salepartido-backend:${{ env.IMAGE_TAG }} -o /tmp/backend.tar
-          docker save salepartido-frontend:${{ env.IMAGE_TAG }} -o /tmp/frontend.tar
+          docker save salepartido-backend:preprod -o /tmp/backend.tar
+          docker save salepartido-frontend:preprod -o /tmp/frontend.tar
           sudo ctr -n k8s.io images import /tmp/backend.tar
           sudo ctr -n k8s.io images import /tmp/frontend.tar
           rm /tmp/backend.tar /tmp/frontend.tar
+          echo "✅ Docker images imported into containerd"
 
-      - name: Prepare Kubernetes manifests
+      - name: Create namespace and apply config
         run: |
-          # Create namespace if it doesn't exist
-          kubectl create namespace ${{ env.NAMESPACE }} --dry-run=client -o yaml | kubectl apply -f -
-          
-          # Replace namespace and tags in manifests
-          sed -i "s/namespace: salepartido/namespace: ${{ env.NAMESPACE }}/g" k8s/*.yaml
-          sed -i "s/name: salepartido/name: ${{ env.NAMESPACE }}/g" k8s/namespace.yaml
-          sed -i "s/salepartido-backend:latest/salepartido-backend:${{ env.IMAGE_TAG }}/g" k8s/backend.yaml
-          sed -i "s/salepartido-frontend:latest/salepartido-frontend:${{ env.IMAGE_TAG }}/g" k8s/frontend.yaml
-          
-          # Optional: Adjust Ingress host for pre_prod
-          # Optional: Adjust Ingress host and ports for pre_prod
-          if [ "${{ env.NAMESPACE }}" == "salepartido-preprod" ]; then
-            sed -i "s/sale-partido.com/preprod.sale-partido.com/g" k8s/ingress.yaml
-            sed -i "s/nodePort: 32328/nodePort: 32329/g" k8s/backend.yaml
-            sed -i "s/nodePort: 31167/nodePort: 31168/g" k8s/frontend.yaml
-            sed -i "s/31167/31168/g" k8s/configmap.yaml
-            sed -i "s/32328/32329/g" k8s/configmap.yaml
-          fi
+          kubectl create namespace salepartido-preprod --dry-run=client -o yaml | kubectl apply -f -
+          kubectl apply -f k8s/configmap.yaml -n salepartido-preprod
+          kubectl apply -f k8s/secret.yaml -n salepartido-preprod
 
-      - name: Apply Kubernetes manifests
+      - name: Prepare and apply K8s manifests for pre_prod
         run: |
-          kubectl apply -f k8s/namespace.yaml
-          kubectl apply -f k8s/configmap.yaml
-          kubectl apply -f k8s/secret.yaml
-          kubectl apply -f k8s/postgres.yaml
-          kubectl apply -f k8s/redis.yaml
-          kubectl apply -f k8s/backend.yaml
-          kubectl apply -f k8s/frontend.yaml
+          # Copia de manifests
+          cp -r k8s /tmp/k8s-preprod
 
-      - name: Restart deployments to use new images
+          # Reemplazar namespace
+          sed -i 's/namespace: salepartido/namespace: salepartido-preprod/g' /tmp/k8s-preprod/*.yaml
+
+          # Reemplazar puertos
+          sed -i 's/nodePort: 32328/nodePort: 32329/g' /tmp/k8s-preprod/backend.yaml
+          sed -i 's/nodePort: 31167/nodePort: 31168/g' /tmp/k8s-preprod/frontend.yaml
+
+          # Reemplazar dominios
+          sed -i 's/sale-partido.com/preprod.sale-partido.com/g' /tmp/k8s-preprod/ingress.yaml
+
+          # Aplicar manifests
+          kubectl apply -f /tmp/k8s-preprod/postgres.yaml -n salepartido-preprod
+          kubectl apply -f /tmp/k8s-preprod/redis.yaml -n salepartido-preprod
+          kubectl apply -f /tmp/k8s-preprod/backend.yaml -n salepartido-preprod
+          kubectl apply -f /tmp/k8s-preprod/frontend.yaml -n salepartido-preprod
+
+      - name: Restart deployments
         run: |
-          kubectl rollout restart deployment/salepartido-backend -n ${{ env.NAMESPACE }}
-          kubectl rollout restart deployment/salepartido-frontend -n ${{ env.NAMESPACE }}
-          kubectl rollout status deployment/salepartido-backend -n ${{ env.NAMESPACE }} --timeout=120s
-          kubectl rollout status deployment/salepartido-frontend -n ${{ env.NAMESPACE }} --timeout=120s
+          kubectl rollout restart deployment/salepartido-backend -n salepartido-preprod
+          kubectl rollout restart deployment/salepartido-frontend -n salepartido-preprod
+
+      - name: Wait for deployments
+        run: |
+          kubectl rollout status deployment/salepartido-backend -n salepartido-preprod --timeout=120s
+          kubectl rollout status deployment/salepartido-frontend -n salepartido-preprod --timeout=120s
 
       - name: Verify deployment
         run: |
-          kubectl get pods -n ${{ env.NAMESPACE }}
-          echo "✅ Deploy to ${{ env.NAMESPACE }} completado"
+          echo "=== Pre-Prod Deployment Verified ==="
+          kubectl get pods -n salepartido-preprod
+          echo "✅ Pre-Prod deploy completado"
+
+  # ============================================================================
+  # CANARY DEPLOY — Deploy canary a producción (1 réplica)
+  # ============================================================================
+  deploy-canary:
+    name: Deploy Canary to Production
+    runs-on: self-hosted
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    environment:
+      name: production
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Import Docker images into containerd
+        run: |
+          docker save salepartido-backend:latest -o /tmp/backend.tar
+          docker save salepartido-frontend:latest -o /tmp/frontend.tar
+          sudo ctr -n k8s.io images import /tmp/backend.tar
+          sudo ctr -n k8s.io images import /tmp/frontend.tar
+          rm /tmp/backend.tar /tmp/frontend.tar
+          echo "✅ Docker images imported into containerd"
+
+      - name: Create namespace and apply config
+        run: |
+          kubectl create namespace salepartido --dry-run=client -o yaml | kubectl apply -f -
+          kubectl apply -f k8s/configmap.yaml -n salepartido
+          kubectl apply -f k8s/secret.yaml -n salepartido
+
+      - name: Deploy canary (1 replica backend, 1 replica frontend)
+        run: |
+          echo "Deploying canary pods (20% traffic)..."
+          kubectl apply -f k8s/backend-canary.yaml
+          kubectl apply -f k8s/frontend-canary.yaml
+          echo "✅ Canary deployments created"
+
+      - name: Wait for canary pods to be ready
+        run: |
+          echo "Waiting for canary backend pod..."
+          kubectl rollout status deployment/salepartido-backend-canary -n salepartido --timeout=120s
+          echo "✅ Canary backend ready"
+
+          echo "Waiting for canary frontend pod..."
+          kubectl rollout status deployment/salepartido-frontend-canary -n salepartido --timeout=120s
+          echo "✅ Canary frontend ready"
+
+      - name: Show running pods
+        run: |
+          echo "=== Current Pods (Canary) ==="
+          kubectl get pods -n salepartido -l app=salepartido-backend
+          kubectl get pods -n salepartido -l app=salepartido-frontend
+
+  # ============================================================================
+  # VERIFY CANARY — Health checks y validaciones
+  # ============================================================================
+  verify-canary:
+    name: Verify Canary Health
+    runs-on: self-hosted
+    needs: deploy-canary
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Get canary pod info
+        run: |
+          echo "=== Canary Pod Info ==="
+          BACKEND_CANARY=$(kubectl get pods -n salepartido -l app=salepartido-backend,track=canary -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo "")
+          FRONTEND_CANARY=$(kubectl get pods -n salepartido -l app=salepartido-frontend,track=canary -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo "")
+
+          echo "Backend canary pod: $BACKEND_CANARY"
+          echo "Frontend canary pod: $FRONTEND_CANARY"
+
+      - name: Verify Backend API health (5 attempts)
+        run: |
+          echo "Health checking backend canary..."
+          BACKEND_POD=$(kubectl get pods -n salepartido -l app=salepartido-backend,track=canary -o jsonpath='{.items[0].metadata.name}')
+
+          for i in {1..5}; do
+            echo "Attempt $i/5..."
+            if kubectl exec -n salepartido $BACKEND_POD -- curl -s http://localhost:8080/actuator/health | grep -q "UP"; then
+              echo "✅ Backend health check passed"
+              exit 0
+            fi
+            sleep 10
+          done
+
+          echo "❌ Backend health check failed"
+          exit 1
+
+      - name: Verify Frontend health (5 attempts)
+        run: |
+          echo "Health checking frontend canary..."
+          FRONTEND_POD=$(kubectl get pods -n salepartido -l app=salepartido-frontend,track=canary -o jsonpath='{.items[0].metadata.name}')
+
+          for i in {1..5}; do
+            echo "Attempt $i/5..."
+            if kubectl exec -n salepartido $FRONTEND_POD -- wget -q -O- http://localhost/ | grep -q -i "html"; then
+              echo "✅ Frontend health check passed"
+              exit 0
+            fi
+            sleep 10
+          done
+
+          echo "❌ Frontend health check failed"
+          exit 1
+
+      - name: Show pod logs if health check failed
+        if: failure()
+        run: |
+          echo "=== Backend Canary Logs ==="
+          kubectl logs -n salepartido -l app=salepartido-backend,track=canary --tail=50 || true
+          echo ""
+          echo "=== Frontend Canary Logs ==="
+          kubectl logs -n salepartido -l app=salepartido-frontend,track=canary --tail=50 || true
+
+  # ============================================================================
+  # PROMOTE CANARY TO STABLE — Escalar stable, eliminar canary
+  # ============================================================================
+  promote-stable:
+    name: Promote Canary to Stable
+    runs-on: self-hosted
+    needs: verify-canary
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Scale stable deployments to 4 replicas
+        run: |
+          echo "Scaling stable backend to 4 replicas..."
+          kubectl apply -f k8s/backend.yaml -n salepartido
+          kubectl scale deployment/salepartido-backend -n salepartido --replicas=4
+          echo "✅ Stable backend scaled to 4 replicas"
+
+          echo "Scaling stable frontend to 4 replicas..."
+          kubectl apply -f k8s/frontend.yaml -n salepartido
+          kubectl scale deployment/salepartido-frontend -n salepartido --replicas=4
+          echo "✅ Stable frontend scaled to 4 replicas"
+
+      - name: Wait for stable pods to roll out
+        run: |
+          kubectl rollout status deployment/salepartido-backend -n salepartido --timeout=120s
+          kubectl rollout status deployment/salepartido-frontend -n salepartido --timeout=120s
+          echo "✅ Stable pods rolled out successfully"
+
+      - name: Delete canary deployments
+        run: |
+          echo "Deleting canary deployments..."
+          kubectl delete deployment salepartido-backend-canary -n salepartido || true
+          kubectl delete deployment salepartido-frontend-canary -n salepartido || true
+          echo "✅ Canary deployments deleted"
+
+      - name: Final status
+        run: |
+          echo "=== Final Production Status ==="
+          kubectl get pods -n salepartido
+          echo ""
+          echo "=== Backend Pods ==="
+          kubectl get pods -n salepartido -l app=salepartido-backend
+          echo ""
+          echo "=== Frontend Pods ==="
+          kubectl get pods -n salepartido -l app=salepartido-frontend
+          echo ""
+          echo "✅ Canary promotion to stable completed successfully"
+
+  # ============================================================================
+  # ROLLBACK — En caso de fallo en verify-canary
+  # ============================================================================
+  rollback:
+    name: Rollback Canary Deployment
+    runs-on: self-hosted
+    needs: verify-canary
+    if: github.ref == 'refs/heads/main' && failure()
+
+    steps:
+      - name: Delete canary deployments
+        run: |
+          echo "⚠️  Health checks failed. Rolling back canary deployment..."
+          kubectl delete deployment salepartido-backend-canary -n salepartido || true
+          kubectl delete deployment salepartido-frontend-canary -n salepartido || true
+          echo "✅ Canary rollback completed"
+          echo "⚠️  Stable deployment (4 replicas) remains intact"
+
+      - name: Status after rollback
+        run: |
+          echo "=== Status after Rollback ==="
+          kubectl get pods -n salepartido
+          echo ""
+          echo "❌ Canary deployment failed and was rolled back"
+          echo "Stable deployment (4 replicas) is still running"
+
+      - name: Notify rollback
+        run: |
+          echo "ROLLBACK NOTIFICATION"
+          echo "A canary deployment to production has been rolled back due to health check failures."
+          echo "Review the logs above for debugging."
