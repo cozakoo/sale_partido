@@ -72,32 +72,35 @@ jobs:
           rm /tmp/backend.tar /tmp/frontend.tar
           echo "✅ Docker images imported into containerd"
 
-      - name: Create namespace and apply config
-        run: |
-          kubectl create namespace salepartido-preprod --dry-run=client -o yaml | kubectl apply -f -
-          kubectl apply -f k8s/configmap.yaml -n salepartido-preprod
-          kubectl apply -f k8s/secret.yaml -n salepartido-preprod
-
-      - name: Prepare and apply K8s manifests for pre_prod
+      - name: Prepare K8s manifests for pre_prod
         run: |
           # Copia de manifests
           cp -r k8s /tmp/k8s-preprod
 
-          # Reemplazar namespace
+          # Reemplazar namespace en TODOS los archivos
           sed -i 's/namespace: salepartido/namespace: salepartido-preprod/g' /tmp/k8s-preprod/*.yaml
 
           # Reemplazar puertos
           sed -i 's/nodePort: 32328/nodePort: 32329/g' /tmp/k8s-preprod/backend.yaml
           sed -i 's/nodePort: 31167/nodePort: 31168/g' /tmp/k8s-preprod/frontend.yaml
 
-          # Reemplazar dominios
+          # Reemplazar dominios en ingress
           sed -i 's/sale-partido.com/preprod.sale-partido.com/g' /tmp/k8s-preprod/ingress.yaml
 
-          # Aplicar manifests
-          kubectl apply -f /tmp/k8s-preprod/postgres.yaml -n salepartido-preprod
-          kubectl apply -f /tmp/k8s-preprod/redis.yaml -n salepartido-preprod
-          kubectl apply -f /tmp/k8s-preprod/backend.yaml -n salepartido-preprod
-          kubectl apply -f /tmp/k8s-preprod/frontend.yaml -n salepartido-preprod
+      - name: Create namespace
+        run: |
+          kubectl create namespace salepartido-preprod --dry-run=client -o yaml | kubectl apply -f -
+          echo "✅ Namespace created"
+
+      - name: Apply K8s manifests for pre_prod
+        run: |
+          kubectl apply -f /tmp/k8s-preprod/configmap.yaml
+          kubectl apply -f /tmp/k8s-preprod/secret.yaml
+          kubectl apply -f /tmp/k8s-preprod/postgres.yaml
+          kubectl apply -f /tmp/k8s-preprod/redis.yaml
+          kubectl apply -f /tmp/k8s-preprod/backend.yaml
+          kubectl apply -f /tmp/k8s-preprod/frontend.yaml
+          echo "✅ All manifests applied"
 
       - name: Restart deployments
         run: |
@@ -139,15 +142,28 @@ jobs:
           rm /tmp/backend.tar /tmp/frontend.tar
           echo "✅ Docker images imported into containerd"
 
-      - name: Create namespace and apply config
+      - name: Create namespace and apply base config
         run: |
           kubectl create namespace salepartido --dry-run=client -o yaml | kubectl apply -f -
-          kubectl apply -f k8s/configmap.yaml -n salepartido
-          kubectl apply -f k8s/secret.yaml -n salepartido
+          kubectl apply -f k8s/namespace.yaml
+          kubectl apply -f k8s/configmap.yaml
+          kubectl apply -f k8s/secret.yaml
+          kubectl apply -f k8s/postgres.yaml
+          kubectl apply -f k8s/redis.yaml
+          echo "✅ Base infrastructure created"
+
+      - name: Ensure stable deployments exist
+        run: |
+          echo "Setting up stable deployments (4 replicas each)..."
+          kubectl apply -f k8s/backend.yaml
+          kubectl scale deployment/salepartido-backend -n salepartido --replicas=4 || true
+          kubectl apply -f k8s/frontend.yaml
+          kubectl scale deployment/salepartido-frontend -n salepartido --replicas=4 || true
+          echo "✅ Stable deployments ready"
 
       - name: Deploy canary (1 replica backend, 1 replica frontend)
         run: |
-          echo "Deploying canary pods (20% traffic)..."
+          echo "Deploying canary pods (will be ~20% traffic)..."
           kubectl apply -f k8s/backend-canary.yaml
           kubectl apply -f k8s/frontend-canary.yaml
           echo "✅ Canary deployments created"
@@ -164,8 +180,11 @@ jobs:
 
       - name: Show running pods
         run: |
-          echo "=== Current Pods (Canary) ==="
+          echo "=== Current Pods (Canary + Stable) ==="
+          echo "Backend pods:"
           kubectl get pods -n salepartido -l app=salepartido-backend
+          echo ""
+          echo "Frontend pods:"
           kubectl get pods -n salepartido -l app=salepartido-frontend
 
   # ============================================================================
@@ -240,44 +259,33 @@ jobs:
     if: github.ref == 'refs/heads/main'
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Scale stable deployments to 4 replicas
-        run: |
-          echo "Scaling stable backend to 4 replicas..."
-          kubectl apply -f k8s/backend.yaml -n salepartido
-          kubectl scale deployment/salepartido-backend -n salepartido --replicas=4
-          echo "✅ Stable backend scaled to 4 replicas"
-
-          echo "Scaling stable frontend to 4 replicas..."
-          kubectl apply -f k8s/frontend.yaml -n salepartido
-          kubectl scale deployment/salepartido-frontend -n salepartido --replicas=4
-          echo "✅ Stable frontend scaled to 4 replicas"
-
-      - name: Wait for stable pods to roll out
-        run: |
-          kubectl rollout status deployment/salepartido-backend -n salepartido --timeout=120s
-          kubectl rollout status deployment/salepartido-frontend -n salepartido --timeout=120s
-          echo "✅ Stable pods rolled out successfully"
-
       - name: Delete canary deployments
         run: |
+          echo "Promoting canary to stable..."
           echo "Deleting canary deployments..."
           kubectl delete deployment salepartido-backend-canary -n salepartido || true
           kubectl delete deployment salepartido-frontend-canary -n salepartido || true
           echo "✅ Canary deployments deleted"
 
+      - name: Wait for stable pods to stabilize
+        run: |
+          echo "Ensuring stable pods are running..."
+          kubectl rollout status deployment/salepartido-backend -n salepartido --timeout=120s
+          kubectl rollout status deployment/salepartido-frontend -n salepartido --timeout=120s
+          echo "✅ Stable deployment stable pods running"
+
       - name: Final status
         run: |
           echo "=== Final Production Status ==="
-          kubectl get pods -n salepartido
           echo ""
-          echo "=== Backend Pods ==="
-          kubectl get pods -n salepartido -l app=salepartido-backend
+          echo "=== Backend Pods (stable only) ==="
+          kubectl get pods -n salepartido -l app=salepartido-backend,track!=canary
           echo ""
-          echo "=== Frontend Pods ==="
-          kubectl get pods -n salepartido -l app=salepartido-frontend
+          echo "=== Frontend Pods (stable only) ==="
+          kubectl get pods -n salepartido -l app=salepartido-frontend,track!=canary
+          echo ""
+          echo "Total backend pods:"
+          kubectl get pods -n salepartido -l app=salepartido-backend | wc -l
           echo ""
           echo "✅ Canary promotion to stable completed successfully"
 
@@ -297,18 +305,27 @@ jobs:
           kubectl delete deployment salepartido-backend-canary -n salepartido || true
           kubectl delete deployment salepartido-frontend-canary -n salepartido || true
           echo "✅ Canary rollback completed"
-          echo "⚠️  Stable deployment (4 replicas) remains intact"
 
       - name: Status after rollback
         run: |
-          echo "=== Status after Rollback ==="
-          kubectl get pods -n salepartido
           echo ""
-          echo "❌ Canary deployment failed and was rolled back"
-          echo "Stable deployment (4 replicas) is still running"
+          echo "=== Status after Rollback ==="
+          echo "Backend pods (stable only):"
+          kubectl get pods -n salepartido -l app=salepartido-backend,track!=canary
+          echo ""
+          echo "Frontend pods (stable only):"
+          kubectl get pods -n salepartido -l app=salepartido-frontend,track!=canary
+          echo ""
+          echo "❌ ROLLBACK COMPLETED"
+          echo "Canary deployment failed health checks and was rolled back"
+          echo "Stable deployment (4 replicas) remains intact and serving traffic"
 
-      - name: Notify rollback
+      - name: Notify failure
         run: |
-          echo "ROLLBACK NOTIFICATION"
-          echo "A canary deployment to production has been rolled back due to health check failures."
-          echo "Review the logs above for debugging."
+          echo ""
+          echo "🔴 DEPLOYMENT FAILED"
+          echo "======================"
+          echo "Action: Canary deployment rollback"
+          echo "Reason: Health check failures"
+          echo "Status: Stable deployment still running"
+          echo "Next step: Review logs and retry"
