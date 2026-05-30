@@ -74,11 +74,12 @@ jobs:
 
       - name: Prepare K8s manifests for pre_prod
         run: |
-          # Copia de manifests
+          # Copia de manifests y limpia antes
+          rm -rf /tmp/k8s-preprod
           cp -r k8s /tmp/k8s-preprod
 
-          # Reemplazar namespace en TODOS los archivos
-          sed -i 's/namespace: salepartido/namespace: salepartido-preprod/g' /tmp/k8s-preprod/*.yaml
+          # Reemplazar namespace con sed explícito (inicio y fin de línea)
+          find /tmp/k8s-preprod -name "*.yaml" -exec sed -i 's/^  namespace: salepartido$/  namespace: salepartido-preprod/' {} +
 
           # Reemplazar puertos
           sed -i 's/nodePort: 32328/nodePort: 32329/g' /tmp/k8s-preprod/backend.yaml
@@ -86,6 +87,12 @@ jobs:
 
           # Reemplazar dominios en ingress
           sed -i 's/sale-partido.com/preprod.sale-partido.com/g' /tmp/k8s-preprod/ingress.yaml
+
+          # Verifica que no hay namespaces corruptos
+          if grep -r "salepartido-preprod-preprod" /tmp/k8s-preprod/ 2>/dev/null; then
+            echo "ERROR: Namespaces corruptos detectados"
+            exit 1
+          fi
 
       - name: Create namespace
         run: |
