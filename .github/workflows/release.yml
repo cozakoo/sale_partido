@@ -1,0 +1,153 @@
+name: Release - Auto-version and changelog
+
+on:
+  push:
+    branches:
+      - main
+    # No triggear si los cambios son solo en documentación
+    paths-ignore:
+      - 'CHANGELOG.md'
+      - 'README.md'
+      - 'doc/**'
+
+jobs:
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Necesario para acceder a todo el historial de commits
+
+      - name: Set up Git
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+
+      - name: Get last tag
+        id: last-tag
+        run: |
+          LAST_TAG=$(git describe --tags --match "v*" 2>/dev/null || echo "")
+          echo "last_tag=$LAST_TAG" >> $GITHUB_OUTPUT
+          if [ -z "$LAST_TAG" ]; then
+            echo "No tags found. First release."
+          else
+            echo "Last tag: $LAST_TAG"
+          fi
+
+      - name: Calculate next version
+        id: version
+        run: |
+          LAST_TAG="${{ steps.last-tag.outputs.last_tag }}"
+
+          if [ -z "$LAST_TAG" ]; then
+            # Primera versión
+            NEW_VERSION="v0.1.0"
+          else
+            # Parsear versión actual
+            VERSION_NUM="${LAST_TAG#v}"
+            MAJOR=$(echo "$VERSION_NUM" | cut -d. -f1)
+            MINOR=$(echo "$VERSION_NUM" | cut -d. -f2)
+            PATCH=$(echo "$VERSION_NUM" | cut -d. -f3)
+
+            # Detectar si hay commits feat: o solo fix:
+            if git log ${LAST_TAG}..HEAD --oneline | grep -q "^[a-f0-9]* feat("; then
+              # Bump MINOR
+              MINOR=$((MINOR + 1))
+              PATCH=0
+            else
+              # Bump PATCH
+              PATCH=$((PATCH + 1))
+            fi
+
+            NEW_VERSION="v${MAJOR}.${MINOR}.${PATCH}"
+          fi
+
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "Next version: $NEW_VERSION"
+
+      - name: Set up Node (para usar script)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Generate changelog
+        run: |
+          LAST_TAG="${{ steps.last-tag.outputs.last_tag }}"
+          VERSION_NUMBER="${{ steps.version.outputs.new_version }}"
+
+          # Si es la primera versión
+          if [ -z "$LAST_TAG" ]; then
+            COMMITS=$(git log --oneline)
+          else
+            COMMITS=$(git log ${LAST_TAG}..HEAD --oneline)
+          fi
+
+          echo "### ✨ Features" > /tmp/changelog_section.txt
+          echo "$COMMITS" | grep "^[a-f0-9]* feat(" | sed "s/^[a-f0-9]* feat(\([^)]*\)): /- /" >> /tmp/changelog_section.txt || true
+
+          echo "" >> /tmp/changelog_section.txt
+          echo "### 🐛 Bug Fixes" >> /tmp/changelog_section.txt
+          echo "$COMMITS" | grep "^[a-f0-9]* fix(" | sed "s/^[a-f0-9]* fix(\([^)]*\)): /- /" >> /tmp/changelog_section.txt || true
+
+          echo "" >> /tmp/changelog_section.txt
+          echo "### 📖 Documentation" >> /tmp/changelog_section.txt
+          echo "$COMMITS" | grep "^[a-f0-9]* docs(" | sed "s/^[a-f0-9]* docs(\([^)]*\)): /- /" >> /tmp/changelog_section.txt || true
+
+          echo "" >> /tmp/changelog_section.txt
+          echo "### 🔧 Other Changes" >> /tmp/changelog_section.txt
+          echo "$COMMITS" | grep -v "^[a-f0-9]* \(feat\|fix\|docs\)(" | head -5 | sed "s/^[a-f0-9]* /- /" >> /tmp/changelog_section.txt || true
+
+          cat /tmp/changelog_section.txt
+
+      - name: Create Git tag
+        run: |
+          NEW_VERSION="${{ steps.version.outputs.new_version }}"
+          git tag -a "$NEW_VERSION" -m "Release $NEW_VERSION"
+          git push origin "$NEW_VERSION"
+          echo "✅ Tag created: $NEW_VERSION"
+
+      - name: Create GitHub Release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ steps.version.outputs.new_version }}
+          name: Release ${{ steps.version.outputs.new_version }}
+          bodyFile: /tmp/changelog_section.txt
+          draft: false
+          prerelease: false
+
+      - name: Update pom.xml version
+        run: |
+          NEW_VERSION="${{ steps.version.outputs.new_version }}"
+          VERSION_NUMBER="${NEW_VERSION#v}"
+
+          # Actualizar version en pom.xml
+          sed -i "s/<version>.*<\/version>/<version>$VERSION_NUMBER<\/version>/g" backend/pom.xml
+
+          git add backend/pom.xml
+          git commit -m "chore(release): bump version to $VERSION_NUMBER" || true
+          git push || true
+
+      - name: Update package.json version
+        run: |
+          NEW_VERSION="${{ steps.version.outputs.new_version }}"
+          VERSION_NUMBER="${NEW_VERSION#v}"
+
+          # Actualizar version en frontend/package.json
+          sed -i "s/\"version\": \".*\"/\"version\": \"$VERSION_NUMBER\"/g" frontend/package.json
+
+          git add frontend/package.json
+          git commit -m "chore(release): bump frontend version to $VERSION_NUMBER" || true
+          git push || true
+
+      - name: Summary
+        run: |
+          echo "=== Release Summary ==="
+          echo "New version: ${{ steps.version.outputs.new_version }}"
+          echo "GitHub Release created with changelog"
+          echo "Tags updated: pom.xml, package.json"
