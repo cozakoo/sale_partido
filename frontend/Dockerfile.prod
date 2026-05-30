@@ -4,7 +4,11 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install
 COPY . .
-RUN npm run build
+
+ARG BUILD_CONFIG=production
+RUN echo "Building with configuration: $BUILD_CONFIG"
+RUN npm run build -- --configuration=${BUILD_CONFIG}
+
 
 # Run stage
 FROM nginx:alpine
