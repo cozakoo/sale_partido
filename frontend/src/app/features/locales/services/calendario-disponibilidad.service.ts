@@ -1,9 +1,9 @@
 import { inject, Injectable } from '@angular/core';
-import { Observable, of } from 'rxjs';
-import { DiaCalendario } from '../models/calendario';
+import { Observable } from 'rxjs';
 import { Constantes } from '../../../core/Constantes';
 import { DisponibilidadCanchaBackendDTO } from '../models/disponibilidad-cancha';
 import { HttpClient, HttpParams } from '@angular/common/http';
+
 @Injectable({ providedIn: 'root' })
 export class CalendarioDisponibilidadService {
   private http = inject(HttpClient);
@@ -26,5 +26,4 @@ export class CalendarioDisponibilidadService {
       { params }
     );
   }
-
 }

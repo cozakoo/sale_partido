@@ -19,7 +19,7 @@ export class CalendarioDisponibilidadPage implements OnInit {
   private route = inject(ActivatedRoute);
 
   localUuid!: string;
-  fechaInicio = this.getLunes(new Date());
+  fechaInicio = signal(this.getLunes(new Date()));
   offsetSemana = signal(0);
 
   loading = signal(false);
@@ -29,7 +29,13 @@ export class CalendarioDisponibilidadPage implements OnInit {
   turnosAbiertos = signal<Record<string, boolean>>({});
 
   semana = signal<DiaCalendario[]>([]);
+  vista = signal<'dia' | 'semana'>('semana');
 
+  diaSeleccionado = signal(0);
+
+  cambiarVista(vista: 'dia' | 'semana') {
+    this.vista.set(vista);
+  }
   seleccionFiltros = signal<FilterSelection>({
     estados: [],
     espacios: [],
@@ -84,7 +90,7 @@ export class CalendarioDisponibilidadPage implements OnInit {
     this.loading.set(true);
     this.loadError.set(false);
 
-    this.service.getDisponibilidad(this.localUuid, this.fechaInicio, this.fechaFin).subscribe({
+    this.service.getDisponibilidad(this.localUuid, this.fechaInicio(), this.fechaFin).subscribe({
       next: data => {
         this.semana.set(this.mapearASemana(data));
         this.loading.set(false);
@@ -100,7 +106,7 @@ export class CalendarioDisponibilidadPage implements OnInit {
     const diasMap = new Map<string, DiaCalendario>();
 
     for (let i = 0; i < 7; i++) {
-      const d = new Date(this.fechaInicio);
+      const d = new Date(this.fechaInicio());
       d.setDate(d.getDate() + i);
       const key = this.formatearFechaLocal(d); // Usa timezone local, no UTC
       diasMap.set(key, { fecha: d, turnos: [] });
@@ -140,9 +146,32 @@ export class CalendarioDisponibilidadPage implements OnInit {
   }
 
   private mapearEstado(dto: TurnoBackendDTO): EstadoTurno {
-    if (dto.estado === 'LIBRE') return 'libre';
-    if (dto.reserva?.estadoEvento === 'PENDIENTE') return 'incompleto';
-    return 'ocupado';
+    if (dto.estado === 'LIBRE') {
+      return 'libre';
+    }
+
+    const ahora = new Date();
+    const fechaFinTurno = this.crearFechaHora(dto.fecha, dto.horaFin);
+
+    if (fechaFinTurno < ahora) {
+      return 'finalizado';
+    }
+
+    switch (dto.reserva?.estadoEvento) {
+      case 'PENDIENTE':
+        return 'incompleto';
+      case 'CONFIRMADO':
+      case 'FINALIZADO':
+      default:
+        return 'ocupado';
+    }
+  }
+
+  private crearFechaHora(fecha: string, hora: string): Date {
+    const [year, month, day] = fecha.split('-').map(Number);
+    const [hours, minutes] = hora.split(':').map(Number);
+
+    return new Date(year, month - 1, day, hours, minutes);
   }
 
   private formatearFechaLocal(d: Date): string {
@@ -154,16 +183,45 @@ export class CalendarioDisponibilidadPage implements OnInit {
   }
 
   navegar(delta: number) {
-    this.offsetSemana.update(v => v + delta);
-    const d = new Date(this.fechaInicio);
+    if (this.vista() === 'semana') {
+      const d = new Date(this.fechaInicio());
+      d.setDate(d.getDate() + delta * 7);
+      this.fechaInicio.set(d);
+      this.cargarSemana();
+      return;
+    }
+
+    // Vista día
+    const nuevoIndex = this.diaSeleccionado() + delta;
+
+    if (nuevoIndex >= 0 && nuevoIndex <= 6) {
+      // Sigue dentro de la semana cargada, solo mover índice
+      this.diaSeleccionado.set(nuevoIndex);
+      return;
+    }
+
+    // Cruzó el límite de la semana, cargar semana anterior/siguiente
+    const d = new Date(this.fechaInicio());
     d.setDate(d.getDate() + delta * 7);
-    this.fechaInicio = d;
+    this.fechaInicio.set(d);
+
+    // Posicionar en el extremo correcto
+    this.diaSeleccionado.set(nuevoIndex < 0 ? 6 : 0);
     this.cargarSemana();
   }
 
   irHoy() {
     this.offsetSemana.set(0);
-    this.fechaInicio = this.getLunes(new Date());
+    this.fechaInicio.set(this.getLunes(new Date()));
+
+    if (this.vista() === 'dia') {
+      // Buscar el índice del día de hoy dentro de la semana
+      const hoy = this.formatearFechaLocal(new Date());
+      const semana = this.semanaFiltrada();
+      const index = semana.findIndex(dia => this.formatearFechaLocal(dia.fecha) === hoy);
+      this.diaSeleccionado.set(index >= 0 ? index : 0);
+    }
+
     this.cargarSemana();
   }
 
@@ -198,15 +256,22 @@ export class CalendarioDisponibilidadPage implements OnInit {
   }
 
   get fechaFin(): Date {
-    const d = new Date(this.fechaInicio);
+    const f = this.fechaInicio();
+    const year = f.getFullYear();
+    const month = f.getMonth();
+    const day = f.getDate();
+    const d = new Date(year, month, day);
     d.setDate(d.getDate() + 6);
     return d;
   }
 
   private getLunes(fecha: Date): Date {
-    const d = new Date(fecha);
-    const dia = d.getDay();
-    const diff = dia === 0 ? -6 : 1 - dia;
+    const year = fecha.getFullYear();
+    const month = fecha.getMonth();
+    const day = fecha.getDate();
+    const d = new Date(year, month, day);
+    const diaSemana = d.getDay();
+    const diff = diaSemana === 0 ? -6 : 1 - diaSemana;
     d.setDate(d.getDate() + diff);
     return d;
   }

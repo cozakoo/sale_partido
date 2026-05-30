@@ -1,4 +1,4 @@
-export type EstadoTurno = 'libre' | 'ocupado' | 'incompleto';
+export type EstadoTurno = 'libre' | 'ocupado' | 'incompleto' | 'finalizado';
 export type EstadoEvento = 'pendiente' | 'confirmado' | 'finalizado' | 'cancelado';
 
 export interface DetalleReserva {

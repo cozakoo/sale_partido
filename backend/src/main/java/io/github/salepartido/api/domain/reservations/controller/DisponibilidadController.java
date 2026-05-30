@@ -36,45 +36,28 @@ public class DisponibilidadController {
     }
 
     @GetMapping("/{uuid}/disponibilidad")
-    @Operation(
-        summary = "Obtener disponibilidad de un local",
-        description = "Retorna los turnos disponibles y ocupados de todas las canchas de un local en un rango de fechas (máx. 31 días)."
-    )
-    @ApiResponse(
-        responseCode = "200",
-        description = "Lista de canchas con sus turnos",
-        content = @Content(array = @ArraySchema(schema = @Schema(implementation = DisponibilidadCanchaDTO.class)))
-    )
+    @Operation(summary = "Obtener disponibilidad de un local", description = "Retorna los turnos disponibles y ocupados de todas las canchas de un local en un rango de fechas (máx. 31 días).")
+    @ApiResponse(responseCode = "200", description = "Lista de canchas con sus turnos", content = @Content(array = @ArraySchema(schema = @Schema(implementation = DisponibilidadCanchaDTO.class))))
     @ApiResponse(responseCode = "400", description = "Parámetros de fecha inválidos")
     @ApiResponse(responseCode = "404", description = "Local no encontrado")
     public List<DisponibilidadCanchaDTO> getDisponibilidad(
-            @PathVariable
-            @Parameter(description = "UUID del local")
-            UUID uuid,
-            @RequestParam(name = "fechaInicio")
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-            @Parameter(description = "Fecha de inicio (ISO 8601)", example = "2026-06-01")
-            LocalDate fechaInicio,
-            @RequestParam(name = "fechaFin")
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-            @Parameter(description = "Fecha de fin (ISO 8601)", example = "2026-06-07")
-            LocalDate fechaFin) {
+            @PathVariable @Parameter(description = "UUID del local") UUID uuid,
+            @RequestParam(name = "fechaInicio") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) @Parameter(description = "Fecha de inicio (ISO 8601)", example = "2026-06-01") LocalDate fechaInicio,
+            @RequestParam(name = "fechaFin") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) @Parameter(description = "Fecha de fin (ISO 8601)", example = "2026-06-07") LocalDate fechaFin) {
 
         if (fechaInicio == null || fechaFin == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Las fechas de inicio y fin son obligatorias");
         }
 
-        if (fechaInicio.isBefore(LocalDate.now())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La fecha de inicio no puede ser anterior a la fecha actual");
-        }
-
         if (fechaInicio.isAfter(fechaFin)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La fecha de inicio no puede ser posterior a la fecha de fin");
-        }  
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "La fecha de inicio no puede ser posterior a la fecha de fin");
+        }
 
         long daysBetween = ChronoUnit.DAYS.between(fechaInicio, fechaFin);
         if (daysBetween > 31) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El rango de búsqueda de disponibilidad no puede exceder los 31 días");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "El rango de búsqueda de disponibilidad no puede exceder los 31 días");
         }
 
         return disponibilidadService.obtenerDisponibilidadLocal(uuid, fechaInicio, fechaFin);

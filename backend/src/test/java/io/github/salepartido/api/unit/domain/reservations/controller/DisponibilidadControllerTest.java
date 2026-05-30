@@ -169,19 +169,7 @@ class DisponibilidadControllerTest {
 
         verify(disponibilidadService, never()).obtenerDisponibilidadLocal(any(), any(), any());
     }
-
-    @Test
-    void getDisponibilidad_ConFechaInicioPasada_RetornaBadRequest() throws Exception {
-        // Act & Assert
-        mockMvc.perform(get("/locales/{uuid}/disponibilidad", localUuid)
-                        .param("fechaInicio", "2024-01-01")
-                        .param("fechaFin", "2024-01-07")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
-
-        verify(disponibilidadService, never()).obtenerDisponibilidadLocal(any(), any(), any());
-    }
-
+    
     @Test
     void getDisponibilidad_ConRangoExactamente31Dias_RetornaOk() throws Exception {
         // Arrange
