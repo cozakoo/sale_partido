@@ -1,0 +1,102 @@
+package io.github.salepartido.api.domain.locales.controller;
+
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
+
+import io.github.salepartido.api.domain.locales.service.LocalService;
+import io.github.salepartido.api.domain.locales.controller.dto.*;
+import io.github.salepartido.api.domain.locales.controller.dto.FiltroViewModel;
+import io.github.salepartido.api.domain.locales.controller.mapper.LocalMapper;
+import io.github.salepartido.api.domain.locales.controller.mapper.CanchaMapper;
+import io.github.salepartido.api.domain.locales.model.Local;
+import jakarta.validation.Valid;
+
+@RestController
+@RequestMapping("/locales")
+public class LocalController {
+
+    private final LocalService localService;
+    private final LocalMapper localMapper;
+    private final CanchaMapper canchaMapper;
+
+    public LocalController(LocalService localService, LocalMapper localMapper, CanchaMapper canchaMapper) {
+        this.localService = localService;
+        this.localMapper = localMapper;
+        this.canchaMapper = canchaMapper;
+    }
+
+    @GetMapping
+    public List<LocalViewModel> getLocales(
+            @RequestParam(required = false) String ubicacion,
+            @RequestParam(required = false) String zona,
+            @RequestParam(required = false) String fecha,
+            @RequestParam(required = false) String tipoDeporte,
+            @RequestParam(required = false) String horarioDesde,
+            @RequestParam(required = false) String horarioHasta) {
+
+        // Si no hay filtros, retornar todos los locales en modo summary
+        if (isEmptyFilter(ubicacion, zona, fecha, tipoDeporte, horarioDesde, horarioHasta)) {
+            return localService.obtenerTodosLosLocales().stream()
+                    .map(localMapper::toViewModel)
+                    .collect(Collectors.toList());
+        }
+
+        // Construir FiltroViewModel desde los parámetros de query
+        HorarioDisponibleViewModel horario = (horarioDesde != null || horarioHasta != null)
+                ? new HorarioDisponibleViewModel(horarioDesde, horarioHasta)
+                : null;
+
+        FiltroViewModel filtro = new FiltroViewModel(ubicacion, zona, fecha, tipoDeporte, horario);
+
+        return localService.buscarLocales(filtro).stream()
+                .map(localMapper::toViewModel)
+                .collect(Collectors.toList());
+    }
+
+    private boolean isEmptyFilter(String ubicacion, String zona, String fecha, String tipoDeporte,
+            String horarioDesde, String horarioHasta) {
+        return (ubicacion == null || ubicacion.isBlank()) &&
+               (zona == null || zona.isBlank()) &&
+               (fecha == null || fecha.isBlank()) &&
+               (tipoDeporte == null || tipoDeporte.isBlank()) &&
+               (horarioDesde == null || horarioDesde.isBlank()) &&
+               (horarioHasta == null || horarioHasta.isBlank());
+    }
+
+    @PostMapping("/busqueda")
+    public List<LocalViewModel> buscarLocales(@RequestBody FiltroViewModel filtro) {
+        return localService.buscarLocales(filtro).stream()
+                .map(localMapper::toViewModel)
+                .collect(Collectors.toList());
+    }
+
+    @GetMapping("/{uuid}")
+    public LocalDetail getLocalById(@PathVariable UUID uuid) {
+        Local local = localService.buscarLocalPorId(uuid)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Local no encontrado"));
+        return localMapper.toDetail(local);
+    }
+
+    @GetMapping("/{uuid}/canchas")
+    public Object getCanchasFromLocal(@PathVariable UUID uuid, @RequestParam(defaultValue = "resumen") String view) {
+        Local local = localService.buscarLocalPorId(uuid)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Local no encontrado"));
+        
+        if ("detalle".equalsIgnoreCase(view)) {
+            return local.getCanchas().stream().map(canchaMapper::toDetail).collect(Collectors.toList());
+        } else {
+            return local.getCanchas().stream().map(canchaMapper::toSummary).collect(Collectors.toList());
+        }
+    }
+
+    @PostMapping("/{uuid}/configuraciones-horarios")
+    public SaveCanchasConfiguracionesHorariosResponse saveConfiguracionesHorarios(@PathVariable UUID uuid, @Valid @RequestBody SaveCanchasConfiguracionesHorariosRequest request) {
+        return localService.actualizarConfiguracionesHorarios(uuid, request);
+    }
+}
+

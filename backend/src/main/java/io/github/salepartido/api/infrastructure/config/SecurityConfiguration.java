@@ -20,38 +20,53 @@ import java.util.List;
 @EnableWebSecurity
 public class SecurityConfiguration {
 
-    // Lee la variable SPRING_CORS inyectada desde tu backend.yaml
     @Value("${SPRING_CORS:http://localhost:4200}")
     private String allowedOrigins;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .cors(Customizer.withDefaults()) // Busca obligatoriamente el bean corsConfigurationSource()
+            .cors(Customizer.withDefaults())
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .anyRequest().permitAll()) // Permitir todo en testing/desarrollo
+                .anyRequest().permitAll())
             .httpBasic(basic -> basic.disable());
 
         return http.build();
+
+        /* Comento esto porque en entorno de desarrollo aún no estamos usando autenticación 
+        http
+            .cors(Customizer.withDefaults())
+            .csrf(csrf -> csrf.disable())
+            .sessionManagement(session -> session
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/actuator/**").permitAll()
+                .requestMatchers("/actuator/health/**").permitAll()
+                .requestMatchers("/api/public/**").permitAll()
+                .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/").permitAll()
+                .anyRequest().authenticated())
+            .httpBasic(basic -> basic.disable())
+            .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
+
+        return http.build();
+        */
     }
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        
-        // Separa la cadena por comas para transformar las IPs del ConfigMap en una lista
-        List<String> origins = Arrays.asList( allowedOrigins.split(",") );
+
+        List<String> origins = Arrays.asList(allowedOrigins.split(","));
         configuration.setAllowedOrigins(origins);
-        
-        // Métodos permitidos para interactuar con Angular sin restricciones
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);
-	configuration.setMaxAge(3600L);
-        
+        configuration.setMaxAge(3600L);
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
