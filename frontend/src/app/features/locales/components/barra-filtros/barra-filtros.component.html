@@ -1,0 +1,56 @@
+<div class="barra-filtros">
+  <div class="filtro-grupo">
+    <span class="filtro-label">Estado</span>
+    <div class="checkboxes">
+      @for (estado of opciones().estados; track estado) {
+        <label class="checkbox-item">
+          <input
+            type="checkbox"
+            [checked]="seleccion().estados.includes(estado)"
+            (change)="toggleEstado(estado)"
+          />
+          <span class="dot" [class]="estado"></span>
+          {{ estado }}
+        </label>
+      }
+    </div>
+  </div>
+
+  @if (opciones().espacios.length > 0) {
+    <div class="filtro-grupo">
+      <span class="filtro-label">Cancha</span>
+      <div class="checkboxes">
+        @for (espacio of opciones().espacios; track espacio) {
+          <label class="checkbox-item">
+            <input
+              type="checkbox"
+              [checked]="seleccion().espacios.includes(espacio)"
+              (change)="toggleEspacio(espacio)"
+            />
+            {{ espacio }}
+          </label>
+        }
+      </div>
+    </div>
+  }
+
+  @if (opciones().deportes.length > 0) {
+    <div class="filtro-grupo">
+      <span class="filtro-label">Deporte</span>
+      <div class="checkboxes">
+        @for (deporte of opciones().deportes; track deporte) {
+          <label class="checkbox-item">
+            <input
+              type="checkbox"
+              [checked]="seleccion().deportes.includes(deporte)"
+              (change)="toggleDeporte(deporte)"
+            />
+            {{ deporte }}
+          </label>
+        }
+      </div>
+    </div>
+  }
+
+  <button class="btn-limpiar" (click)="limpiar.emit()">Limpiar filtros</button>
+</div>

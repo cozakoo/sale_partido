@@ -6,274 +6,293 @@
 
 ---
 
-## 📋 Descripción
+## 📋 Contenido
 
-**Sale Partido** es una plataforma integral que conecta jugadores, propietarios de espacios deportivos y organizadores de eventos. Permite descubrir espacios, reservar, participar en eventos y competencias, todo con un sistema de notificaciones y pagos integrado.
-
-### Características principales
-
-- **Exploración:** Descubrimiento y búsqueda de espacios deportivos con filtros y vista en mapa
-- **Reservas:** Sistema completo de reserva, confirmación y cancelación
-- **Eventos:** Creación y gestión de eventos deportivos
-- **Participación:** Inscripción, reseñas y calificaciones
-- **Competencias:** Torneos, rankings y tablas de posiciones
-- **Notificaciones:** Sistema de alertas por push, email y preferencias
-- **Pagos:** Cobros integrados, transferencias y reconciliación
-- **Analytics:** Estadísticas, reportes y sugerencias automáticas
+1. [Quick Start)](#-quick-start-5-min)
+2. [Descripción](#descripción)
+3. [Comenzar](#comenzar)
+4. [Estructura](#estructura)
+5. [Agentes (IAs)](#agentes--ias)
+6. [Épicas](#épicas)
+7. [Documentación](#documentación)
 
 ---
 
-## 🛠️ Stack Técnico
+## Quick Start (5 min)
 
-| Capa | Tecnología |
-|------|-----------|
-| **Backend** | Java 21 + Spring Boot 3.x + Maven |
-| **Frontend** | TypeScript 5.x + Angular 17+ + SCSS + TailwindCSS |
-| **Base de Datos** | PostgreSQL 15+ |
-| **Caché** | Redis 7+ |
-| **Autenticación** | JWT (HS256) + Spring Security |
-| **API** | REST + Swagger/OpenAPI |
-| **Contenedores** | Docker + Docker Compose |
-| **CI/CD** | GitHub Actions |
-| **Testing** | JUnit 5 + Jasmine/Karma + Playwright (E2E) |
-| **Calidad** | SonarQube + Checkstyle + ESLint |
+**¿Primero aquí?** → Lee `QUICK_START.md`
 
+```bash
+./scripts/init.sh                                      # Setup automático
+node scripts/sync-github-projects.js                  # Descarga HUs
+./scripts/create-branch.sh E4-H08 mi-feature          # Crea rama
+# [Codifica con IA usando agentes/backend.md o frontend.md]
+git commit -m "feat(E4-H08): descripcion"              # Git hook valida
+```
 
+---
 
-## Requisitos previos
+## Descripción
 
-> Se asume que **Git** ya está instalado en el sistema.
+Conecta jugadores, propietarios de espacios y organizadores de eventos. Permite descubrir espacios, reservar, participar en eventos, todo integrado con notificaciones y pagos.
+
+**Características:**
+- Exploración + búsqueda con mapa
+- Reservas, confirmación, cancelación
+- Eventos deportivos
+- Participación, reseñas, calificaciones
+- Competencias, rankings
+- Notificaciones push/email
+- Pagos integrados
+- Analytics
+
+---
+
+## Comenzar
+
+### Setup Inicial (UNA sola vez)
+
+```bash
+# Instala git hooks, configura .env, e instala dependencias
+./scripts/init.sh
+
+# Luego: edita .env y agrega tu GITHUB_TOKEN
+# Referencia: ./scripts/README.md
+```
+
+---
+
+### Opción 1: Docker (recomendado)
+
+```bash
+git clone https://github.com/cozakoo/sale-partido.git
+cd sale-partido
+docker-compose up -d
+```
+
+Accede:
+- Backend: http://localhost:8080
+- Frontend: http://localhost:4200
+- Swagger: http://localhost:8080/swagger-ui.html
+
+### Opción 2: Local
+
+**Backend:**
+```bash
+cd backend
+./mvnw clean install
+./mvnw spring-boot:run
+# http://localhost:8080
+```
+
+**Frontend:**
+```bash
+cd frontend
+npm install
+ng serve
+# http://localhost:4200
+```
+
+---
+
+## Estructura
+
+```
+sale-partido/
+├── backend/                    # Spring Boot (Java 21)
+│   └── domain/[epic]/         # DDD por épica
+├── frontend/                   # Angular 20 (TypeScript)
+│   └── src/app/features/      # Features por épica
+├── k8s/                        # Kubernetes manifests
+├── agentes/                    # Instrucciones para IAs
+│   ├── backend.md             # Guía Backend IA
+│   ├── frontend.md            # Guía Frontend IA
+│   ├── infra.md               # Guía DevOps IA
+│   ├── API_CONTRACTS.md       # Contrato Backend ↔ Frontend
+│   └── ONBOARDING.md          # Cómo empezar a codificar
+├── doc/                        # Documentación técnica
+│   ├── Decisiones.md          # Decisiones arquitectónicas
+│   ├── Convenciones_de_branching.md
+│   ├── STACK.md               # Stack técnico detallado
+│   ├── TESTING.md             # Estrategia de testing
+│   └── TROUBLESHOOTING.md     # Errores comunes
+├── SETUP.md                    # Setup rápido
+└── docker-compose.yml         # Local stack
+```
+
+---
+
+## 🤖 Agentes (IAs)
+
+**Copia los agentes en tu IA (Claude, ChatGPT, Gemini) antes de codificar.**
+
+| Agente | Archivo | Especialidad |
+|--------|---------|--------------|
+| **Backineitor** ⚙️ | `/agentes/backend.md` | Backend: Java 21, Spring Boot |
+| **Frontalyx** 🎨 | `/agentes/frontend.md` | Frontend: Angular 20, TypeScript |
+| **Kuberator** ☸️ | `/agentes/infra.md` | DevOps: Kubernetes, CI/CD |
+| **Testeador** ✅ | `/agentes/qa.md` | QA: Testing, cobertura |
+
+**Workflow:**
+1. Abre agente correspondiente
+2. Copia TODO el contenido
+3. Pégalo en tu IA
+4. Pide que implemente tu feature
+5. Corre tests localmente
+6. Commit + PR
+
+Ver: `/agentes/ONBOARDING.md`
+
+---
+
+## Épicas
+
+| # | Nombre | Módulo | Qué incluye |
+|---|--------|--------|------------|
+| **E1** | Exploración | exploration | Búsqueda, filtros, mapa |
+| **E2** | Participación | participation | Inscripción, reseñas |
+| **E3** | Eventos | events | Crear, editar eventos |
+| **E4** | Espacios | locales | ABM, configuración |
+| **E5** | Reservas | reservations | Reserva, cancelación |
+| **E6** | Notificaciones | notifications | Push, email |
+| **E7** | Pagos | payments | Cobros, transferencias |
+| **E8** | Competencias | competitions | Torneos, rankings |
+| **E9** | Analytics | analytics | Reportes |
+
+---
+
+## Documentación
+
+### 🚀 Para empezar
+- **[SETUP.md](SETUP.md)** — Setup rápido (1 minuto)
+- **[/agentes/ONBOARDING.md](/agentes/ONBOARDING.md)** — Cómo desarrollar
+
+### 🏗️ Arquitectura y decisiones
+- **[/doc/architecture/Decisiones.md](/doc/architecture/Decisiones.md)** — Decisiones técnicas tomadas
+- **[/doc/architecture/STACK.md](/doc/architecture/STACK.md)** — Stack técnico (Java 21, Angular 20, PostgreSQL, K8s)
+- **[/agentes/API_CONTRACTS.md](/agentes/API_CONTRACTS.md)** — API endpoints y DTOs
+
+### 💻 Desarrollo
+- **[/agentes/backend.md](/agentes/backend.md)** — Guía Backend (copia en tu IA)
+- **[/agentes/frontend.md](/agentes/frontend.md)** — Guía Frontend (copia en tu IA)
+- **[/doc/workflow/Convenciones_de_branching.md](/doc/workflow/Convenciones_de_branching.md)** — Git workflow, commits
+- **[/doc/workflow/GITHUB_PROJECTS.md](/doc/workflow/GITHUB_PROJECTS.md)** — GitHub Projects, HUs, aceptance criteria
+
+### ✅ Testing
+- **[/doc/workflow/TESTING.md](/doc/workflow/TESTING.md)** — Unit, integration, E2E tests
+  - JUnit 5 + Mockito (backend)
+  - Jasmine + Playwright (frontend)
+  - Cobertura: 80% (backend), 75% (frontend)
+
+### 🔧 DevOps e Infraestructura
+- **[/agentes/infra.md](/agentes/infra.md)** — Kubernetes, containerd, CI/CD
+- **[/doc/guides/TROUBLESHOOTING.md](/doc/guides/TROUBLESHOOTING.md)** — Errores y soluciones
+
+### 📊 Métricas y Calidad
+- Coverage: ≥80% (backend), ≥75% (frontend)
+- Code duplication: <3%
+- API latency P95: <200ms
+- Frontend bundle: <300KB gzip
+- Uptime: >99.5% producción
+
+---
+
+## Quick Commands
+
+### Backend
+```bash
+cd backend
+./mvnw clean install      # Instalar deps
+./mvnw spring-boot:run    # Ejecutar
+./mvnw verify             # Tests + SonarQube
+./mvnw test jacoco:report # Coverage
+```
+
+### Frontend
+```bash
+cd frontend
+npm install        # Instalar deps
+ng serve           # Ejecutar
+npm run test       # Tests
+npm run e2e        # E2E tests (Playwright)
+npm run lint       # Linting
+```
 
 ### Docker
-
-El entorno de desarrollo corre sobre contenedores, por lo que Docker es indispensable.
-
-**Verificar instalación:**
 ```bash
-docker info         # Muestra info de la instalación
-docker run hello-world  # Confirma que está activo y funcionando
+docker-compose up -d   # Levantar stack
+docker-compose ps      # Ver servicios
+docker-compose logs    # Ver logs
 ```
 
-**Si no está instalado:**
-
-| SO | Solución recomendada | Guía |
-|---|---|---|
-| Windows | Docker Desktop (obligatorio, requiere VM) | https://docs.docker.com/desktop/setup/install/windows-install/ |
-| macOS | Docker Desktop (obligatorio, requiere VM) | https://docs.docker.com/desktop/setup/install/windows-install/ |
-| Linux | Docker Engine CE (suficiente) | https://docs.docker.com/engine/install/ |
-
-> En Linux también existe Docker Desktop, pero solo está soportado para Debian, Ubuntu, Fedora y RHEL.
-
----
-
-### Java 21 (LTS)
-
-El backend corre dentro de un contenedor con Java 21, pero también es necesario tenerlo instalado localmente para que el editor funcione correctamente sin advertencias falsas.
-
-**Verificar instalación** (importante que aparezca `jdk` en el nombre, no solo `jre`):
-
+### Git
 ```bash
-# Windows
-where java
-where javac
-
-# Linux
-update-alternatives --config java
-update-alternatives --config javac
-```
-
-**Si no está instalado:**
-
-| SO | Guía |
-|---|---|
-| Windows | https://adoptium.net/installation/windows |
-| Linux | https://adoptium.net/installation/linux |
-
-> Las guías pueden mostrar Java 25 como versión sugerida. Simplemente reemplazá el número `25` por `21` en los comandos u opciones que aparezcan.
-
----
-
-### Node 22 (LTS)
-
-Para garantizar reproducibilidad, todos los integrantes del equipo deberían usar la misma versión de Node (lo que también unifica la versión de npm).
-
-**Verificar versión instalada:**
-```bash
-node -v   # Debería mostrar v22.x.x
-```
-
-**Si no está instalado o la versión es distinta:**
-
-| SO | Método recomendado |
-|---|---|
-| Windows | Instalar [nvm-windows](https://github.com/coreybutler/nvm-windows/releases) y luego ejecutar `nvm install 22` |
-| Linux | Seguir la guía oficial: https://nodejs.org/en/download |
-
-> Al instalar Node, npm queda incluido automáticamente.
-
----
-
-### Angular CLI
-
-```bash
-npm install -g @angular/cli
+git checkout -b feature/E4-H08-crear-local
+git add .
+git commit -m "feat(E4): crear local con validaciones"
+git push origin feature/E4-H08-crear-local
 ```
 
 ---
 
-### PostgreSQL
+## Stack (Resumen)
 
-#### Linux
+| Capa | Tech |
+|------|------|
+| **Backend** | Java 21 + Spring Boot 4.0.6 + Maven |
+| **Frontend** | TypeScript 5.9 + Angular 20.3 + Bootstrap 5 |
+| **DB** | PostgreSQL 15+ |
+| **Cache** | Redis 7+ |
+| **Auth** | JWT (HS256) + Spring Security |
+| **Testing** | JUnit 5 + Mockito + Jasmine + Playwright |
+| **CI/CD** | GitHub Actions |
+| **Infra** | Docker + Kubernetes 1.31.14 + containerd |
 
-```bash
-sudo apt install postgresql postgresql-contrib
-```
-
-**Verificar estado del servicio:**
-```bash
-sudo systemctl status postgresql
-```
-
-Si no está iniciado:
-```bash
-sudo systemctl start postgresql
-```
-
-Habilitar inicio automático:
-```bash
-sudo systemctl enable postgresql
-```
-
-**Acceder a PostgreSQL:**
-```bash
-sudo -u postgres psql
-```
-
-**Crear usuario y base de datos** con las credenciales del archivo `.env`.
-
-**Salir de PostgreSQL:**
-```sql
-\q
-```
-
-**Verificar versión instalada:**
-```bash
-psql --version
-```
-
-#### Windows 10 / 11
-
-**Descargar PostgreSQL:**
-- Página oficial: https://www.postgresql.org/download/windows/
-- Instalador EDB: https://www.enterprisedb.com/downloads/postgres-postgresql-downloads
-
-**Durante la instalación**, dejar seleccionados:
-- PostgreSQL Server
-- pgAdmin 4
-- Command Line Tools
-
-**Configuración:** crear usuario y base de datos con las credenciales del archivo `.env`.
+Detalles: ver **[/doc/architecture/STACK.md](/doc/architecture/STACK.md)**
 
 ---
 
-### Editor recomendado: VSCode
+## Checklist antes de hacer push
 
-#### Extensiones
-
-| Extensión | Link |
-|---|---|
-| Extension Pack for Java | https://marketplace.visualstudio.com/items?itemName=vscjava.vscode-java-pack |
-| Angular Language Service | https://marketplace.visualstudio.com/items?itemName=Angular.ng-template |
-| Gemini Code Assist *(requiere Google AI Pro o superior)* | https://marketplace.visualstudio.com/items?itemName=Google.geminicodeassist |
-
-#### Configurar la versión de Java del proyecto
-
-Una vez instaladas las extensiones:
-
-1. `Ctrl + Shift + P`
-2. Buscar y ejecutar **"Java: Configure Java Runtime"**
-3. Seleccionar la versión **21**
+- [ ] Leí `/agentes/ONBOARDING.md`
+- [ ] Usé el agente correspondiente (backend/frontend/infra)
+- [ ] Tests pasan: `./mvnw verify` o `npm run test`
+- [ ] Coverage ≥80% (líneas nuevas)
+- [ ] Sin linting errors
+- [ ] Branch: `feature/E[#]-H[##]-descripcion`
+- [ ] Commit: Conventional Commits + épica
+- [ ] PR con descripción clara
 
 ---
 
-## Instalación del entorno de desarrollo
+## Troubleshooting
 
-1. **Clonar el repositorio**
-   ```bash
-   git clone https://github.com/cozakoo/sale_partido.git
-   cd sale-partido
-   ```
-
-2. **Copiar el archivo de variables de entorno**
-
-   Copiar el archivo `.env` desde la carpeta compartida del equipo a la raíz del proyecto. Verificar que el archivo quede guardado exactamente como `.env` (sin extensión adicional).
-
-3. **Pararse en la rama del entorno de desarrollo**
-   ```bash
-   git checkout dev
-   ```
-
-4. **Establecer la versión de Node**
-   ```bash
-   nvm use
-   ```
-
-5. **Instalar dependencias del frontend**
-
-   ```bash
-   # Linux / Windows (cmd o PowerShell v5 o menor)
-   cd frontend && npm install
-
-   # Windows (PowerShell v6 o mayor)
-   cd frontend; npm install
-   ```
-
-6. **Verificar que todo funciona** levantando la infraestructura (ver sección siguiente).
+**¿Algo no funciona?** Ver:
+- **[/doc/guides/TROUBLESHOOTING.md](/doc/guides/TROUBLESHOOTING.md)** — Errores comunes
+- **[/doc/workflow/TESTING.md](/doc/workflow/TESTING.md)** — Fallos en tests
+- **[/agentes/infra.md](/agentes/infra.md)** — Problemas DevOps
 
 ---
 
-## Uso de la infraestructura de desarrollo
+## ¿Quién hace qué?
 
-### Al comenzar a trabajar
-
-```bash
-# 1. Moverse al directorio raíz del proyecto
-cd sale-partido
-
-# 2. Establecer la versión de Node
-nvm use
-```
-
-### Comandos de Docker (ejecutar desde `sale_partido/`)
-
-Los servicios disponibles son: `backend`, `database` y `redis`.
-
-| Acción | Servicio específico | Todos los servicios |
-|---|---|---|
-| Levantar | `docker compose up -d [servicio]` | `docker compose up -d` |
-| Bajar (detener) | `docker compose stop [servicio]` | `docker compose down` |
-| Bajar (eliminar contenedor) | `docker compose rm [servicio]` | `docker compose down` |
-| Reiniciar | `docker compose restart [servicio]` | `docker compose restart` |
-| Ver estado | — | `docker ps` |
-| Ver logs | `docker compose logs -f [servicio]` | `docker compose logs -f` |
-| Abrir terminal (bash) | `docker compose exec [servicio] bash` | — |
-| Abrir terminal (sh) | `docker compose exec [servicio] sh` | — |
-
-> Se recomienda usar `bash` sobre `sh` siempre que esté disponible.
-
-### Levantar el frontend (ejecutar desde `sale_partido/frontend`)
-
-```bash
-ng serve
-```
-
-
-## 📅 Estado
-
-- **Última actualización**: 29 de abril de 2026
-- **Sprint actual**: Scrum + 2 semanas de sprints
-- **Estado del MVP**: En desarrollo
+| Role | Tarea | Referencia |
+|------|-------|-----------|
+| **Backend Dev** | Codificar servicio | `/agentes/backend.md` |
+| **Frontend Dev** | Codificar componente | `/agentes/frontend.md` |
+| **DevOps** | Deploy, CI/CD | `/agentes/infra.md` |
+| **QA** | Testing, cobertura | `/doc/workflow/TESTING.md` |
+| **Tech Lead** | Decisiones, arquitectura | `/doc/architecture/Decisiones.md` |
 
 ---
 
-**Sale Partido** — Ingeniería de software profesional en acción ⚽🏀
+## Estado
+
+- **Stack:** Java 21, Spring Boot 4.0.6, Angular 20.3.0
+- **MVP:** En desarrollo (E1-E4)
+- **Última actualización:** 24 de mayo 2026
+- **CI/CD:** GitHub Actions + self-hosted K8s
+
+---
+
+**Sale Partido** — Ingeniería de software profesional

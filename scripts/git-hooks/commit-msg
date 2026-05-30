@@ -1,0 +1,52 @@
+#!/bin/bash
+
+# Git hook: valida que los commits sigan el formato
+#
+# Formatos válidos:
+# - feat(E4-H08): descripción
+# - fix(E4-H08): descripción
+# - test(E4-H08): descripción
+# - docs(E4-H08): descripción
+# - refactor(E4-H08): descripción
+# - chore(E4-H08): descripción
+#
+# Este hook se ejecuta automáticamente antes de crear el commit
+
+COMMIT_MSG=$(cat "$1")
+
+# Patrón esperado:
+# - tipo(E#-H##): descripción (para HUs específicas)
+# - chore(sprint/task-name): descripción (para tareas técnicas sin épica)
+PATTERN_HU="^(feat|fix|test|docs|refactor|perf)\(E[1-9]-H[0-9]{2}\):"
+PATTERN_TECHNICAL="^(chore|ci)\("
+
+if ! echo "$COMMIT_MSG" | grep -qE "$PATTERN_HU"; then
+  if ! echo "$COMMIT_MSG" | grep -qE "$PATTERN_TECHNICAL"; then
+    echo ""
+    echo "❌ Commit message inválido!"
+    echo ""
+    echo "Formatos válidos:"
+    echo "  1. HU específica: tipo(E#-H##): descripción"
+    echo "  2. Tarea técnica: chore(scope): descripción"
+    echo ""
+    echo "Ejemplos:"
+    echo "  feat(E4-H08): crear local con validaciones"
+    echo "  chore(automation): sistema de agentes IA"
+    echo ""
+    echo "Tipos para HUs (requieren E#-H##):"
+    echo "  - feat: Nueva funcionalidad"
+    echo "  - fix: Corrección de bug"
+    echo "  - test: Tests"
+    echo "  - docs: Documentación"
+    echo "  - refactor: Refactoring"
+    echo "  - perf: Performance"
+    echo ""
+    echo "Tipos técnicos (sin épica requerida):"
+    echo "  - chore: Tareas técnicas, setup, infra"
+    echo "  - ci: CI/CD, GitHub Actions, deployment"
+    echo ""
+    exit 1
+  fi
+fi
+
+exit 0
