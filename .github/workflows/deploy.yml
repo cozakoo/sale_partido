@@ -77,8 +77,8 @@ jobs:
           # Copia de manifests
           cp -r k8s /tmp/k8s-preprod
 
-          # Reemplazar namespace en TODOS los archivos
-          sed -i 's/namespace: salepartido/namespace: salepartido-preprod/g' /tmp/k8s-preprod/*.yaml
+          # Reemplazar namespace solo en líneas "namespace: salepartido"
+          sed -i 's/  namespace: salepartido$/  namespace: salepartido-preprod/' /tmp/k8s-preprod/*.yaml
 
           # Reemplazar puertos
           sed -i 's/nodePort: 32328/nodePort: 32329/g' /tmp/k8s-preprod/backend.yaml
