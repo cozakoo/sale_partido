@@ -1,8 +1,9 @@
 import { ConfiguracionDia } from "../features/locales/models/configuracion-dia";
+import { environment } from "../../environments/environment";
 
 export class Constantes {
 
-    static readonly API = 'http://localhost:8080/'
+    static readonly API = environment.apiUrl
     static readonly ENDPOINT_LOCALES = this.API + 'locales'
     static readonly ENDPOINT_CANCHAS = this.API + 'canchas'
     static readonly SLOT_DURATIONS_MINUTES = [30, 60, 90, 120];
