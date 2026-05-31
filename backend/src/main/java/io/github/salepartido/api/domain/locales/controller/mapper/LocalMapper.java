@@ -26,8 +26,25 @@ public class LocalMapper {
 
     public LocalDetail toDetail(Local local) {
         if (local == null) return null;
-        return new LocalDetail(local.getUuid(), local.getNombre(), local.getCanchas() != null ? 
-            local.getCanchas().stream().map(canchaMapper::toSummary).collect(Collectors.toList()) : List.of()
+
+        List<CanchaViewModel> canchas = local.getCanchas() != null ?
+            local.getCanchas().stream().map(canchaMapper::toViewModel).collect(Collectors.toList()) : List.of();
+
+        List<String> deportes = canchas.stream()
+            .map(CanchaViewModel::deporte)
+            .filter(Objects::nonNull)
+            .distinct()
+            .collect(Collectors.toList());
+
+        return new LocalDetail(
+            local.getUuid(),
+            local.getNombre(),
+            local.getDireccion(),
+            deportes,
+            local.getTelefono(),
+            local.getDescripcion(),
+            local.getHorario(),
+            canchas
         );
     }
 
@@ -47,6 +64,10 @@ public class LocalMapper {
             local.getUuid(),
             local.getNombre(),
             local.getDireccion(),
+            deportesDisponibles,
+            local.getTelefono(),
+            local.getDescripcion(),
+            local.getHorario(),
             deportesDisponibles,
             canchas
         );

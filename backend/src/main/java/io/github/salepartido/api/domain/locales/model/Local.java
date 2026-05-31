@@ -35,6 +35,15 @@ public class Local {
     @Column(name = "direccion", nullable = false, length = AppConstants.VARCHAR_NAME_LENGTH)
     private String direccion;
 
+    @Column(name = "telefono", length = 20)
+    private String telefono;
+
+    @Column(name = "descripcion", columnDefinition = "TEXT")
+    private String descripcion;
+
+    @Column(name = "horario", length = 50)
+    private String horario;
+
     @OneToMany(cascade = { CascadeType.MERGE, CascadeType.PERSIST } )
     @JoinColumn(name = "local_uuid")
     private List<Cancha> canchas = new ArrayList<>();

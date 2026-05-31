@@ -1,9 +1,13 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { LocalSearchResult } from '../models/local-search-result';
+import { Constantes } from '../../../core/Constantes';
 
 @Injectable({ providedIn: 'root' })
 export class BusquedaLocalesService {
+  private http = inject(HttpClient);
 
   private readonly mockLocales: LocalSearchResult[] = [
     {
@@ -93,30 +97,31 @@ export class BusquedaLocalesService {
   }
 
   buscar(filtros: { texto?: string; ubicacion?: string; deporte?: string }): Observable<LocalSearchResult[]> {
-    let resultados = [...this.mockLocales];
+    let params = new HttpParams();
 
     if (filtros.texto?.trim()) {
-      const termino = filtros.texto.toLowerCase().trim();
-      resultados = resultados.filter(
-        l =>
-          l.nombre.toLowerCase().includes(termino) ||
-          l.descripcion.toLowerCase().includes(termino) ||
-          l.ubicacion.toLowerCase().includes(termino),
-      );
+      params = params.set('texto', filtros.texto.trim());
     }
 
     if (filtros.ubicacion) {
-      resultados = resultados.filter(l => l.ubicacion === filtros.ubicacion);
+      params = params.set('ubicacion', filtros.ubicacion);
     }
 
     if (filtros.deporte) {
-      resultados = resultados.filter(l => l.deportes.includes(filtros.deporte!));
+      params = params.set('tipoDeporte', filtros.deporte);
     }
 
-    return of(resultados);
+    return this.http.get<LocalSearchResult[]>(
+      `${Constantes.ENDPOINT_LOCALES}`,
+      { params }
+    );
   }
 
-  obtenerPorUuid(uuid: string): LocalSearchResult | undefined {
-    return this.mockLocales.find(l => l.uuid === uuid);
+  obtenerPorUuid(uuid: string): Observable<LocalSearchResult | undefined> {
+    return this.http.get<LocalSearchResult>(
+      `${Constantes.ENDPOINT_LOCALES}/${uuid}`
+    ).pipe(
+      map(resultado => resultado || undefined)
+    );
   }
 }
