@@ -20,9 +20,11 @@ export class LocalesListPage {
   resultados = signal<LocalSearchResult[]>([]);
   buscando = signal(false);
 
-  textoBusqueda = '';
   ubicacionSeleccionada = '';
   deporteSeleccionado = '';
+  fechaSeleccionada = '';
+  horarioDesdeSeleccionado = '';
+  horarioHastaSeleccionado = '';
 
   ubicaciones = this.busquedaService.getUbicaciones();
   deportes = this.busquedaService.getDeportes();
@@ -31,14 +33,27 @@ export class LocalesListPage {
     this.buscar();
   }
 
+  get isHorarioInvalido(): boolean {
+    if (this.horarioDesdeSeleccionado && this.horarioHastaSeleccionado) {
+      return this.horarioDesdeSeleccionado >= this.horarioHastaSeleccionado;
+    }
+    return false;
+  }
+
   buscar() {
+    if (this.isHorarioInvalido) {
+      return;
+    }
+
     this.buscando.set(true);
 
     this.busquedaService
       .buscar({
-        texto: this.textoBusqueda,
         ubicacion: this.ubicacionSeleccionada || undefined,
         deporte: this.deporteSeleccionado || undefined,
+        fecha: this.fechaSeleccionada || undefined,
+        horarioDesde: this.horarioDesdeSeleccionado || undefined,
+        horarioHasta: this.horarioHastaSeleccionado || undefined,
       })
       .subscribe({
         next: (data) => this.resultados.set(data),
@@ -47,13 +62,33 @@ export class LocalesListPage {
   }
 
   limpiarFiltros() {
-    this.textoBusqueda = '';
     this.ubicacionSeleccionada = '';
     this.deporteSeleccionado = '';
+    this.fechaSeleccionada = '';
+    this.horarioDesdeSeleccionado = '';
+    this.horarioHastaSeleccionado = '';
     this.buscar();
   }
 
   verDetalle(uuid: string) {
     this.router.navigate([uuid], { relativeTo: this.route });
   }
-}
+
+  formatDia(dia: string): string {
+    const dias: Record<string, string> = {
+      'MONDAY': 'Lunes',
+      'TUESDAY': 'Martes',
+      'WEDNESDAY': 'Miércoles',
+      'THURSDAY': 'Jueves',
+      'FRIDAY': 'Viernes',
+      'SATURDAY': 'Sábado',
+      'SUNDAY': 'Domingo'
+    };
+    return dias[dia] || dia;
+  }
+
+  formatHorario(hora: string): string {
+    if (!hora) return '';
+    return hora.substring(0, 5);
+  }
+  }

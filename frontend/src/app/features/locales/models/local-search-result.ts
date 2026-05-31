@@ -5,9 +5,15 @@ export interface LocalSearchResult {
   deportes: string[];
   telefono: string;
   descripcion: string;
-  horario: string;
+  horario: HorarioAtencion[];
   deportesDisponibles: string[];
   canchas: Cancha[];
+}
+
+export interface HorarioAtencion {
+  dia: string;
+  horarioApertura: string;
+  horarioCierre: string;
 }
 
 export interface Cancha {

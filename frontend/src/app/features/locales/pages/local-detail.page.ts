@@ -101,4 +101,22 @@ export class LocalDetailPage implements OnInit {
   volver() {
     this.router.navigate(['..'], { relativeTo: this.route });
   }
+
+  formatDia(dia: string): string {
+    const dias: Record<string, string> = {
+      'MONDAY': 'Lunes',
+      'TUESDAY': 'Martes',
+      'WEDNESDAY': 'Miércoles',
+      'THURSDAY': 'Jueves',
+      'FRIDAY': 'Viernes',
+      'SATURDAY': 'Sábado',
+      'SUNDAY': 'Domingo'
+    };
+    return dias[dia] || dia;
+  }
+
+  formatHorario(hora: string): string {
+    if (!hora) return '';
+    return hora.substring(0, 5);
+  }
 }

@@ -2,19 +2,8 @@
   <h1 class="mb-4">Buscar locales</h1>
 
   <div class="search-section card shadow-sm mb-4 p-3">
-    <div class="row g-2 align-items-end">
-      <div class="col-12 col-md-5">
-        <label class="form-label fw-medium" for="textoBusqueda">Buscar</label>
-        <input
-          id="textoBusqueda"
-          type="text"
-          class="form-control"
-          placeholder="Nombre, ubicación..."
-          [(ngModel)]="textoBusqueda"
-          (keyup.enter)="buscar()"
-        />
-      </div>
-      <div class="col-6 col-md-3">
+    <div class="row g-2">
+      <div class="col-6 col-md-3 col-lg-2">
         <label class="form-label fw-medium" for="filtroUbicacion">Ubicación</label>
         <select
           id="filtroUbicacion"
@@ -28,7 +17,7 @@
           }
         </select>
       </div>
-      <div class="col-6 col-md-3">
+      <div class="col-6 col-md-3 col-lg-2">
         <label class="form-label fw-medium" for="filtroDeporte">Deporte</label>
         <select
           id="filtroDeporte"
@@ -42,15 +31,47 @@
           }
         </select>
       </div>
-      <div class="col-12 col-md-1 d-flex gap-2 mt-3 mt-md-0">
-        <button class="btn btn-primary flex-fill" (click)="buscar()">Buscar</button>
+      <div class="col-12 col-md-4 col-lg-2">
+        <label class="form-label fw-medium" for="filtroFecha">Fecha</label>
+        <input
+          id="filtroFecha"
+          type="date"
+          class="form-control"
+          [(ngModel)]="fechaSeleccionada"
+          (change)="buscar()"
+        />
+      </div>
+      <div class="col-6 col-md-4 col-lg-auto">
+        <label class="form-label fw-medium" for="filtroHorarioDesde">Desde</label>
+        <input
+          id="filtroHorarioDesde"
+          type="time"
+          class="form-control"
+          [class.is-invalid]="isHorarioInvalido"
+          [(ngModel)]="horarioDesdeSeleccionado"
+          (change)="buscar()"
+        />
+      </div>
+      <div class="col-6 col-md-4 col-lg-auto">
+        <label class="form-label fw-medium" for="filtroHorarioHasta">Hasta</label>
+        <input
+          id="filtroHorarioHasta"
+          type="time"
+          class="form-control"
+          [class.is-invalid]="isHorarioInvalido"
+          [(ngModel)]="horarioHastaSeleccionado"
+          (change)="buscar()"
+        />
+      </div>
+      <div class="col-12 d-flex flex-wrap justify-content-end gap-2 mt-3">
         <button
-          class="btn btn-outline-secondary flex-fill"
+          class="btn btn-outline-secondary px-4"
           (click)="limpiarFiltros()"
           title="Limpiar filtros"
         >
           Limpiar
         </button>
+        <button class="btn btn-primary px-4" (click)="buscar()">Buscar</button>
       </div>
     </div>
   </div>
@@ -76,8 +97,15 @@
                 <h5 class="card-title mb-1">{{ local.nombre }}</h5>
                 <p class="text-muted small mb-2">
                   <span class="me-3">📍 {{ local.ubicacion }}</span>
-                  <span>🕐 {{ local.horario }}</span>
                 </p>
+                <div class="text-muted small mb-2">
+                  <p class="mb-1 fw-medium">🕐 Horarios:</p>
+                  <ul class="list-unstyled ms-3 mb-0">
+                    @for (h of local.horario; track h.dia) {
+                      <li>{{ formatDia(h.dia) }}: {{ formatHorario(h.horarioApertura) }} - {{ formatHorario(h.horarioCierre) }}</li>
+                    }
+                  </ul>
+                </div>
                 <p class="card-text small flex-grow-1">{{ local.descripcion }}</p>
                 <div class="mb-2">
                   @for (deporte of local.deportes; track deporte) {

@@ -78,7 +78,7 @@ test.describe('Búsqueda de locales deportivos - Jugador', () => {
 
   test('Escenario: No se encontraron resultados', async ({ page }) => {
     // Buscamos por un término que no existe
-    await page.fill('input[id="textoBusqueda"]', 'xyz123NoExiste');
+    await page.selectOption('select#filtroDeporte', 'Voley');
     await page.getByRole('button', { name: 'Buscar' }).click();
 
     await expect(page.getByText('No se encontraron locales')).toBeVisible();
@@ -92,8 +92,7 @@ test.describe('Búsqueda de locales deportivos - Jugador', () => {
     await expect(cardsFiltered).toBeGreaterThan(0);
 
     // Limpiar filtros
-    await page.selectOption('select#filtroUbicacion', '');
-    await page.getByRole('button', { name: 'Buscar' }).click();
+    await page.getByRole('button', { name: 'Limpiar' }).click();
 
     // Debe haber más locales después de limpiar
     const cardsTotal = await page.locator('.local-card').count();

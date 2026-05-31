@@ -23,12 +23,8 @@ export class BusquedaLocalesService {
     return this.deportes;
   }
 
-  buscar(filtros: { texto?: string; ubicacion?: string; deporte?: string }): Observable<LocalSearchResult[]> {
+  buscar(filtros: { ubicacion?: string; deporte?: string; fecha?: string; horarioDesde?: string; horarioHasta?: string }): Observable<LocalSearchResult[]> {
     let params = new HttpParams();
-
-    if (filtros.texto?.trim()) {
-      params = params.set('texto', filtros.texto.trim());
-    }
 
     if (filtros.ubicacion) {
       params = params.set('ubicacion', filtros.ubicacion);
@@ -36,6 +32,18 @@ export class BusquedaLocalesService {
 
     if (filtros.deporte) {
       params = params.set('tipoDeporte', filtros.deporte);
+    }
+
+    if (filtros.fecha) {
+      params = params.set('fecha', filtros.fecha);
+    }
+
+    if (filtros.horarioDesde) {
+      params = params.set('horarioDesde', filtros.horarioDesde);
+    }
+
+    if (filtros.horarioHasta) {
+      params = params.set('horarioHasta', filtros.horarioHasta);
     }
 
     return this.http.get<LocalSearchResult[]>(

@@ -67,7 +67,7 @@ public class LocalMapper {
             deportesDisponibles,
             local.getTelefono(),
             local.getDescripcion(),
-            local.getHorario(),
+            local.getHorariosAtencion(),
             deportesDisponibles,
             canchas
         );
