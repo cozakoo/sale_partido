@@ -41,6 +41,19 @@ services:
     - ~/.m2:/root/.m2
     working_dir: /app
     command: ./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
-    
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+      args:
+        BUILD_CONFIG: production
+    container_name: salepartido-frontend
+    ports:
+      - "${FRONTEND_PORT}:80"
+    depends_on:
+      - backend
+    restart: always
+
 volumes:
   postgres_data:
