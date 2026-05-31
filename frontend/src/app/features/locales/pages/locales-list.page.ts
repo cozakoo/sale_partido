@@ -23,6 +23,9 @@ export class LocalesListPage {
   textoBusqueda = '';
   ubicacionSeleccionada = '';
   deporteSeleccionado = '';
+  fechaSeleccionada = '';
+  horarioDesdeSeleccionado = '';
+  horarioHastaSeleccionado = '';
 
   ubicaciones = this.busquedaService.getUbicaciones();
   deportes = this.busquedaService.getDeportes();
@@ -31,14 +34,27 @@ export class LocalesListPage {
     this.buscar();
   }
 
+  get isHorarioInvalido(): boolean {
+    if (this.horarioDesdeSeleccionado && this.horarioHastaSeleccionado) {
+      return this.horarioDesdeSeleccionado >= this.horarioHastaSeleccionado;
+    }
+    return false;
+  }
+
   buscar() {
+    if (this.isHorarioInvalido) {
+      return;
+    }
+
     this.buscando.set(true);
 
     this.busquedaService
       .buscar({
-        texto: this.textoBusqueda,
         ubicacion: this.ubicacionSeleccionada || undefined,
         deporte: this.deporteSeleccionado || undefined,
+        fecha: this.fechaSeleccionada || undefined,
+        horarioDesde: this.horarioDesdeSeleccionado || undefined,
+        horarioHasta: this.horarioHastaSeleccionado || undefined,
       })
       .subscribe({
         next: (data) => this.resultados.set(data),
@@ -50,6 +66,9 @@ export class LocalesListPage {
     this.textoBusqueda = '';
     this.ubicacionSeleccionada = '';
     this.deporteSeleccionado = '';
+    this.fechaSeleccionada = '';
+    this.horarioDesdeSeleccionado = '';
+    this.horarioHastaSeleccionado = '';
     this.buscar();
   }
 
