@@ -55,17 +55,24 @@ jobs:
             MINOR=$(echo "$VERSION_NUM" | cut -d. -f2)
             PATCH=$(echo "$VERSION_NUM" | cut -d. -f3)
 
-            # Detectar si hay commits feat: o solo fix:
-            if git log ${LAST_TAG}..HEAD --oneline | grep -q "^[a-f0-9]* feat("; then
-              # Bump MINOR
-              MINOR=$((MINOR + 1))
-              PATCH=0
+            # Validar que PATCH es un número válido (no contiene caracteres raros)
+            if ! echo "$PATCH" | grep -qE '^[0-9]+$'; then
+              echo "⚠️  Tag anterior corrupto: $LAST_TAG"
+              echo "Reseteando a v0.1.0"
+              NEW_VERSION="v0.1.0"
             else
-              # Bump PATCH
-              PATCH=$((PATCH + 1))
-            fi
+              # Detectar si hay commits feat: o solo fix:
+              if git log ${LAST_TAG}..HEAD --oneline | grep -q "^[a-f0-9]* feat("; then
+                # Bump MINOR
+                MINOR=$((MINOR + 1))
+                PATCH=0
+              else
+                # Bump PATCH
+                PATCH=$((PATCH + 1))
+              fi
 
-            NEW_VERSION="v${MAJOR}.${MINOR}.${PATCH}"
+              NEW_VERSION="v${MAJOR}.${MINOR}.${PATCH}"
+            fi
           fi
 
           echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
