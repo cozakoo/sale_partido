@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { BusquedaLocalesService } from '../services/busqueda-locales.service';
@@ -10,12 +10,12 @@ import { LocalSearchResult } from '../models/local-search-result';
   imports: [CommonModule],
   template: `
     <div class="container mt-4">
-      @if (localSearch) {
+      @if (localSearch()) {
         <div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-2">
           <div>
-            <h2 class="mb-1">{{ localSearch.nombre }}</h2>
+            <h2 class="mb-1">{{ localSearch()?.nombre }}</h2>
             <p class="text-muted mb-0">
-              📍 {{ localSearch.ubicacion }} &middot; 🕐 {{ localSearch.horario }}
+              📍 {{ localSearch()?.ubicacion }} &middot; 🕐 {{ localSearch()?.horario }}
             </p>
           </div>
           <div class="d-flex gap-2">
@@ -31,8 +31,8 @@ import { LocalSearchResult } from '../models/local-search-result';
         <div class="card shadow-sm mb-4">
           <div class="card-body">
             <h5 class="card-title">Información General</h5>
-            <p class="card-text">{{ localSearch.descripcion }}</p>
-            <p class="small text-muted mb-0">📞 {{ localSearch.telefono }}</p>
+            <p class="card-text">{{ localSearch()?.descripcion }}</p>
+            <p class="small text-muted mb-0">📞 {{ localSearch()?.telefono }}</p>
           </div>
         </div>
 
@@ -40,10 +40,23 @@ import { LocalSearchResult } from '../models/local-search-result';
           <div class="card-body">
             <h5 class="card-title">Deportes</h5>
             <div>
-              @for (deporte of localSearch.deportes; track deporte) {
+              @for (deporte of localSearch()?.deportes ?? []; track deporte) {
                 <span class="badge bg-primary bg-opacity-10 text-primary me-1 fs-6">{{ deporte }}</span>
               }
             </div>
+          </div>
+        </div>
+
+        <div class="card shadow-sm mb-4">
+          <div class="card-body">
+            <h5 class="card-title">Canchas</h5>
+            @for (cancha of localSearch()?.canchas ?? []; track cancha.uuid) {
+              <div class="mb-3 pb-3 border-bottom">
+                <h6 class="mb-2">{{ cancha.nombre }}</h6>
+                <p class="small text-muted mb-1">🏆 {{ cancha.deporte }}</p>
+                <p class="small text-muted mb-0">👥 Capacidad: {{ cancha.capacidad }} personas</p>
+              </div>
+            }
           </div>
         </div>
       } @else {
@@ -63,16 +76,17 @@ export class LocalDetailPage implements OnInit {
   private router = inject(Router);
   private busquedaService = inject(BusquedaLocalesService);
 
-  localSearch: LocalSearchResult | null = null;
+  localSearch = signal<LocalSearchResult | null>(null);
 
   ngOnInit() {
     const uuid = this.route.snapshot.paramMap.get('uuid');
 
     if (uuid) {
-      const mock = this.busquedaService.obtenerPorUuid(uuid);
-      if (mock) {
-        this.localSearch = mock;
-      }
+      this.busquedaService.obtenerPorUuid(uuid).subscribe({
+        next: (local) => {
+          this.localSearch.set(local || null);
+        }
+      });
     }
   }
 
