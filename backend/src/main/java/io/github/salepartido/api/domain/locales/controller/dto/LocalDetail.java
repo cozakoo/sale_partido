@@ -6,5 +6,10 @@ import java.util.List;
 public record LocalDetail(
     UUID uuid,
     String nombre,
-    List<CanchaSummary> canchas
+    String ubicacion,
+    List<String> deportes,
+    String telefono,
+    String descripcion,
+    String horario,
+    List<CanchaViewModel> canchas
 ) {}

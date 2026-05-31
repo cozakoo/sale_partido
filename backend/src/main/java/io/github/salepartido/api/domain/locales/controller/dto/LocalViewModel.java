@@ -7,6 +7,10 @@ public record LocalViewModel(
     UUID uuid,
     String nombre,
     String ubicacion,
+    List<String> deportes,
+    String telefono,
+    String descripcion,
+    String horario,
     List<String> deportesDisponibles,
     List<CanchaViewModel> canchas
 ) {}
