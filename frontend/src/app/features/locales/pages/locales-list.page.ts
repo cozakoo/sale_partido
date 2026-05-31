@@ -20,7 +20,6 @@ export class LocalesListPage {
   resultados = signal<LocalSearchResult[]>([]);
   buscando = signal(false);
 
-  textoBusqueda = '';
   ubicacionSeleccionada = '';
   deporteSeleccionado = '';
   fechaSeleccionada = '';
@@ -63,7 +62,6 @@ export class LocalesListPage {
   }
 
   limpiarFiltros() {
-    this.textoBusqueda = '';
     this.ubicacionSeleccionada = '';
     this.deporteSeleccionado = '';
     this.fechaSeleccionada = '';
@@ -75,4 +73,22 @@ export class LocalesListPage {
   verDetalle(uuid: string) {
     this.router.navigate([uuid], { relativeTo: this.route });
   }
-}
+
+  formatDia(dia: string): string {
+    const dias: Record<string, string> = {
+      'MONDAY': 'Lunes',
+      'TUESDAY': 'Martes',
+      'WEDNESDAY': 'Miércoles',
+      'THURSDAY': 'Jueves',
+      'FRIDAY': 'Viernes',
+      'SATURDAY': 'Sábado',
+      'SUNDAY': 'Domingo'
+    };
+    return dias[dia] || dia;
+  }
+
+  formatHorario(hora: string): string {
+    if (!hora) return '';
+    return hora.substring(0, 5);
+  }
+  }

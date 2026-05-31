@@ -97,8 +97,15 @@
                 <h5 class="card-title mb-1">{{ local.nombre }}</h5>
                 <p class="text-muted small mb-2">
                   <span class="me-3">📍 {{ local.ubicacion }}</span>
-                  <span>🕐 {{ local.horario }}</span>
                 </p>
+                <div class="text-muted small mb-2">
+                  <p class="mb-1 fw-medium">🕐 Horarios:</p>
+                  <ul class="list-unstyled ms-3 mb-0">
+                    @for (h of local.horario; track h.dia) {
+                      <li>{{ formatDia(h.dia) }}: {{ formatHorario(h.horarioApertura) }} - {{ formatHorario(h.horarioCierre) }}</li>
+                    }
+                  </ul>
+                </div>
                 <p class="card-text small flex-grow-1">{{ local.descripcion }}</p>
                 <div class="mb-2">
                   @for (deporte of local.deportes; track deporte) {
