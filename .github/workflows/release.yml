@@ -55,17 +55,24 @@ jobs:
             MINOR=$(echo "$VERSION_NUM" | cut -d. -f2)
             PATCH=$(echo "$VERSION_NUM" | cut -d. -f3)
 
-            # Detectar si hay commits feat: o solo fix:
-            if git log ${LAST_TAG}..HEAD --oneline | grep -q "^[a-f0-9]* feat("; then
-              # Bump MINOR
-              MINOR=$((MINOR + 1))
-              PATCH=0
+            # Validar que PATCH es un número válido (no contiene caracteres raros)
+            if ! echo "$PATCH" | grep -qE '^[0-9]+$'; then
+              echo "⚠️  Tag anterior corrupto: $LAST_TAG"
+              echo "Reseteando a v0.1.0"
+              NEW_VERSION="v0.1.0"
             else
-              # Bump PATCH
-              PATCH=$((PATCH + 1))
-            fi
+              # Detectar si hay commits feat: o solo fix:
+              if git log ${LAST_TAG}..HEAD --oneline | grep -q "^[a-f0-9]* feat("; then
+                # Bump MINOR
+                MINOR=$((MINOR + 1))
+                PATCH=0
+              else
+                # Bump PATCH
+                PATCH=$((PATCH + 1))
+              fi
 
-            NEW_VERSION="v${MAJOR}.${MINOR}.${PATCH}"
+              NEW_VERSION="v${MAJOR}.${MINOR}.${PATCH}"
+            fi
           fi
 
           echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
@@ -108,18 +115,27 @@ jobs:
       - name: Create Git tag
         run: |
           NEW_VERSION="${{ steps.version.outputs.new_version }}"
+
+          # Verificar si el tag ya existe
+          if git rev-parse "$NEW_VERSION" >/dev/null 2>&1; then
+            echo "⚠️  Tag $NEW_VERSION ya existe, saltando creación"
+            exit 0
+          fi
+
           git tag -a "$NEW_VERSION" -m "Release $NEW_VERSION"
           git push origin "$NEW_VERSION"
           echo "✅ Tag created: $NEW_VERSION"
 
       - name: Create GitHub Release
         uses: ncipollo/release-action@v1
+        if: success()
         with:
           tag: ${{ steps.version.outputs.new_version }}
           name: Release ${{ steps.version.outputs.new_version }}
           bodyFile: /tmp/changelog_section.txt
           draft: false
           prerelease: false
+          allowUpdates: true
 
       - name: Update pom.xml version
         run: |
