@@ -178,11 +178,11 @@ jobs:
       - name: Wait for canary pods to be ready
         run: |
           echo "Waiting for canary backend pod..."
-          kubectl rollout status deployment/salepartido-backend-canary -n salepartido --timeout=120s
+          kubectl rollout status deployment/salepartido-backend-canary -n salepartido --timeout=180s
           echo "✅ Canary backend ready"
 
           echo "Waiting for canary frontend pod..."
-          kubectl rollout status deployment/salepartido-frontend-canary -n salepartido --timeout=120s
+          kubectl rollout status deployment/salepartido-frontend-canary -n salepartido --timeout=180s
           echo "✅ Canary frontend ready"
 
       - name: Show running pods
