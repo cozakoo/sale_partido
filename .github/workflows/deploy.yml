@@ -126,6 +126,65 @@ jobs:
           echo "✅ Pre-Prod deploy completado"
 
   # ============================================================================
+  # PRODUCTION DEPLOY — Deploy simple a producción
+  # ============================================================================
+  deploy-prod:
+    name: Deploy to Production
+    runs-on: self-hosted
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    environment:
+      name: production
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Import Docker images into containerd
+        run: |
+          docker save salepartido-backend:latest -o /tmp/backend.tar
+          docker save salepartido-frontend:latest -o /tmp/frontend.tar
+          sudo ctr -n k8s.io images import /tmp/backend.tar
+          sudo ctr -n k8s.io images import /tmp/frontend.tar
+          rm /tmp/backend.tar /tmp/frontend.tar
+          echo "✅ Docker images imported into containerd"
+
+      - name: Create namespace
+        run: |
+          kubectl create namespace salepartido --dry-run=client -o yaml | kubectl apply -f -
+          echo "✅ Namespace created"
+
+      - name: Apply K8s manifests for production
+        run: |
+          kubectl apply -f k8s/configmap.yaml
+          kubectl apply -f k8s/secret.yaml
+          kubectl apply -f k8s/postgres.yaml
+          kubectl apply -f k8s/redis.yaml
+          kubectl apply -f k8s/backend.yaml
+          kubectl apply -f k8s/frontend.yaml
+          kubectl apply -f k8s/ingress.yaml
+          echo "✅ All manifests applied"
+
+      - name: Restart deployments
+        run: |
+          kubectl rollout restart deployment/salepartido-backend -n salepartido
+          kubectl rollout restart deployment/salepartido-frontend -n salepartido
+          echo "✅ Deployments restarted"
+
+      - name: Wait for deployments
+        run: |
+          kubectl rollout status deployment/salepartido-backend -n salepartido --timeout=120s
+          kubectl rollout status deployment/salepartido-frontend -n salepartido --timeout=120s
+          echo "✅ Deployments ready"
+
+      - name: Verify production deployment
+        run: |
+          echo "=== Production Deployment Verified ==="
+          kubectl get pods -n salepartido
+          kubectl get svc -n salepartido
+          echo "✅ Production deploy completado exitosamente"
+
+  # ============================================================================
   # CANARY DEPLOY — Deploy canary a producción (1 réplica)
   # ============================================================================
   # DESHABILITADO: Requiere más trabajo en health checks
