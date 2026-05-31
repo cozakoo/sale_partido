@@ -32,7 +32,8 @@
       "Bash(netstat -ano)",
       "Bash(mvn test:*)",
       "Bash(1)",
-      "Bash(python3 -c \"import sys, json; data = json.load\\(sys.stdin\\); print\\(f''''Locales encontrados: {len\\(data\\)}''''\\); [print\\(f\"\"  - {loc[''''nombre'''']} \\({loc[''''ubicacion'''']}\\) - Teléfono: {loc[''''telefono'''']} - Canchas: {len\\(loc[''''canchas'''']\\)}\"\"\\) for loc in data]\")"
+      "Bash(python3 -c \"import sys, json; data = json.load\\(sys.stdin\\); print\\(f''''Locales encontrados: {len\\(data\\)}''''\\); [print\\(f\"\"  - {loc[''''nombre'''']} \\({loc[''''ubicacion'''']}\\) - Teléfono: {loc[''''telefono'''']} - Canchas: {len\\(loc[''''canchas'''']\\)}\"\"\\) for loc in data]\")",
+      "Bash(find C:/Users/marti/Documents/Proyectos/sale_partido/.github/workflows -type f -name *.yml -o -name *.yaml)"
     ]
   }
 }

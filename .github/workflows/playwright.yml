@@ -1,9 +1,9 @@
 name: Playwright Tests
 on:
   push:
-    branches: [ main, master ]
+    branches: [ main, master, pre_prod, dev ]
   pull_request:
-    branches: [ main, master ]
+    branches: [ main, master, pre_prod, dev ]
 jobs:
   test:
     timeout-minutes: 60
@@ -17,10 +17,8 @@ jobs:
       run: cd frontend && npm ci
     - name: Install Playwright Browsers
       run: cd frontend && npx playwright install --with-deps
-    # Playwright E2E tests deshabilitados temporalmente (tests necesitan revisión de selectores)
-    # TODO: Arreglar selectores en busqueda_locales.spec.ts y calendario_disp.spec.ts
-    # - name: Run Playwright tests
-    #   run: cd frontend && npx playwright test
+    - name: Run Playwright tests
+      run: cd frontend && npx playwright test
     - uses: actions/upload-artifact@v4
       if: ${{ !cancelled() }}
       with:
