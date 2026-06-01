@@ -12,7 +12,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DATABASE_NAME}"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -45,6 +45,10 @@ services:
       dockerfile: Dockerfile.prod
       args:
         BUILD_CONFIG: ${BUILD_CONFIG:-production}
+    environment:
+      # nginx proxea /api/ a este host interno (nombre del servicio en compose)
+      BACKEND_HOST: backend
+      BACKEND_PORT: "8080"
     ports:
       - "${FRONTEND_PORT}:80"
     depends_on:

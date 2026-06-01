@@ -85,6 +85,10 @@ jobs:
           sed -i 's/nodePort: 32328/nodePort: 32329/g' /tmp/k8s-preprod/backend.yaml
           sed -i 's/nodePort: 31167/nodePort: 31168/g' /tmp/k8s-preprod/frontend.yaml
 
+          # Separar el almacenamiento de postgres: preprod NO debe compartir
+          # el hostPath con prod (compartirlo corrompe la base de datos).
+          sed -i 's#/mnt/data/salepartido/postgres#/mnt/data/salepartido-preprod/postgres#g' /tmp/k8s-preprod/postgres.yaml
+
           # Reemplazar dominios en ingress
           sed -i 's/sale-partido.com/preprod.sale-partido.com/g' /tmp/k8s-preprod/ingress.yaml
 
