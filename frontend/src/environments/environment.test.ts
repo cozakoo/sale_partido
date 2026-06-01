@@ -1,5 +1,6 @@
 export const environment = {
   production: false,
-  apiUrl: 'http://138.36.96.63:32329/',
+  // Ruta relativa: nginx proxea /api/ al backend. Sin IPs hardcodeadas.
+  apiUrl: '/api/',
   enviromentName: 'testing'
 };
