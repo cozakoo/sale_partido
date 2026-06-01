@@ -44,7 +44,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile.prod
       args:
-        BUILD_CONFIG: production
+        BUILD_CONFIG: ${BUILD_CONFIG:-production}
     ports:
       - "${FRONTEND_PORT}:80"
     depends_on:
