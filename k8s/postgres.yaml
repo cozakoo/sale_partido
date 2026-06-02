@@ -5,6 +5,10 @@ metadata:
   namespace: salepartido
 spec:
   replicas: 1
+  # Recreate: mata el pod viejo ANTES de crear el nuevo. Evita que dos
+  # postgres monten el mismo hostPath a la vez (causa de corrupcion de datos).
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: postgres
@@ -42,7 +46,7 @@ spec:
             command:
             - /bin/sh
             - -c
-            - pg_isready -U $POSTGRES_USER
+            - pg_isready -U $POSTGRES_USER -d $POSTGRES_DB
           initialDelaySeconds: 5
           periodSeconds: 10
           timeoutSeconds: 5
@@ -52,7 +56,7 @@ spec:
             command:
             - /bin/sh
             - -c
-            - pg_isready -U $POSTGRES_USER
+            - pg_isready -U $POSTGRES_USER -d $POSTGRES_DB
           initialDelaySeconds: 15
           periodSeconds: 20
           timeoutSeconds: 5
