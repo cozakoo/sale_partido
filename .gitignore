@@ -50,6 +50,13 @@ yarn-error.log*
 .env.pre-prod
 /secrets/
 
+# === Local Data (cambios frecuentes) ===
+documentation/.local/                            # Datos locales no trackeados
+documentation/.local/data/board.json             # GitHub Projects board
+documentation/.local/data/board.md               # Board markdown
+documentation/.local/data/HUS.json               # User stories (HUs)
+documentation/.local/data/subissue.json          # Sub-issues
+
 # === Misc ===
 *.swpbackend/.bash_history
 *.bkp
@@ -69,3 +76,6 @@ REPORTE_QA_E5-H01_FINAL.md
 SETUP_INTERACTIVO.md
 SETUP_LOCAL.md
 scripts/setup-local.sh
+
+
+documentation/.local/
