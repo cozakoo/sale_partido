@@ -4,8 +4,7 @@
  * Ejecutar SQL directamente desde archivos
  *
  * Uso:
- *   node scripts/dev/db.js run <archivo.sql>
- *   node scripts/dev/db.js run scripts/sql/seed-locales.sql
+ *   node scripts/dev/db.js run <ruta/a/archivo.sql>
  */
 
 const fs = require('fs');
@@ -94,6 +93,7 @@ if (command === 'run') {
   const pgHost = process.env.POSTGRES_HOST || 'localhost';
   const pgPort = process.env.POSTGRES_PORT || '5432';
   const pgDatabase = process.env.POSTGRES_DATABASE_NAME || 'salepartido_database';
+  const pgServiceName = 'database';
 
   info(`Conectando a PostgreSQL...`);
   info(`Host: ${pgHost}:${pgPort}`);
@@ -101,12 +101,9 @@ if (command === 'run') {
   info(`Usuario: ${pgUser}`);
 
   try {
-    // Crear archivo temporal con SQL
-    const tempFile = path.join('/tmp', `sql_${Date.now()}.sql`);
-    fs.writeFileSync(tempFile, sqlContent);
 
     // Ejecutar psql
-    const cmd = `psql -h ${pgHost} -p ${pgPort} -U ${pgUser} -d ${pgDatabase} -f ${tempFile}`;
+    const cmd = `docker compose exec -iT ${pgServiceName} psql -h ${pgHost} -p ${pgPort} -U ${pgUser} -d ${pgDatabase} < ${sqlFile}`;
 
     console.log('');
     info('Ejecutando SQL...');
@@ -115,10 +112,8 @@ if (command === 'run') {
     process.env.PGPASSWORD = pgPassword;
     execSync(cmd, { stdio: 'inherit' });
 
-    // Limpiar archivo temporal
-    fs.unlinkSync(tempFile);
-
     success(`SQL ejecutado: ${path.basename(filePath)}`);
+    success(`Listo.`);
 
   } catch (err) {
     error(`Error ejecutando SQL: ${err.message}`);
