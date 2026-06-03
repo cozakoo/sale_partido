@@ -1,4 +1,4 @@
-package io.github.salepartido.api.devtools.canchas;
+package io.github.salepartido.api.devtools;
 
 import java.time.DayOfWeek;
 import java.time.Duration;
@@ -18,7 +18,8 @@ import io.github.salepartido.api.domain.locales.model.Deporte;
 import io.github.salepartido.api.domain.locales.model.HorarioAtencion;
 import io.github.salepartido.api.domain.locales.model.Local;
 import io.github.salepartido.api.domain.reservations.model.Reserva;
-import io.github.salepartido.api.domain.reservations.repository.ReservaRepository;
+import io.github.salepartido.api.domain.reservations.service.ReservaService;
+import io.github.salepartido.api.domain.locales.service.LocalService;
 import io.github.salepartido.api.domain.locales.service.DeporteService;
 import net.datafaker.Faker;
 
@@ -26,14 +27,40 @@ import net.datafaker.Faker;
 @Profile("dev")
 public class SeedService {
 
-    private final ReservaRepository reservaRepository;
+    private final ReservaService reservaService;
+    private final LocalService localService;
     private final Faker faker = new Faker(Locale.of("es"));
     private final DeporteService deporteService;
 
-    public SeedService(DeporteService deporteService, ReservaRepository reservaRepository) {
+    public SeedService(DeporteService deporteService, ReservaService reservaService, LocalService localService) {
         this.deporteService = deporteService;
-        this.reservaRepository = reservaRepository;
+        this.reservaService = reservaService;
+        this.localService = localService;
     }
+
+    public void generate() {
+        List<Local> localesGuardados = guardarLocales(generarLocales(5, 3));
+
+        List<Reserva> reservasGeneradas = generarReservas(localesGuardados);
+        guardarReservas(reservasGeneradas);
+    }
+
+    /* ALMACENAMIENTO =============================== */
+
+    private List<Local> guardarLocales(List<Local> locales) {
+        List<Local> localesGuardados = new ArrayList<>();
+        for (Local local : locales) {
+            localesGuardados.add(localService.guardarLocal(local));
+        }
+        return localesGuardados;
+    }
+
+    private void guardarReservas(List<Reserva> reservas) {
+        reservaService.guardarTodas(reservas);
+    }
+
+
+    /* VALORES POSIBLES =============================== */
 
     private static final Map<String, Integer> CAPACIDAD_POR_DEPORTE = Map.of(
             "Fútbol", 10,
@@ -62,17 +89,19 @@ public class SeedService {
             "Belgrano 234", "Corrientes 567"
     };
 
-    public String generarNombreLocal(Faker faker) {
+    /* GENERACIÓN =============================== */
+
+    private String generarNombreLocal(Faker faker) {
         return faker.options().option(NOMBRES_LOCALES)
                 + " "
                 + faker.options().option(TEMATICAS);
     }
 
-    public String generarNombreCancha(Faker faker, int numero) {
+    private String generarNombreCancha(Faker faker, int numero) {
         return "Cancha " + numero + " - " + faker.options().option(TIPOS_CANCHA);
     }
 
-    public List<Local> generarLocales(int cantidad, int canchasPorLocal) {
+    private List<Local> generarLocales(int cantidad, int canchasPorLocal) {
         List<Local> locales = new ArrayList<>();
 
         for (int i = 0; i < cantidad; i++) {
@@ -87,10 +116,10 @@ public class SeedService {
         return locales;
     }
 
-    public List<Cancha> generarCanchas(int count) {
+    private List<Cancha> generarCanchas(int count) {
         List<Cancha> canchas = new ArrayList<>();
 
-        for (int i = 0; i < count; i++) {
+        for (int i = 1; i < count; i++) {
             Cancha cancha = new Cancha();
             cancha.setNombre(generarNombreCancha(faker, i + 1));
             cancha.setConfiguracionesHorarios(List.of(generarConfiguracionHorario()));
@@ -104,7 +133,7 @@ public class SeedService {
         return canchas;
     }
 
-    public ConfiguracionHorario generarConfiguracionHorario() {
+    private ConfiguracionHorario generarConfiguracionHorario() {
         ConfiguracionHorario horario = new ConfiguracionHorario();
         horario.setActivo(true);
         horario.setDuracionTurno(
@@ -115,7 +144,7 @@ public class SeedService {
         return horario;
     }
 
-    public List<ConfiguracionDia> generarConfiguracionesDias(DayOfWeek[] diasSemana) {
+    private List<ConfiguracionDia> generarConfiguracionesDias(DayOfWeek[] diasSemana) {
         List<ConfiguracionDia> configuracionesDias = new ArrayList<>();
 
         for (DayOfWeek dayOfWeek : diasSemana) {
@@ -134,7 +163,7 @@ public class SeedService {
         return configuracionesDias;
     }
 
-    public void generarYGuardarReservas(List<Local> locales) {
+    private List<Reserva> generarReservas(List<Local> locales) {
         List<Reserva> reservas = new ArrayList<>();
         LocalDate hoy = LocalDate.now();
         List<LocalDate> fechas = List.of(hoy.minusDays(1), hoy, hoy.plusDays(1), hoy.plusDays(2));
@@ -192,10 +221,10 @@ public class SeedService {
                 }
             }
         }
-        reservaRepository.saveAll(reservas);
+        return reservas;
     }
 
-    public List<Deporte> generarDeportes(int numOfDeportes) {
+    private List<Deporte> generarDeportes(int numOfDeportes) {
         List<Deporte> deportes = new ArrayList<>();
         for (int i = 0; i < numOfDeportes; i++) {
             deportes.add(deporteService.obtenerDeporteAleatorioPersistido());
@@ -203,7 +232,7 @@ public class SeedService {
         return deportes;
     }
 
-    public List<HorarioAtencion> generarHorariosAtencionSemanal() {
+    private List<HorarioAtencion> generarHorariosAtencionSemanal() {
         List<HorarioAtencion> horarios = new ArrayList<>();
 
         for (DayOfWeek dia : DayOfWeek.values()) {
