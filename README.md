@@ -8,26 +8,27 @@
 
 ## 📋 Contenido
 
-1. [Quick Start)](#-quick-start-5-min)
+1. [Quick Start](#-quick-start-5-min)
 2. [Descripción](#descripción)
 3. [Comenzar](#comenzar)
 4. [Estructura](#estructura)
-5. [Agentes (IAs)](#agentes--ias)
+5. [Agentes (IAs)](#-agentes--ias)
 6. [Épicas](#épicas)
 7. [Documentación](#documentación)
+8. [Cambios Recientes](#-cambios-recientes)
 
 ---
 
 ## Quick Start (5 min)
 
-**¿Primero aquí?** → Lee `QUICK_START.md`
+**¿Primero aquí?** → Lee `docs/QUICK_START.md`
 
 ```bash
-./scripts/init.sh                                      # Setup automático
-node scripts/sync-github-projects.js                  # Descarga HUs
-./scripts/create-branch.sh E4-H08 mi-feature          # Crea rama
+./scripts/setup/init.sh                                      # Setup automático
+node scripts/github/sync-github-projects.js                  # Descarga HUs
+./scripts/git/create-branch.sh E4-H08 mi-feature             # Crea rama
 # [Codifica con IA usando agentes/backend.md o frontend.md]
-git commit -m "feat(E4-H08): descripcion"              # Git hook valida
+git commit -m "feat(E4-H08): descripcion"                    # Git hook valida
 ```
 
 ---
@@ -54,7 +55,7 @@ Conecta jugadores, propietarios de espacios y organizadores de eventos. Permite 
 
 ```bash
 # Instala git hooks, configura .env, e instala dependencias
-./scripts/init.sh
+./scripts/setup/init.sh
 
 # Luego: edita .env y agrega tu GITHUB_TOKEN
 # Referencia: ./scripts/README.md
@@ -104,19 +105,35 @@ sale-partido/
 ├── frontend/                   # Angular 20 (TypeScript)
 │   └── src/app/features/      # Features por épica
 ├── k8s/                        # Kubernetes manifests
+├── config/                     # Archivos de configuración
+│   └── sonar-project.properties
+├── scripts/                    # Scripts de utilidad
+│   ├── init.sh                # Setup automático
+│   ├── create-branch.sh       # Crear rama con formato
+│   ├── sync-github-projects.js # Sincronizar HUs
+│   ├── *.sh                   # Otros scripts
+│   └── sql/
+│       └── seed-locales.sql   # Script de datos iniciales
 ├── agentes/                    # Instrucciones para IAs
 │   ├── backend.md             # Guía Backend IA
 │   ├── frontend.md            # Guía Frontend IA
 │   ├── infra.md               # Guía DevOps IA
 │   ├── API_CONTRACTS.md       # Contrato Backend ↔ Frontend
 │   └── ONBOARDING.md          # Cómo empezar a codificar
-├── doc/                        # Documentación técnica
-│   ├── Decisiones.md          # Decisiones arquitectónicas
-│   ├── Convenciones_de_branching.md
-│   ├── STACK.md               # Stack técnico detallado
-│   ├── TESTING.md             # Estrategia de testing
-│   └── TROUBLESHOOTING.md     # Errores comunes
-├── SETUP.md                    # Setup rápido
+├── docs/                       # Documentación técnica y general
+│   ├── decisions/
+│   │   └── Decisiones.md      # Decisiones arquitectónicas
+│   ├── architecture/
+│   │   └── STACK.md           # Stack técnico detallado
+│   ├── workflow/
+│   │   ├── Convenciones_de_branching.md
+│   │   ├── GITHUB_PROJECTS.md
+│   │   └── TESTING.md         # Estrategia de testing
+│   ├── guides/
+│   │   └── TROUBLESHOOTING.md # Errores comunes
+│   ├── SETUP.md               # Setup rápido
+│   ├── QUICK_START.md         # Quick start
+│   └── CHANGELOG.md           # Historial de cambios
 └── docker-compose.yml         # Local stack
 ```
 
@@ -128,10 +145,10 @@ sale-partido/
 
 | Agente | Archivo | Especialidad |
 |--------|---------|--------------|
-| **Backineitor** ⚙️ | `/agentes/backend.md` | Backend: Java 21, Spring Boot |
-| **Frontalyx** 🎨 | `/agentes/frontend.md` | Frontend: Angular 20, TypeScript |
-| **Kuberator** ☸️ | `/agentes/infra.md` | DevOps: Kubernetes, CI/CD |
-| **Testeador** ✅ | `/agentes/qa.md` | QA: Testing, cobertura |
+| **Backineitor** ⚙️ | `/agents/backend.md` | Backend: Java 21, Spring Boot |
+| **Frontalyx** 🎨 | `/agents/frontend.md` | Frontend: Angular 20, TypeScript |
+| **Kuberator** ☸️ | `/agents/infra.md` | DevOps: Kubernetes, CI/CD |
+| **Testeador** ✅ | `/agents/qa.md` | QA: Testing, cobertura |
 
 **Workflow:**
 1. Abre agente correspondiente
@@ -141,7 +158,7 @@ sale-partido/
 5. Corre tests localmente
 6. Commit + PR
 
-Ver: `/agentes/ONBOARDING.md`
+Ver: `/agents/ONBOARDING.md`
 
 ---
 
@@ -164,29 +181,30 @@ Ver: `/agentes/ONBOARDING.md`
 ## Documentación
 
 ### 🚀 Para empezar
-- **[SETUP.md](SETUP.md)** — Setup rápido (1 minuto)
-- **[/agentes/ONBOARDING.md](/agentes/ONBOARDING.md)** — Cómo desarrollar
+- **[docs/SETUP.md](docs/SETUP.md)** — Setup rápido (1 minuto)
+- **[docs/QUICK_START.md](docs/QUICK_START.md)** — Quick start (5 minutos)
+- **[/agents/ONBOARDING.md](/agents/ONBOARDING.md)** — Cómo desarrollar
 
 ### 🏗️ Arquitectura y decisiones
-- **[/doc/architecture/Decisiones.md](/doc/architecture/Decisiones.md)** — Decisiones técnicas tomadas
-- **[/doc/architecture/STACK.md](/doc/architecture/STACK.md)** — Stack técnico (Java 21, Angular 20, PostgreSQL, K8s)
-- **[/agentes/API_CONTRACTS.md](/agentes/API_CONTRACTS.md)** — API endpoints y DTOs
+- **[/documentation/decisions/Decisiones.md](/documentation/decisions/Decisiones.md)** — Decisiones técnicas tomadas
+- **[/documentation/architecture/STACK.md](/documentation/architecture/STACK.md)** — Stack técnico (Java 21, Angular 20, PostgreSQL, K8s)
+- **[/agents/API_CONTRACTS.md](/agents/API_CONTRACTS.md)** — API endpoints y DTOs
 
 ### 💻 Desarrollo
-- **[/agentes/backend.md](/agentes/backend.md)** — Guía Backend (copia en tu IA)
-- **[/agentes/frontend.md](/agentes/frontend.md)** — Guía Frontend (copia en tu IA)
-- **[/doc/workflow/Convenciones_de_branching.md](/doc/workflow/Convenciones_de_branching.md)** — Git workflow, commits
-- **[/doc/workflow/GITHUB_PROJECTS.md](/doc/workflow/GITHUB_PROJECTS.md)** — GitHub Projects, HUs, aceptance criteria
+- **[/agents/backend.md](/agents/backend.md)** — Guía Backend (copia en tu IA)
+- **[/agents/frontend.md](/agents/frontend.md)** — Guía Frontend (copia en tu IA)
+- **[/documentation/workflow/Convenciones_de_branching.md](/documentation/workflow/Convenciones_de_branching.md)** — Git workflow, commits
+- **[/documentation/workflow/GITHUB_PROJECTS.md](/documentation/workflow/GITHUB_PROJECTS.md)** — GitHub Projects, HUs, aceptance criteria
 
 ### ✅ Testing
-- **[/doc/workflow/TESTING.md](/doc/workflow/TESTING.md)** — Unit, integration, E2E tests
+- **[/documentation/workflow/TESTING.md](/documentation/workflow/TESTING.md)** — Unit, integration, E2E tests
   - JUnit 5 + Mockito (backend)
   - Jasmine + Playwright (frontend)
   - Cobertura: 80% (backend), 75% (frontend)
 
 ### 🔧 DevOps e Infraestructura
-- **[/agentes/infra.md](/agentes/infra.md)** — Kubernetes, containerd, CI/CD
-- **[/doc/guides/TROUBLESHOOTING.md](/doc/guides/TROUBLESHOOTING.md)** — Errores y soluciones
+- **[/agents/infra.md](/agents/infra.md)** — Kubernetes, containerd, CI/CD
+- **[/documentation/guides/TROUBLESHOOTING.md](/documentation/guides/TROUBLESHOOTING.md)** — Errores y soluciones
 
 ### 📊 Métricas y Calidad
 - Coverage: ≥80% (backend), ≥75% (frontend)
@@ -248,13 +266,13 @@ git push origin feature/E4-H08-crear-local
 | **CI/CD** | GitHub Actions |
 | **Infra** | Docker + Kubernetes 1.31.14 + containerd |
 
-Detalles: ver **[/doc/architecture/STACK.md](/doc/architecture/STACK.md)**
+Detalles: ver **[/documentation/architecture/STACK.md](/documentation/architecture/STACK.md)**
 
 ---
 
 ## Checklist antes de hacer push
 
-- [ ] Leí `/agentes/ONBOARDING.md`
+- [ ] Leí `/agents/ONBOARDING.md`
 - [ ] Usé el agente correspondiente (backend/frontend/infra)
 - [ ] Tests pasan: `./mvnw verify` o `npm run test`
 - [ ] Coverage ≥80% (líneas nuevas)
@@ -268,9 +286,9 @@ Detalles: ver **[/doc/architecture/STACK.md](/doc/architecture/STACK.md)**
 ## Troubleshooting
 
 **¿Algo no funciona?** Ver:
-- **[/doc/guides/TROUBLESHOOTING.md](/doc/guides/TROUBLESHOOTING.md)** — Errores comunes
-- **[/doc/workflow/TESTING.md](/doc/workflow/TESTING.md)** — Fallos en tests
-- **[/agentes/infra.md](/agentes/infra.md)** — Problemas DevOps
+- **[/documentation/guides/TROUBLESHOOTING.md](/documentation/guides/TROUBLESHOOTING.md)** — Errores comunes
+- **[/documentation/workflow/TESTING.md](/documentation/workflow/TESTING.md)** — Fallos en tests
+- **[/agents/infra.md](/agents/infra.md)** — Problemas DevOps
 
 ---
 
@@ -278,11 +296,11 @@ Detalles: ver **[/doc/architecture/STACK.md](/doc/architecture/STACK.md)**
 
 | Role | Tarea | Referencia |
 |------|-------|-----------|
-| **Backend Dev** | Codificar servicio | `/agentes/backend.md` |
-| **Frontend Dev** | Codificar componente | `/agentes/frontend.md` |
-| **DevOps** | Deploy, CI/CD | `/agentes/infra.md` |
-| **QA** | Testing, cobertura | `/doc/workflow/TESTING.md` |
-| **Tech Lead** | Decisiones, arquitectura | `/doc/architecture/Decisiones.md` |
+| **Backend Dev** | Codificar servicio | `/agents/backend.md` |
+| **Frontend Dev** | Codificar componente | `/agents/frontend.md` |
+| **DevOps** | Deploy, CI/CD | `/agents/infra.md` |
+| **QA** | Testing, cobertura | `/documentation/workflow/TESTING.md` |
+| **Tech Lead** | Decisiones, arquitectura | `/documentation/decisions/Decisiones.md` |
 
 ---
 
@@ -292,6 +310,80 @@ Detalles: ver **[/doc/architecture/STACK.md](/doc/architecture/STACK.md)**
 - **MVP:** En desarrollo (E1-E4)
 - **Última actualización:** 24 de mayo 2026
 - **CI/CD:** GitHub Actions + self-hosted K8s
+
+---
+
+---
+
+## 🔄 Cambios Recientes
+
+### Reorganización de la raíz del proyecto (Junio 2026)
+
+Se reorganizaron los archivos de la raíz para mejorar la estructura sin afectar el funcionamiento:
+
+**Movimientos:**
+- `SETUP.md`, `QUICK_START.md`, `CHANGELOG.md` → `docs/`
+- `sonar-project.properties` → `config/`
+- `setup-env-preproduction.sh`, `use-preproduction.sh` → `scripts/setup/`
+- `seed-locales.sql` → `scripts/sql/`
+
+**Archivos que permanecen en la raíz:**
+- `.env`, `.env.example` (referencias en docker-compose.yml)
+- `docker-compose.yml` (punto de entrada)
+- `package.json`, `package-lock.json` (npm)
+- `.gitignore`, `.nvmrc` (git config)
+
+**Referencias actualizadas:**
+- README.md refiere a los nuevos paths
+- `docker-compose.yml` sigue funcionando sin cambios
+- Todos los scripts mantienen su funcionalidad
+
+**Cómo usar la nueva estructura:**
+```bash
+# Docs
+cat docs/SETUP.md                  # Setup instructions
+cat docs/QUICK_START.md            # Quick start guide
+
+# Config
+cat config/sonar-project.properties # SonarQube config
+
+# Scripts (nuevo: usar scripts/run.sh para acceso fácil)
+./scripts/run.sh help              # Ver todos los comandos
+./scripts/setup/init.sh            # Setup automático
+./scripts/github/sync-github-projects.js
+./scripts/sql/seed-locales.sql     # Database seeds
+```
+
+### Reorganización de la carpeta scripts/ (Junio 2026)
+
+Se agruparon los scripts por funcionalidad para mejor organización:
+
+**Nueva estructura:**
+```
+scripts/
+├── setup/      → Configuración del proyecto
+├── github/     → Integración con GitHub Projects
+├── git/        → Git workflow (branches, hooks)
+├── changelog/  → Generación de CHANGELOG
+├── sql/        → Data initialization
+└── run.sh      → 🆕 Script orquestador principal
+```
+
+**Acceso centralizado:**
+```bash
+./scripts/run.sh setup:init         # Setup inicial
+./scripts/run.sh github:sync        # Sincronizar HUs
+./scripts/run.sh git:branch E4-H08 crear-local  # Crear rama
+./scripts/run.sh github:validate E4-H08        # Validar HU
+./scripts/run.sh help               # Ver todos los comandos
+```
+
+**Scripts en subdirectorios (directo):**
+```bash
+./scripts/setup/init.sh
+node scripts/github/sync-github-projects.js
+./scripts/git/create-branch.sh E4-H08 crear-local
+```
 
 ---
 

@@ -4,17 +4,85 @@
 
 ---
 
-## ⚙️ Scripts disponibles
+## 📁 Estructura
 
+```
+scripts/
+├── setup/          # 🚀 Configuración del proyecto
+│   ├── init.sh                    # Setup inicial completo
+│   ├── setup-local.sh             # Setup local (backend + frontend)
+│   ├── setup-env-preproduction.sh # Setup pre-producción
+│   ├── use-preproduction.sh       # Usar ambiente pre-producción
+│   └── use-production.sh          # Usar ambiente producción
+├── github/         # 🔗 GitHub Projects integration
+│   ├── sync-github-projects.js    # Descarga HUs
+│   ├── download-board.js          # Descarga tablero completo
+│   ├── update-card.js             # Actualiza estado de tarjeta
+│   └── sync-subissues.js          # Sincroniza sub-issues
+├── git/            # 🌿 Git workflow
+│   ├── create-branch.sh           # Crea rama automáticamente
+│   ├── setup-hooks.sh             # Instala git hooks
+│   └── hooks/
+│       └── commit-msg             # Valida formato de commits (automático)
+├── changelog/      # 📝 Changelog generation
+│   └── generate-changelog.sh       # Genera CHANGELOG.md
+├── dev/            # 💻 Desarrollo (Node.js)
+│   ├── db.js                       # Ejecutar SQL desde archivos
+│   ├── start.js                    # Levantar ambiente (backend + frontend + db)
+│   ├── test.js                     # Ejecutar tests
+│   ├── staging.js                  # Staging por comando (git add)
+│   └── README.md                   # Documentación de dev scripts
+├── sql/            # 🗄️ Data initialization
+│   └── seed-locales.sql           # Data seeds
+└── README.md       # Este archivo
+```
+
+---
+
+## ⚙️ Scripts disponibles (por categoría)
+
+### 🚀 Setup inicial
 | Script | Función | Uso |
 |--------|---------|-----|
-| `sync-github-projects.js` | Descarga HUs de GitHub Projects | `node scripts/sync-github-projects.js` |
-| `download-board.js` | Descarga tablero completo con estados | `node scripts/download-board.js` |
-| `validate-hu.js` | Valida HU (AC, INVEST, formato) | `node scripts/validate-hu.js E4-H08` |
-| `update-card.js` | Actualiza estado de una tarjeta | `node scripts/update-card.js E4-H08 "In Progress"` |
-| `create-branch.sh` | Crea rama automáticamente | `./scripts/create-branch.sh E4-H08 crear-local` |
-| `setup-hooks.sh` | Instala git hooks | `./scripts/setup-hooks.sh` |
-| `git-hooks/commit-msg` | Valida formato de commits | (automático) |
+| `setup/init.sh` | Setup completo (deps, hooks, .env) | `./scripts/setup/init.sh` |
+| `setup/setup-local.sh` | Setup local (backend + frontend) | `./scripts/setup/setup-local.sh` |
+| `setup/setup-env-preproduction.sh` | Setup pre-producción | `./scripts/setup/setup-env-preproduction.sh` |
+| `setup/use-preproduction.sh` | Usar ambiente pre-prod | `./scripts/setup/use-preproduction.sh` |
+| `setup/use-production.sh` | Usar ambiente producción | `./scripts/setup/use-production.sh` |
+
+### 🔗 GitHub Projects
+| Script | Función | Uso |
+|--------|---------|-----|
+| `github/sync-github-projects.js` | Descarga HUs de GitHub Projects | `node scripts/github/sync-github-projects.js` |
+| `github/download-board.js` | Descarga tablero completo con estados | `node scripts/github/download-board.js` |
+| `github/update-card.js` | Actualiza estado de una tarjeta | `node scripts/github/update-card.js E4-H08 "In Progress"` |
+| `github/sync-subissues.js` | Sincroniza sub-issues | `node scripts/github/sync-subissues.js` |
+
+### 🌿 Git workflow
+| Script | Función | Uso |
+|--------|---------|-----|
+| `git/create-branch.sh` | Crea rama con tipo (feature, bugfix, hotfix, refactor, chore, test) | `./scripts/git/create-branch.sh E4-H08 crear-local [tipo]` |
+| `git/setup-hooks.sh` | Setup de git (sin validación activa) | `./scripts/git/setup-hooks.sh` |
+
+### 📝 Changelog
+| Script | Función | Uso |
+|--------|---------|-----|
+| `changelog/generate-changelog.sh` | Genera CHANGELOG.md | `./scripts/changelog/generate-changelog.sh` |
+
+### 💻 Desarrollo (Node.js)
+| Script | Función | Uso |
+|--------|---------|-----|
+| `dev/db.js` | Ejecutar SQL desde archivos | `node scripts/dev/db.js run scripts/sql/seed-locales.sql` |
+| `dev/start.js` | Levantar backend + frontend + db | `node scripts/dev/start.js` |
+| `dev/test.js` | Ejecutar tests (backend + frontend) | `node scripts/dev/test.js all --coverage` |
+| `dev/staging.js` | Staging por comando (git add) | `node scripts/dev/staging.js backend` |
+
+**Ver más:** `scripts/dev/README.md`
+
+### 🗄️ Database
+| Script | Función | Uso |
+|--------|---------|-----|
+| `sql/seed-locales.sql` | Data seeds iniciales | `psql -f scripts/sql/seed-locales.sql` |
 
 ---
 
@@ -23,11 +91,10 @@
 ### Setup inicial (UNA sola vez)
 
 ```bash
-# Instalar git hooks
-./scripts/setup-hooks.sh
-
 # Instalar dependencias (Node.js si no lo tienes)
 npm install -g octokit dotenv
+
+# (Sin git hooks - commits libres, sin validación)
 ```
 
 ### Configurar token GitHub
@@ -49,55 +116,44 @@ GITHUB_TOKEN=ghp_xxxxxxxxxxxxxxxxxxxxx
 ### Sincronizar HUs
 
 ```bash
-node scripts/sync-github-projects.js
+node scripts/github/sync-github-projects.js
 ```
 
-Crea archivo `/doc/data/HUS.json` con todas las HUs.
+Crea archivo `documentation/.local/data/HUS.json` con todas las HUs.
 
 ### Crear rama desde HU
 
 ```bash
-./scripts/create-branch.sh E4-H08 crear-local
+# Default: feature/
+./scripts/git/create-branch.sh E4-H08 crear-local
+# Resultado: feature/E4-H08-crear-local
+
+# Con tipo específico
+./scripts/git/create-branch.sh E4-H08 corregir-bug bugfix
+# Resultado: bugfix/E4-H08-corregir-bug
+
+./scripts/git/create-branch.sh E4-H08 fix-critico hotfix
+# Resultado: hotfix/E4-H08-fix-critico
+
+./scripts/git/create-branch.sh E4-H08 mejorar-auth refactor
+# Resultado: refactor/E4-H08-mejorar-auth
 ```
 
-Resultado: rama `feature/E4-H08-crear-local`
-
-### Validar HU
-
-```bash
-node scripts/validate-hu.js E4-H08
-```
-
-Verifica:
-- Formato E#-H##
-- Título >10 caracteres
-- Descripción >50 caracteres
-- Criterios de aceptación (≥3)
-- AC son testeable
-- INVEST (manualmente)
+**Tipos disponibles:** feature, bugfix, hotfix, refactor, chore, test
 
 ### Codificar
 
-1. Copiar agente correspondiente (`/agentes/`)
+1. Copiar agente correspondiente (`/agents/`)
 2. Pedir a IA que implemente
 3. Tests locales: `./mvnw verify` o `npm run test`
 
-### Commit (validado automáticamente)
+### Commit
 
 ```bash
-git commit -m "feat(E4-H08): crear local con validaciones"
+git commit -m "Tu mensaje de commit aquí"
 ```
 
-**Si el formato es incorrecto:**
-```
-❌ Commit message inválido!
-
-Formato requerido:
-  tipo(E#-H##): descripción
-
-Ejemplo válido:
-  feat(E4-H08): crear local con validaciones
-```
+**Sin validación automática** — Los commits son libres sin restricciones de formato
 
 ### Push + PR
 
@@ -113,16 +169,16 @@ En GitHub: crear PR con "Fixes #123" → HU se cierra automáticamente
 
 ```bash
 # 1. Descargar tablero completo
-node scripts/download-board.js
+node scripts/github/download-board.js
 
 # 2. Ver estado actual en BOARD.md
-cat doc/BOARD.md
+cat documentation/.local/data/BOARD.md
 
 # 3. Cambiar estado de una tarjeta
-node scripts/update-card.js E4-H08 "In Progress"
+node scripts/github/update-card.js E4-H08 "In Progress"
 
 # 4. Ver HUs actualizadas
-node scripts/sync-github-projects.js
+node scripts/github/sync-github-projects.js
 ```
 
 ---
@@ -134,7 +190,7 @@ node scripts/sync-github-projects.js
 **Qué hace:**
 - Descarga HUs de GitHub Projects
 - Extrae título, descripción, AC, estado, etc
-- Guarda en `/doc/data/HUS.json`
+- Guarda en `/documentation/.local/data/HUS.json`
 - Agrupa por épica
 
 **Requisitos:**
@@ -144,7 +200,7 @@ npm install octokit dotenv
 
 **Uso:**
 ```bash
-node scripts/sync-github-projects.js
+node scripts/github/sync-github-projects.js
 ```
 
 **Salida:**
@@ -162,59 +218,31 @@ node scripts/sync-github-projects.js
      E4: 8
      ...
 
-📁 Archivo: doc/HUS.json
+📁 Archivo: documentation/.local/data/HUS.json
 ⏰ Actualizado: 2026-05-24T15:30:00.000Z
 ```
 
-### 2. validate-hu.js
-
-**Qué valida:**
-- Formato HU_ID (E#-H##)
-- Título >10 caracteres
-- Descripción >50 caracteres
-- Criterios de aceptación (≥3)
-- AC son testeable (verbos: GET, POST, should, returns)
-- Asignada a épica válida (E1-E9)
-- ⚠️ INVEST (checklist manual)
-
-**Uso:**
-```bash
-node scripts/validate-hu.js E4-H08
-```
-
-**Salida OK:**
-```
-✅ VALIDACIÓN EXITOSA
-
-La HU cumple con los estándares. Proceder a desarrollar.
-```
-
-**Salida ERROR:**
-```
-❌ VALIDACIÓN FALLIDA (2 errores)
-
-   1. Descripción debe tener >50 caracteres
-   2. Mínimo 3 criterios de aceptación
-
-Corrige en GitHub y re-sincroniza:
-   node scripts/sync-github-projects.js
-```
-
-### 3. create-branch.sh
+### 2. create-branch.sh
 
 **Qué hace:**
 - Checkout a `dev`
 - Pull latest
-- Crea rama `feature/E#-H##-descripcion`
+- Crea rama `feature/E#-H##-descripcion` (u otro tipo)
+- **Sincroniza automáticamente GitHub Projects** 📡
 
 **Uso:**
 ```bash
-./scripts/create-branch.sh E4-H08 crear-local
+./scripts/git/create-branch.sh E4-H08 crear-local           # feature (default)
+./scripts/git/create-branch.sh E4-H08 corregir-bug bugfix   # bugfix
+./scripts/git/create-branch.sh E4-H08 mejorar-auth refactor # refactor
 ```
+
+**Tipos de rama soportados:** feature, bugfix, hotfix, refactor, chore, test
 
 **Requisitos:**
 - Git instalado
 - Rama `dev` existente
+- GITHUB_TOKEN configurado en `.env` (para sincronización)
 
 **Salida:**
 ```
@@ -224,46 +252,42 @@ Corrige en GitHub y re-sincroniza:
 
    Rama: feature/E4-H08-crear-local
    HU: E4-H08
+   Tipo: feature
+
+📡 Sincronizando GitHub Projects...
+✅ GitHub Projects sincronizado
 
    Próximos pasos:
-   1. Validar HU: node scripts/validate-hu.js E4-H08
-   2. Copiar agente correspondiente (/agentes/)
-   3. Codificar con IA
-   4. Commit: git commit -m 'feat(E4-H08): descripción'
+   1. Copiar agente correspondiente (/agents/)
+   2. Codificar con IA
+   3. Commit: git commit -m 'tu mensaje aquí'
 ```
 
-### 4. setup-hooks.sh
+### 3. setup-hooks.sh
 
-**Qué instala:**
-- Git hook `commit-msg` en `.git/hooks/`
-- Valida commits automáticamente
+**Estado:**
+- No hay hooks de validación activos
+- Los commits son libres sin restricciones
 
-**Uso (UNA sola vez):**
+**Uso (opcional):**
 ```bash
-./scripts/setup-hooks.sh
+./scripts/git/setup-hooks.sh
 ```
 
-**Salida:**
-```
-🔧 Instalando git hooks...
+**Nota:**
+En el futuro se pueden agregar hooks cuando se establezcan convenciones de commits
 
-✅ Git hook instalado: commit-msg
-
-   Los commits serán validados automáticamente.
-   Formato requerido: feat(E#-H##): descripción
-```
-
-### 5. download-board.js
+### 4. download-board.js
 
 **Qué hace:**
 - Descarga el tablero completo de GitHub Projects
-- Genera `/doc/data/BOARD.json` (JSON)
-- Genera `/doc/data/BOARD.md` (vista legible)
+- Genera `/documentation/.local/data/BOARD.json` (JSON)
+- Genera `/documentation/.local/data/BOARD.md` (vista legible)
 - Muestra estado por columna (Backlog, Todo, In Progress, etc.)
 
 **Uso:**
 ```bash
-node scripts/download-board.js
+node scripts/github/download-board.js
 ```
 
 **Salida:**
@@ -280,11 +304,11 @@ node scripts/download-board.js
    Done: 15
 
 📁 Archivos generados:
-   doc/BOARD.json
-   doc/BOARD.md
+   documentation/.local/data/BOARD.json
+   documentation/.local/data/BOARD.md
 ```
 
-**Archivo generado (`/doc/data/BOARD.md`):**
+**Archivo generado (`documentation/.local/data/BOARD.md`):**
 ```markdown
 ## In Progress
 
@@ -313,15 +337,15 @@ node scripts/download-board.js
 **Uso:**
 ```bash
 # Cambiar estado
-node scripts/update-card.js E4-H08 "In Progress"
-node scripts/update-card.js E4-H08 Done
-node scripts/update-card.js E4-H08 "In Review"
+node scripts/github/update-card.js E4-H08 "In Progress"
+node scripts/github/update-card.js E4-H08 Done
+node scripts/github/update-card.js E4-H08 "In Review"
 
 # Asignar usuario
-node scripts/update-card.js E4-H08 --assign cozakoo
+node scripts/github/update-card.js E4-H08 --assign cozakoo
 
 # Ver ayuda
-node scripts/update-card.js --help
+node scripts/github/update-card.js --help
 ```
 
 **Salida:**
@@ -344,60 +368,27 @@ Done
 
 ---
 
-### 7. git-hooks/commit-msg
-
-**Qué valida:**
-- Formato: `tipo(E#-H##): descripción`
-- Tipos: feat, fix, test, docs, refactor, chore, perf, ci
-- E#-H##: E1-E9, H01-H99
-
-**Se ejecuta automáticamente al hacer:**
-```bash
-git commit -m "..."
-```
-
-**Si falla:**
-```
-❌ Commit message inválido!
-
-Formato requerido:
-  tipo(E#-H##): descripción
-
-Ejemplo válido:
-  feat(E4-H08): crear local con validaciones
-```
-
-**Para bypassear (NO RECOMENDADO):**
-```bash
-git commit --no-verify -m "..."
-```
-
 ---
 
-## 🔄 Workflow automático completo
+## 🔄 Workflow completo
 
 ```
 1. GitHub Projects: Creas HU (E4-H08)
    ↓
-2. Local: node scripts/sync-github-projects.js
+2. Local: node scripts/github/sync-github-projects.js
    (descarga HU)
    ↓
-3. Local: node scripts/validate-hu.js E4-H08
-   (valida que HU esté bien formada)
-   ↓
-4. Local: ./scripts/create-branch.sh E4-H08 crear-local
+3. Local: ./scripts/git/create-branch.sh E4-H08 crear-local
    (crea rama automáticamente)
    ↓
 5. Copiar agente → IA codifica
    ↓
-6. Local: git commit -m "feat(E4-H08): crear local"
-   (git hook valida automáticamente)
+6. Local: git commit -m "Tu mensaje aquí"
+   (sin validación automática)
    ↓
-7. Si formato OK → commit exitoso
-   Si NO → aborta y muestra error
+7. GitHub: Push + PR
    ↓
-8. GitHub: Push + PR con "Fixes #123"
-   HU pasa a Done automáticamente
+8. GitHub: Cerrar HU manualmente o con "Fixes #123"
 ```
 
 ---
@@ -436,7 +427,7 @@ Estructura del archivo generado:
 ```
 
 **Uso en IAs:**
-- IAs leen `/doc/data/HUS.json`
+- IAs leen `documentation/.local/data/HUS.json`
 - Extraen descripción + AC
 - Codifican respetando AC
 
@@ -456,9 +447,9 @@ echo 'GITHUB_TOKEN=ghp_xxxxxxxxxxxxx' > .env
 ### "Permission denied" (create-branch.sh)
 
 ```bash
-chmod +x ./scripts/create-branch.sh
-chmod +x ./scripts/setup-hooks.sh
-chmod +x ./scripts/git-hooks/commit-msg
+chmod +x ./scripts/git/create-branch.sh
+chmod +x ./scripts/git/setup-hooks.sh
+chmod +x ./scripts/git/hooks/commit-msg
 ```
 
 ### "Rama no se crea"
@@ -481,7 +472,7 @@ git checkout -b dev origin/dev
 ls -la .git/hooks/commit-msg
 
 # Si no, ejecutar setup
-./scripts/setup-hooks.sh
+./scripts/git/setup-hooks.sh
 ```
 
 ### "Bypass git hook (emergencia)"
