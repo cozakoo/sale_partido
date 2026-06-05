@@ -1,0 +1,147 @@
+@startuml
+
+' Este es el modelo de datos que se pasará
+' a clases en Spring Boot como entidades de persistencia
+
+' configuraciones
+hide methods
+
+' Modelo
+class Local {
+    - uuid : UUID
+    - nombre : String 
+    - ubicacion: String
+    - coordenadas: String  /' latitud y longitud '/
+    - scoringPromedio: float
+}
+
+class Cancha {
+    - uuid : UUID
+    - nombre : String
+    - capacidad: int
+}
+
+class Deporte {
+    - uuid: UUID
+    - nombre: String
+}
+
+class HorarioAtencion {
+    - uuid: UUID
+    - dia: String
+    - horarioApertura: DateTime
+    - horarioCierre: DateTime
+}
+
+class ConfiguracionHorario {
+    - uuid : UUID
+    - activo : Boolean
+}
+
+class ConfiguracionDia {
+    - uuid : UUID
+    - diaSemana : String
+    - horaInicio : DateTime
+    - horaFin : DateTime
+}
+
+class Usuario {
+    - uuid: UUID
+    - nombre: String
+    - scoringPromedio: float
+    - nivel: Nivel
+    - rol: Rol
+}
+
+class Evento {
+    - uuid: UUID
+    - nombre: String
+    - tipo: TipoEvento
+    - cupoMinimo: int
+    - cupoMaximo: int
+    - nivelHabilitado: String
+    - estado: String
+}
+
+class Turno {
+    - uuid: UUID
+    - fechaHoraInicio: DateTime
+    - fechaHoraFin: DateTime
+    - precio: float
+    - estado: EstadoTurno
+}
+
+class Participacion {
+    - estado: EstadoParticipacion
+    - fechaEstado: DateTime
+    - asistio: Boolean
+}
+
+'
+'class Resena {
+ '   uuid: UUID
+ '   tipo: TipoResena
+ '   puntuacion: Decimal
+ '   comentarios: Texto 
+'}
+
+'enum TipoResena {
+'    JUGADOR
+'    LOCAL
+'}
+'
+
+enum EstadoTurno {
+    LIBRE
+    CONFIRMADO
+    CANCELADO
+}
+
+enum EstadoParticipacion {
+    PENDIENTE
+    CONFIRMADO
+    RECHAZADO
+    CANCELADO
+}
+
+enum TipoEvento {
+    ABIERTO
+    CERRADO
+    CON_CONFIRMACION
+}
+
+enum Nivel {
+    PRINCIPIANTE
+    INTERMEDIO
+    AVANZADO
+}
+
+enum Rol {
+    DEPORTISTA
+    PROPIETARIO
+}
+
+Turno -[hidden]r- EstadoTurno
+Evento -[hidden]r- TipoEvento
+Participacion -[hidden]r- EstadoParticipacion
+Usuario -[hidden]r- Nivel
+Usuario -[hidden]r- Rol
+
+' Relaciones
+Local "1" *-- "*" HorarioAtencion 
+Local "1" *-- "*" Cancha  
+Cancha "1" *-- "*" ConfiguracionHorario  
+ConfiguracionHorario "1" *-- "*" ConfiguracionDia  
+Cancha "*" *-- "1" Deporte
+Turno "*" *-- "1" Cancha 
+Turno "1" *-- "1" Evento
+Evento "1" *-- "*" Participacion: participantes
+Evento "*" *-- "1" Usuario: organizador
+Participacion "1" *-- "*" Usuario
+'Resena "*" *-- "1" Usuario: evaluador
+'Resena "*" *-- "1" Usuario: evaluado
+'Resena "*" *-- "1" Evento
+'Resena "*" *-- "1" Local
+
+
+@enduml
