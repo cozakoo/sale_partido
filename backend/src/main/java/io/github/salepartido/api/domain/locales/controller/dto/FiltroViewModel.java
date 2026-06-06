@@ -2,7 +2,6 @@ package io.github.salepartido.api.domain.locales.controller.dto;
 
 public record FiltroViewModel(
     String ubicacion,
-    String zona,
     String fecha,
     String tipoDeporte,
     HorarioDisponibleViewModel horarioDisponible

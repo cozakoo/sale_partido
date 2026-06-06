@@ -1,0 +1,175 @@
+@startuml modelo
+
+' Este es el modelo de datos que se pasará
+' a clases en Spring Boot como entidades de persistencia
+
+' configuraciones
+hide methods
+
+' Modelo
+class Local {
+    - uuid : UUID
+    - nombre : String 
+    - telefono : String
+    - descripcion : String
+    ' - ubicacion: String
+    ' - coordenadas: String  /' latitud y longitud '/
+    ' - scoringPromedio: float
+}
+
+class Ubicacion {
+    - uuid : UUID
+    - direccion : String
+}
+
+class Localidad {
+    - uuid : UUID
+    - nombre : String
+}
+
+class Cancha {
+    - uuid : UUID
+    - nombre : String
+    - capacidad: int
+}
+
+class Deporte {
+    - uuid: UUID
+    - nombre: String
+}
+
+class HorarioAtencion {
+    - uuid: UUID
+    - dia: DayOfWeek
+    - horarioApertura: LocalTime
+    - horarioCierre: LocalTime
+}
+
+class ConfiguracionHorario {
+    - uuid : UUID
+    - activo : Boolean
+    - duracionTurno : Duration
+}
+
+class ConfiguracionDia {
+    - uuid : UUID
+    - diaSemana : DayOfWeek
+    - horaInicio : LocalTime
+    - horaFin : LocalTime
+}
+
+class Turno {
+    - uuid: UUID
+    - fecha: LocalDate
+    - horaInicio: LocalTime
+    - horaFin: LocalTime
+    - nombreOrganizador: String
+    - deporte: String
+    - cantidadParticipantesConfirmados: int
+    - estadoEvento: String
+}
+
+
+' Relaciones
+Local "1" *--> "*" HorarioAtencion 
+Local "1" *--> "*" Cancha  
+Local "*" --> "1" Ubicacion: ubicacion
+Ubicacion "*" --> "1" Localidad: localidad
+Cancha "1" *--> "*" ConfiguracionHorario  
+ConfiguracionHorario "1" *--> "*" ConfiguracionDia  
+Cancha "*" --> "1" Deporte
+Turno "*" --> "1" Cancha
+
+
+
+
+' A acomodar para las nuevas historias del sprint 3
+'
+' enum EstadoTurno {
+'     LIBRE
+'     CONFIRMADO
+'     CANCELADO
+' }
+'
+' class Usuario {
+'     - uuid: UUID
+'     - nombre: String
+'     - scoringPromedio: float
+'     - nivel: Nivel
+'     - rol: Rol
+' }
+' 
+' class Evento {
+'     - uuid: UUID
+'     - nombre: String
+'     - tipo: TipoEvento
+'     - cupoMinimo: int
+'     - cupoMaximo: int
+'     - nivelHabilitado: String
+'     - estado: String
+' }
+' 
+' 
+' class Participacion {
+'     - estado: EstadoParticipacion
+'     - fechaEstado: DateTime
+'     - asistio: Boolean
+' }
+' 
+' enum EstadoParticipacion {
+'     PENDIENTE
+'     CONFIRMADO
+'     RECHAZADO
+'     CANCELADO
+' }
+' 
+' enum TipoEvento {
+'     ABIERTO
+'     CERRADO
+'     CON_CONFIRMACION
+' }
+' enum Rol {
+'     DEPORTISTA
+'     PROPIETARIO
+' }
+' 
+'
+'
+'
+'
+'
+'
+' Turno -[hidden]r- EstadoTurno
+' Evento -[hidden]r- TipoEvento
+' Participacion -[hidden]r- EstadoParticipacion
+' Usuario -[hidden]r- Nivel
+' Usuario -[hidden]r- Rol
+
+
+
+
+' Para el futuro (no usar aún)
+' class Resena {
+'     uuid: UUID
+'     tipo: TipoResena
+'     puntuacion: Decimal
+'     comentarios: Texto 
+' }
+' 
+' enum TipoResena {
+'     JUGADOR
+'     LOCAL
+' }
+' 
+' Turno "*" *-- "1" Cancha 
+' Turno "1" *-- "1" Evento
+' Evento "1" *-- "*" Participacion: participantes
+' Evento "*" *-- "1" Usuario: organizador
+' Participacion "1" *-- "*" Usuario
+' Resena "*" *-- "1" Usuario: evaluador
+' Resena "*" *-- "1" Usuario: evaluado
+' Resena "*" *-- "1" Evento
+' Resena "*" *-- "1" Local
+
+
+@enduml

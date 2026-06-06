@@ -13,6 +13,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -32,17 +33,15 @@ public class Local {
     @Column(name = "nombre", nullable = false, length = AppConstants.VARCHAR_NAME_LENGTH)
     private String nombre;
 
-    @Column(name = "direccion", nullable = false, length = AppConstants.VARCHAR_NAME_LENGTH)
-    private String direccion;
+    @ManyToOne(cascade = { CascadeType.PERSIST, CascadeType.MERGE })
+    @JoinColumn(name = "ubicacion_uuid", nullable = false)
+    private Ubicacion ubicacion;
 
     @Column(name = "telefono", length = 20)
     private String telefono;
 
     @Column(name = "descripcion", columnDefinition = "TEXT")
     private String descripcion;
-
-    @Column(name = "horario", length = 50)
-    private String horario;
 
     @OneToMany(cascade = { CascadeType.MERGE, CascadeType.PERSIST } )
     @JoinColumn(name = "local_uuid")

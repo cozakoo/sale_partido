@@ -33,14 +33,13 @@ public class LocalController {
     @GetMapping
     public List<LocalViewModel> getLocales(
             @RequestParam(required = false) String ubicacion,
-            @RequestParam(required = false) String zona,
             @RequestParam(required = false) String fecha,
             @RequestParam(required = false) String tipoDeporte,
             @RequestParam(required = false) String horarioDesde,
             @RequestParam(required = false) String horarioHasta) {
 
         // Si no hay filtros, retornar todos los locales en modo summary
-        if (isEmptyFilter(ubicacion, zona, fecha, tipoDeporte, horarioDesde, horarioHasta)) {
+        if (isEmptyFilter(ubicacion, fecha, tipoDeporte, horarioDesde, horarioHasta)) {
             return localService.obtenerTodosLosLocales().stream()
                     .map(localMapper::toViewModel)
                     .collect(Collectors.toList());
@@ -51,17 +50,16 @@ public class LocalController {
                 ? new HorarioDisponibleViewModel(horarioDesde, horarioHasta)
                 : null;
 
-        FiltroViewModel filtro = new FiltroViewModel(ubicacion, zona, fecha, tipoDeporte, horario);
+        FiltroViewModel filtro = new FiltroViewModel(ubicacion, fecha, tipoDeporte, horario);
 
         return localService.buscarLocales(filtro).stream()
                 .map(localMapper::toViewModel)
                 .collect(Collectors.toList());
     }
 
-    private boolean isEmptyFilter(String ubicacion, String zona, String fecha, String tipoDeporte,
+    private boolean isEmptyFilter(String ubicacion, String fecha, String tipoDeporte,
             String horarioDesde, String horarioHasta) {
         return (ubicacion == null || ubicacion.isBlank()) &&
-               (zona == null || zona.isBlank()) &&
                (fecha == null || fecha.isBlank()) &&
                (tipoDeporte == null || tipoDeporte.isBlank()) &&
                (horarioDesde == null || horarioDesde.isBlank()) &&

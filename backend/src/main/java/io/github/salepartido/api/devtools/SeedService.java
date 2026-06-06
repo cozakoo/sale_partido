@@ -17,32 +17,40 @@ import io.github.salepartido.api.domain.locales.model.ConfiguracionHorario;
 import io.github.salepartido.api.domain.locales.model.Deporte;
 import io.github.salepartido.api.domain.locales.model.HorarioAtencion;
 import io.github.salepartido.api.domain.locales.model.Local;
-import io.github.salepartido.api.domain.reservations.model.Reserva;
-import io.github.salepartido.api.domain.reservations.service.ReservaService;
+import io.github.salepartido.api.domain.locales.model.Localidad;
+import io.github.salepartido.api.domain.locales.model.Ubicacion;
+import io.github.salepartido.api.domain.locales.repository.LocalidadRepository;
+import io.github.salepartido.api.domain.locales.repository.UbicacionRepository;
+import io.github.salepartido.api.domain.locales.repository.DeporteRepository;
+import io.github.salepartido.api.domain.locales.model.Turno;
+import io.github.salepartido.api.domain.locales.service.TurnoService;
 import io.github.salepartido.api.domain.locales.service.LocalService;
-import io.github.salepartido.api.domain.locales.service.DeporteService;
 import net.datafaker.Faker;
 
 @Service
 @Profile("dev")
 public class SeedService {
 
-    private final ReservaService reservaService;
+    private final TurnoService turnoService;
     private final LocalService localService;
     private final Faker faker = new Faker(Locale.of("es"));
-    private final DeporteService deporteService;
+    private final DeporteRepository deporteRepository;
+    private final LocalidadRepository localidadRepository;
+    private final UbicacionRepository ubicacionRepository;
 
-    public SeedService(DeporteService deporteService, ReservaService reservaService, LocalService localService) {
-        this.deporteService = deporteService;
-        this.reservaService = reservaService;
+    public SeedService(DeporteRepository deporteRepository, TurnoService turnoService, LocalService localService, LocalidadRepository localidadRepository, UbicacionRepository ubicacionRepository) {
+        this.deporteRepository = deporteRepository;
+        this.turnoService = turnoService;
         this.localService = localService;
+        this.localidadRepository = localidadRepository;
+        this.ubicacionRepository = ubicacionRepository;
     }
 
     public void generate() {
-        List<Local> localesGuardados = guardarLocales(generarLocales(5, 3));
+        List<Local> localesGuardados = guardarLocales(generarLocales(20, 5));
 
-        List<Reserva> reservasGeneradas = generarReservas(localesGuardados);
-        guardarReservas(reservasGeneradas);
+        List<Turno> turnosGenerados = generarTurnos(localesGuardados);
+        guardarTurnos(turnosGenerados);
     }
 
     /* ALMACENAMIENTO =============================== */
@@ -55,8 +63,8 @@ public class SeedService {
         return localesGuardados;
     }
 
-    private void guardarReservas(List<Reserva> reservas) {
-        reservaService.guardarTodas(reservas);
+    private void guardarTurnos(List<Turno> turnos) {
+        turnoService.guardarTodos(turnos);
     }
 
 
@@ -104,10 +112,35 @@ public class SeedService {
     private List<Local> generarLocales(int cantidad, int canchasPorLocal) {
         List<Local> locales = new ArrayList<>();
 
+        List<String> nombresLocalidades = List.of("Puerto Madryn", "Trelew", "Rawson", "Gaiman");
+        List<Localidad> localidadesExistentes = localidadRepository.findAll();
+        List<Localidad> localidades = new ArrayList<>();
+
+        for (String nombreLoc : nombresLocalidades) {
+            Localidad localidad = localidadesExistentes.stream()
+                .filter(l -> l.getNombre() != null && l.getNombre().equalsIgnoreCase(nombreLoc))
+                .findFirst()
+                .orElseGet(() -> {
+                    Localidad newLoc = new Localidad();
+                    newLoc.setNombre(nombreLoc);
+                    return localidadRepository.save(newLoc);
+                });
+            localidades.add(localidad);
+        }
+
         for (int i = 0; i < cantidad; i++) {
             Local local = new Local();
             local.setNombre(generarNombreLocal(faker));
-            local.setDireccion(faker.options().option(DIRECCIONES));
+            local.setTelefono(faker.phoneNumber().phoneNumber());
+            local.setDescripcion("Complejo deportivo con excelentes instalaciones para disfrutar del deporte. " + faker.lorem().paragraph(1));
+            
+            Localidad localidadElegida = localidades.get(faker.number().numberBetween(0, localidades.size()));
+
+            Ubicacion ubicacion = new Ubicacion();
+            ubicacion.setLocalidad(localidadElegida);
+            ubicacion.setDireccion(faker.options().option(DIRECCIONES));
+            local.setUbicacion(ubicacion);
+
             local.setCanchas(generarCanchas(canchasPorLocal));
             // local.setDeportes(generarDeportes( deportesPorLocal));
             local.setHorariosAtencion(generarHorariosAtencionSemanal());
@@ -119,12 +152,12 @@ public class SeedService {
     private List<Cancha> generarCanchas(int count) {
         List<Cancha> canchas = new ArrayList<>();
 
-        for (int i = 1; i < count; i++) {
+        for (int i = 0; i < count; i++) {
             Cancha cancha = new Cancha();
             cancha.setNombre(generarNombreCancha(faker, i + 1));
             cancha.setConfiguracionesHorarios(List.of(generarConfiguracionHorario()));
 
-            Deporte deporte = deporteService.obtenerDeporteAleatorioPersistido();
+            Deporte deporte = obtenerDeporteAleatorioPersistido();
             cancha.setDeporte(deporte);
             cancha.setCapacidad(CAPACIDAD_POR_DEPORTE.getOrDefault(deporte.getNombre(), 6));
 
@@ -163,8 +196,8 @@ public class SeedService {
         return configuracionesDias;
     }
 
-    private List<Reserva> generarReservas(List<Local> locales) {
-        List<Reserva> reservas = new ArrayList<>();
+    private List<Turno> generarTurnos(List<Local> locales) {
+        List<Turno> turnos = new ArrayList<>();
         LocalDate hoy = LocalDate.now();
         List<LocalDate> fechas = List.of(hoy.minusDays(1), hoy, hoy.plusDays(1), hoy.plusDays(2));
 
@@ -198,36 +231,36 @@ public class SeedService {
                             LocalTime endReserva = startReserva.plus(duration);
 
                             if (endReserva.isBefore(horaFinLocal) || endReserva.equals(horaFinLocal)) {
-                                Reserva reserva = new Reserva();
-                                reserva.setCancha(cancha);
-                                reserva.setFecha(fecha);
-                                reserva.setHoraInicio(startReserva);
-                                reserva.setHoraFin(endReserva);
-                                reserva.setNombreOrganizador(faker.options().option(organizadores));
-                                reserva.setDeporte(cancha.getDeporte().getNombre()); // ← el deporte real de la cancha
-                                reserva.setCantidadParticipantesConfirmados(
+                                Turno turno = new Turno();
+                                turno.setCancha(cancha);
+                                turno.setFecha(fecha);
+                                turno.setHoraInicio(startReserva);
+                                turno.setHoraFin(endReserva);
+                                turno.setNombreOrganizador(faker.options().option(organizadores));
+                                turno.setDeporte(cancha.getDeporte().getNombre()); // ← el deporte real de la cancha
+                                turno.setCantidadParticipantesConfirmados(
                                         faker.number().numberBetween(1, cancha.getCapacidad() + 1));
 
                                 if (fecha.isBefore(hoy)) {
-                                    reserva.setEstadoEvento("FINALIZADO");
+                                    turno.setEstadoEvento("FINALIZADO");
                                 } else {
-                                    reserva.setEstadoEvento(faker.options().option(estados));
+                                    turno.setEstadoEvento(faker.options().option(estados));
                                 }
 
-                                reservas.add(reserva);
+                                turnos.add(turno);
                             }
                         }
                     }
                 }
             }
         }
-        return reservas;
+        return turnos;
     }
 
     private List<Deporte> generarDeportes(int numOfDeportes) {
         List<Deporte> deportes = new ArrayList<>();
         for (int i = 0; i < numOfDeportes; i++) {
-            deportes.add(deporteService.obtenerDeporteAleatorioPersistido());
+            deportes.add(obtenerDeporteAleatorioPersistido());
         }
         return deportes;
     }
@@ -249,6 +282,32 @@ public class SeedService {
             horarios.add(horario);
         }
         return horarios;
+    }
+
+    private static final String[] DEPORTES_PREDETERMINADOS = {
+        "Fútbol", "Tenis", "Paddle", "Vóley", "Básquet"
+    };
+
+    private List<Deporte> poblarDeportes() {
+        List<Deporte> deportes = new ArrayList<>();
+        for (String nombre : DEPORTES_PREDETERMINADOS) {
+            Deporte deporte = deporteRepository.findByNombre(nombre)
+                    .orElseGet(() -> {
+                        Deporte nuevo = new Deporte();
+                        nuevo.setNombre(nombre);
+                        return deporteRepository.save(nuevo);
+                    });
+            deportes.add(deporte);
+        }
+        return deportes;
+    }
+
+    private Deporte obtenerDeporteAleatorioPersistido() {
+        List<Deporte> deportes = deporteRepository.findAll();
+        if (deportes.isEmpty()) {
+            deportes = poblarDeportes();
+        }
+        return deportes.get(faker.random().nextInt(deportes.size()));
     }
 
 }
