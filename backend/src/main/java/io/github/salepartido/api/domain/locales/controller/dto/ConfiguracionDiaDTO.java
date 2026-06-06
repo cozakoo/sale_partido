@@ -3,7 +3,7 @@ package io.github.salepartido.api.domain.locales.controller.dto;
 import java.time.DayOfWeek;
 import java.time.LocalTime;
 
-import io.github.salepartido.api.domain.locales.validation.ConfiguracionDiaValida;
+import io.github.salepartido.api.domain.locales.controller.validator.ConfiguracionDiaValida;
 
 @ConfiguracionDiaValida
 public record ConfiguracionDiaDTO(

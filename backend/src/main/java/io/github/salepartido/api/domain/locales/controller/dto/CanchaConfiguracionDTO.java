@@ -3,7 +3,7 @@ package io.github.salepartido.api.domain.locales.controller.dto;
 import java.util.List;
 import java.util.UUID;
 
-import io.github.salepartido.api.domain.locales.validation.DuracionTurnoValida;
+import io.github.salepartido.api.domain.locales.controller.validator.DuracionTurnoValida;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 

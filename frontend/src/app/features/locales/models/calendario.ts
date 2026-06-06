@@ -1,7 +1,7 @@
 export type EstadoTurno = 'libre' | 'ocupado' | 'incompleto' | 'finalizado';
 export type EstadoEvento = 'pendiente' | 'confirmado' | 'finalizado' | 'cancelado';
 
-export interface DetalleReserva {
+export interface DetalleTurno {
   organizadorNombre: string;
   cantidadConfirmados: number;
   capacidad: number;
@@ -16,7 +16,7 @@ export interface Turno {
   espacioNombre: string;
   deporte: string;
   estado: EstadoTurno;
-  reserva?: DetalleReserva;
+  turno?: DetalleTurno;
 }
 
 export interface DiaCalendario {

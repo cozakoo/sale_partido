@@ -39,11 +39,11 @@ public class LocalMapper {
         return new LocalDetail(
             local.getUuid(),
             local.getNombre(),
-            local.getDireccion(),
+            getUbicacionString(local),
             deportes,
             local.getTelefono(),
             local.getDescripcion(),
-            local.getHorario(),
+            local.getHorariosAtencion(),
             canchas
         );
     }
@@ -63,7 +63,7 @@ public class LocalMapper {
         return new LocalViewModel(
             local.getUuid(),
             local.getNombre(),
-            local.getDireccion(),
+            getUbicacionString(local),
             deportesDisponibles,
             local.getTelefono(),
             local.getDescripcion(),
@@ -71,5 +71,17 @@ public class LocalMapper {
             deportesDisponibles,
             canchas
         );
+    }
+
+    private String getUbicacionString(Local local) {
+        if (local.getUbicacion() == null) {
+            return null;
+        }
+        String direccion = local.getUbicacion().getDireccion();
+        String localidad = local.getUbicacion().getLocalidad() != null ? local.getUbicacion().getLocalidad().getNombre() : null;
+        if (direccion != null && localidad != null && !localidad.isBlank()) {
+            return direccion + ", " + localidad;
+        }
+        return direccion;
     }
 }

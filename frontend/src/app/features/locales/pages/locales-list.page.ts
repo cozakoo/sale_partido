@@ -2,7 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { BusquedaLocalesService } from '../services/busqueda-locales.service';
+import { LocalService } from '../services/local.service';
 import { LocalSearchResult } from '../models/local-search-result';
 
 @Component({
@@ -15,7 +15,7 @@ import { LocalSearchResult } from '../models/local-search-result';
 export class LocalesListPage {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
-  private busquedaService = inject(BusquedaLocalesService);
+  private localService = inject(LocalService);
 
   resultados = signal<LocalSearchResult[]>([]);
   buscando = signal(false);
@@ -26,8 +26,7 @@ export class LocalesListPage {
   horarioDesdeSeleccionado = '';
   horarioHastaSeleccionado = '';
 
-  ubicaciones = this.busquedaService.getUbicaciones();
-  deportes = this.busquedaService.getDeportes();
+  deportes = this.localService.getDeportes();
 
   constructor() {
     this.buscar();
@@ -47,7 +46,7 @@ export class LocalesListPage {
 
     this.buscando.set(true);
 
-    this.busquedaService
+    this.localService
       .buscar({
         ubicacion: this.ubicacionSeleccionada || undefined,
         deporte: this.deporteSeleccionado || undefined,
