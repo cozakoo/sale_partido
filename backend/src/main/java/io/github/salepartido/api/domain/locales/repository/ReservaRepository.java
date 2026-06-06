@@ -1,4 +1,4 @@
-package io.github.salepartido.api.domain.reservations.repository;
+package io.github.salepartido.api.domain.locales.repository;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -9,7 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import io.github.salepartido.api.domain.reservations.model.Reserva;
+import io.github.salepartido.api.domain.locales.model.Reserva;
 
 @Repository
 public interface ReservaRepository extends JpaRepository<Reserva, UUID> {

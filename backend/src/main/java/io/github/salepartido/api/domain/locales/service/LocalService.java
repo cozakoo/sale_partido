@@ -81,10 +81,29 @@ public class LocalService {
         if ((ubicacion == null || ubicacion.isBlank()) && (zona == null || zona.isBlank())) {
             return true;
         }
+        if (local.getUbicacion() == null) {
+            return false;
+        }
 
-        String direccion = local.getDireccion() != null ? local.getDireccion().toLowerCase() : "";
-        return (ubicacion != null && !ubicacion.isBlank() && direccion.contains(ubicacion.toLowerCase()))
-            || (zona != null && !zona.isBlank() && direccion.contains(zona.toLowerCase()));
+        String direccion = local.getUbicacion().getDireccion() != null ? local.getUbicacion().getDireccion().toLowerCase() : "";
+        String localidad = (local.getUbicacion().getLocalidad() != null && local.getUbicacion().getLocalidad().getNombre() != null)
+                ? local.getUbicacion().getLocalidad().getNombre().toLowerCase()
+                : "";
+
+        boolean matchUbi = false;
+        if (ubicacion != null && !ubicacion.isBlank()) {
+            matchUbi = direccion.contains(ubicacion.toLowerCase()) || localidad.contains(ubicacion.toLowerCase());
+        }
+
+        boolean matchZona = false;
+        if (zona != null && !zona.isBlank()) {
+            matchZona = direccion.contains(zona.toLowerCase()) || localidad.contains(zona.toLowerCase());
+        }
+
+        if (ubicacion != null && !ubicacion.isBlank() && zona != null && !zona.isBlank()) {
+            return matchUbi || matchZona;
+        }
+        return matchUbi || matchZona;
     }
 
     private boolean matchesTipoDeporte(Local local, String tipoDeporte) {

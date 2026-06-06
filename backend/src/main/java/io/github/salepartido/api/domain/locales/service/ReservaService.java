@@ -1,11 +1,11 @@
-package io.github.salepartido.api.domain.reservations.service;
+package io.github.salepartido.api.domain.locales.service;
 
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import io.github.salepartido.api.domain.reservations.model.Reserva;
-import io.github.salepartido.api.domain.reservations.repository.ReservaRepository;
+import io.github.salepartido.api.domain.locales.model.Reserva;
+import io.github.salepartido.api.domain.locales.repository.ReservaRepository;
 
 @Service
 public class ReservaService {

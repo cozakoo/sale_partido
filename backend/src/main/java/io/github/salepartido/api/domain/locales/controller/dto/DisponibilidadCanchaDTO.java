@@ -1,4 +1,4 @@
-package io.github.salepartido.api.domain.reservations.controller.dto;
+package io.github.salepartido.api.domain.locales.controller.dto;
 
 import java.util.List;
 import java.util.UUID;

@@ -40,7 +40,8 @@ test.describe('Búsqueda de locales deportivos - Jugador', () => {
       }
 
       if (url.searchParams.get('ubicacion')) {
-        resultado = resultado.filter(l => l.ubicacion === url.searchParams.get('ubicacion'));
+        const query = url.searchParams.get('ubicacion')?.toLowerCase() || '';
+        resultado = resultado.filter(l => l.ubicacion.toLowerCase().includes(query));
       }
 
       if (url.searchParams.get('tipoDeporte')) {
@@ -64,7 +65,7 @@ test.describe('Búsqueda de locales deportivos - Jugador', () => {
 
   test('Escenario: Filtrar locales por dirección, deporte y horario', async ({ page }) => {
     // Filtrar por Ubicación
-    await page.selectOption('select#filtroUbicacion', 'Centro');
+    await page.locator('input#filtroUbicacion').fill('Centro');
     // Filtrar por Deporte
     await page.selectOption('select#filtroDeporte', 'Tenis');
 
@@ -86,7 +87,7 @@ test.describe('Búsqueda de locales deportivos - Jugador', () => {
 
   test('Escenario: Actualización dinámica (limpieza de filtros)', async ({ page }) => {
     // Filtrar por una ubicación específica
-    await page.selectOption('select#filtroUbicacion', 'Sur');
+    await page.locator('input#filtroUbicacion').fill('Sur');
     await page.getByRole('button', { name: 'Buscar' }).click();
     const cardsFiltered = await page.locator('.local-card').count();
     await expect(cardsFiltered).toBeGreaterThan(0);

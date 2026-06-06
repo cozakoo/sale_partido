@@ -1,4 +1,4 @@
-package io.github.salepartido.api.unit.domain.reservations.service;
+package io.github.salepartido.api.unit.domain.locales.service;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -24,12 +24,12 @@ import io.github.salepartido.api.domain.locales.model.Cancha;
 import io.github.salepartido.api.domain.locales.model.ConfiguracionDia;
 import io.github.salepartido.api.domain.locales.model.ConfiguracionHorario;
 import io.github.salepartido.api.domain.locales.model.Local;
+import io.github.salepartido.api.domain.locales.model.Reserva;
 import io.github.salepartido.api.domain.locales.repository.LocalRepository;
-import io.github.salepartido.api.domain.reservations.controller.dto.DisponibilidadCanchaDTO;
-import io.github.salepartido.api.domain.reservations.controller.dto.TurnoDTO;
-import io.github.salepartido.api.domain.reservations.model.Reserva;
-import io.github.salepartido.api.domain.reservations.repository.ReservaRepository;
-import io.github.salepartido.api.domain.reservations.service.DisponibilidadService;
+import io.github.salepartido.api.domain.locales.repository.ReservaRepository;
+import io.github.salepartido.api.domain.locales.service.DisponibilidadService;
+import io.github.salepartido.api.domain.locales.controller.dto.DisponibilidadCanchaDTO;
+import io.github.salepartido.api.domain.locales.controller.dto.TurnoDTO;
 
 @ExtendWith(MockitoExtension.class)
 class DisponibilidadServiceTest {

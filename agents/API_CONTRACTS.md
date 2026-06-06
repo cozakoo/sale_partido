@@ -10,14 +10,56 @@ Frontend IA lo consulta para saber qué esperar.
 ## E4 — Locales (Espacios)
 
 ### GET /locales
-Lista todos los locales.
+Lista todos los locales. Soporta filtros opcionales por query parameters.
+
+**Query params (opcionales):**
+- `ubicacion` (String): Búsqueda parcial de texto en la dirección o nombre de localidad.
+- `zona` (String): Búsqueda parcial de texto en la dirección o nombre de localidad.
+- `fecha` (String): Búsqueda por fecha (ej: `"hoy"`, `"mañana"` o fecha ISO `"YYYY-MM-DD"`).
+- `tipoDeporte` (String): Nombre del deporte (ej: `"Fútbol"`).
+- `horarioDesde` (String): Horario de inicio (ej: `"08:00"` o `"08:00 hs"`).
+- `horarioHasta` (String): Horario de fin (ej: `"22:00"` o `"22:00 hs"`).
 
 **Respuesta:**
 ```json
 [
   {
     "uuid": "550e8400-e29b-41d4-a716-446655440000",
-    "nombre": "Cancha Central"
+    "nombre": "Cancha Central",
+    "ubicacion": "Av. Roca 123, Puerto Madryn",
+    "deportes": ["Fútbol", "Tenis"],
+    "telefono": "+54 280 411-1001",
+    "descripcion": "Complejo deportivo con césped sintético y canchas techadas.",
+    "horario": [
+      {
+        "uuid": "440e8400-e29b-41d4-a716-446655440003",
+        "dia": "MONDAY",
+        "horarioApertura": "08:00:00",
+        "horarioCierre": "22:00:00"
+      }
+    ],
+    "deportesDisponibles": ["Fútbol", "Tenis"],
+    "canchas": [
+      {
+        "uuid": "660e8400-e29b-41d4-a716-446655440001",
+        "nombre": "Cancha A",
+        "deporte": "Fútbol",
+        "capacidad": 10,
+        "configuracionesHorarios": [
+          {
+            "activo": true,
+            "duracionTurno": 60,
+            "configuracionesDias": [
+              {
+                "diaSemana": "MONDAY",
+                "horaInicio": "08:00:00",
+                "horaFin": "22:00:00"
+              }
+            ]
+          }
+        ]
+      }
+    ]
   }
 ]
 ```
@@ -36,9 +78,39 @@ Obtiene detalle completo de un local.
 {
   "uuid": "550e8400-e29b-41d4-a716-446655440000",
   "nombre": "Cancha Central",
-  "ubicacion": "Puerto Madryn",
-  "telefono": "+54...",
-  "email": "contacto@..."
+  "ubicacion": "Av. Roca 123, Puerto Madryn",
+  "deportes": ["Fútbol", "Tenis"],
+  "telefono": "+54 280 411-1001",
+  "descripcion": "Complejo deportivo con césped sintético y canchas techadas.",
+  "horario": [
+    {
+      "uuid": "440e8400-e29b-41d4-a716-446655440003",
+      "dia": "MONDAY",
+      "horarioApertura": "08:00:00",
+      "horarioCierre": "22:00:00"
+    }
+  ],
+  "canchas": [
+    {
+      "uuid": "660e8400-e29b-41d4-a716-446655440001",
+      "nombre": "Cancha A",
+      "deporte": "Fútbol",
+      "capacidad": 10,
+      "configuracionesHorarios": [
+        {
+          "activo": true,
+          "duracionTurno": 60,
+          "configuracionesDias": [
+            {
+              "diaSemana": "MONDAY",
+              "horaInicio": "08:00:00",
+              "horaFin": "22:00:00"
+            }
+          ]
+        }
+      ]
+    }
+  ]
 }
 ```
 
@@ -59,7 +131,8 @@ Obtiene canchas dentro de un local.
 [
   {
     "uuid": "660e8400-e29b-41d4-a716-446655440001",
-    "nombre": "Cancha A"
+    "nombre": "Cancha A",
+    "capacidad": 10
   }
 ]
 ```
@@ -70,11 +143,18 @@ Obtiene canchas dentro de un local.
   {
     "uuid": "660e8400-e29b-41d4-a716-446655440001",
     "nombre": "Cancha A",
+    "capacidad": 10,
     "configuracionesHorarios": [
       {
-        "dia": "LUNES",
-        "horaInicio": "08:00",
-        "horaFin": "22:00"
+        "activo": true,
+        "duracionTurno": 60,
+        "configuracionesDias": [
+          {
+            "diaSemana": "MONDAY",
+            "horaInicio": "08:00:00",
+            "horaFin": "22:00:00"
+          }
+        ]
       }
     ]
   }
@@ -86,16 +166,22 @@ Obtiene canchas dentro de un local.
 ---
 
 ### POST /locales/{uuid}/configuraciones-horarios
-Actualiza horarios de una local.
+Actualiza horarios de un local.
 
 **Body:**
 ```json
 {
-  "configuraciones": [
+  "canchas": [
     {
-      "dia": "LUNES",
-      "horaInicio": "08:00",
-      "horaFin": "22:00"
+      "canchaUuid": "660e8400-e29b-41d4-a716-446655440001",
+      "duracionTurno": 60,
+      "configuracionesDias": [
+        {
+          "diaSemana": "MONDAY",
+          "horaInicio": "08:00",
+          "horaFin": "22:00"
+        }
+      ]
     }
   ]
 }
@@ -104,9 +190,19 @@ Actualiza horarios de una local.
 **Respuesta:**
 ```json
 {
-  "localId": "550e8400-e29b-41d4-a716-446655440000",
-  "configuracionesGuardadas": 1,
-  "mensaje": "Configuraciones guardadas correctamente"
+  "canchas": [
+    {
+      "canchaUuid": "660e8400-e29b-41d4-a716-446655440001",
+      "duracionTurno": 60,
+      "configuracionesDias": [
+        {
+          "diaSemana": "MONDAY",
+          "horaInicio": "08:00:00",
+          "horaFin": "22:00:00"
+        }
+      ]
+    }
+  ]
 }
 ```
 
@@ -133,8 +229,8 @@ Obtiene la disponibilidad (turnos libres y ocupados) de todas las canchas de un 
     "turnos": [
       {
         "fecha": "2026-06-01",
-        "horaInicio": "09:00",
-        "horaFin": "10:00",
+        "horaInicio": "09:00:00",
+        "horaFin": "10:00:00",
         "espacioNombre": "Cancha 1",
         "deporte": null,
         "estado": "LIBRE",
@@ -142,8 +238,8 @@ Obtiene la disponibilidad (turnos libres y ocupados) de todas las canchas de un 
       },
       {
         "fecha": "2026-06-01",
-        "horaInicio": "10:00",
-        "horaFin": "11:00",
+        "horaInicio": "10:00:00",
+        "horaFin": "11:00:00",
         "espacioNombre": "Cancha 1",
         "deporte": "Fútbol",
         "estado": "OCUPADO",
@@ -151,6 +247,7 @@ Obtiene la disponibilidad (turnos libres y ocupados) de todas las canchas de un 
           "uuid": "770e8400-e29b-41d4-a716-446655440002",
           "nombreOrganizador": "Juan Pérez",
           "deporte": "Fútbol",
+          "capacidad": 10,
           "cantidadParticipantesConfirmados": 10,
           "estadoEvento": "CONFIRMADO"
         }
@@ -174,7 +271,8 @@ Lista todas las canchas.
 [
   {
     "uuid": "660e8400-e29b-41d4-a716-446655440001",
-    "nombre": "Cancha A"
+    "nombre": "Cancha A",
+    "capacidad": 10
   }
 ]
 ```
@@ -193,11 +291,18 @@ Obtiene detalle completo de una cancha.
 {
   "uuid": "660e8400-e29b-41d4-a716-446655440001",
   "nombre": "Cancha A",
+  "capacidad": 10,
   "configuracionesHorarios": [
     {
-      "dia": "LUNES",
-      "horaInicio": "08:00",
-      "horaFin": "22:00"
+      "activo": true,
+      "duracionTurno": 60,
+      "configuracionesDias": [
+        {
+          "diaSemana": "MONDAY",
+          "horaInicio": "08:00:00",
+          "horaFin": "22:00:00"
+        }
+      ]
     }
   ]
 }
@@ -213,7 +318,8 @@ Crea una nueva cancha.
 **Body:**
 ```json
 {
-  "name": "Cancha A"
+  "name": "Cancha A",
+  "capacidad": 10
 }
 ```
 
@@ -221,7 +327,8 @@ Crea una nueva cancha.
 ```json
 {
   "uuid": "660e8400-e29b-41d4-a716-446655440001",
-  "nombre": "Cancha A"
+  "nombre": "Cancha A",
+  "capacidad": 10
 }
 ```
 
@@ -237,7 +344,8 @@ Actualiza una cancha existente.
 **Body:**
 ```json
 {
-  "name": "Cancha A Modificada"
+  "name": "Cancha A Modificada",
+  "capacidad": 12
 }
 ```
 
@@ -245,7 +353,8 @@ Actualiza una cancha existente.
 ```json
 {
   "uuid": "660e8400-e29b-41d4-a716-446655440001",
-  "nombre": "Cancha A Modificada"
+  "nombre": "Cancha A Modificada",
+  "capacidad": 12
 }
 ```
 

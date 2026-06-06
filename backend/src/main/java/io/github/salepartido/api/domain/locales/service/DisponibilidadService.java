@@ -1,4 +1,4 @@
-package io.github.salepartido.api.domain.reservations.service;
+package io.github.salepartido.api.domain.locales.service;
 
 import java.time.DayOfWeek;
 import java.time.Duration;
@@ -20,12 +20,12 @@ import io.github.salepartido.api.domain.locales.model.Cancha;
 import io.github.salepartido.api.domain.locales.model.ConfiguracionDia;
 import io.github.salepartido.api.domain.locales.model.ConfiguracionHorario;
 import io.github.salepartido.api.domain.locales.model.Local;
+import io.github.salepartido.api.domain.locales.model.Reserva;
 import io.github.salepartido.api.domain.locales.repository.LocalRepository;
-import io.github.salepartido.api.domain.reservations.controller.dto.DisponibilidadCanchaDTO;
-import io.github.salepartido.api.domain.reservations.controller.dto.ReservaDTO;
-import io.github.salepartido.api.domain.reservations.controller.dto.TurnoDTO;
-import io.github.salepartido.api.domain.reservations.model.Reserva;
-import io.github.salepartido.api.domain.reservations.repository.ReservaRepository;
+import io.github.salepartido.api.domain.locales.repository.ReservaRepository;
+import io.github.salepartido.api.domain.locales.controller.dto.DisponibilidadCanchaDTO;
+import io.github.salepartido.api.domain.locales.controller.dto.ReservaDTO;
+import io.github.salepartido.api.domain.locales.controller.dto.TurnoDTO;
 
 @Service
 public class DisponibilidadService {

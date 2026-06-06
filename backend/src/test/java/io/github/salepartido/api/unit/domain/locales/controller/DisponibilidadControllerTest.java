@@ -1,4 +1,4 @@
-package io.github.salepartido.api.unit.domain.reservations.controller;
+package io.github.salepartido.api.unit.domain.locales.controller;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.Mockito.*;
@@ -22,9 +22,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.server.ResponseStatusException;
 
-import io.github.salepartido.api.domain.reservations.controller.DisponibilidadController;
-import io.github.salepartido.api.domain.reservations.controller.dto.DisponibilidadCanchaDTO;
-import io.github.salepartido.api.domain.reservations.service.DisponibilidadService;
+import io.github.salepartido.api.domain.locales.controller.DisponibilidadController;
+import io.github.salepartido.api.domain.locales.controller.dto.DisponibilidadCanchaDTO;
+import io.github.salepartido.api.domain.locales.service.DisponibilidadService;
 
 @ExtendWith(MockitoExtension.class)
 class DisponibilidadControllerTest {

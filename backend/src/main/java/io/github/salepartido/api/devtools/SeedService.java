@@ -17,8 +17,12 @@ import io.github.salepartido.api.domain.locales.model.ConfiguracionHorario;
 import io.github.salepartido.api.domain.locales.model.Deporte;
 import io.github.salepartido.api.domain.locales.model.HorarioAtencion;
 import io.github.salepartido.api.domain.locales.model.Local;
-import io.github.salepartido.api.domain.reservations.model.Reserva;
-import io.github.salepartido.api.domain.reservations.service.ReservaService;
+import io.github.salepartido.api.domain.locales.model.Localidad;
+import io.github.salepartido.api.domain.locales.model.Ubicacion;
+import io.github.salepartido.api.domain.locales.repository.LocalidadRepository;
+import io.github.salepartido.api.domain.locales.repository.UbicacionRepository;
+import io.github.salepartido.api.domain.locales.model.Reserva;
+import io.github.salepartido.api.domain.locales.service.ReservaService;
 import io.github.salepartido.api.domain.locales.service.LocalService;
 import io.github.salepartido.api.domain.locales.service.DeporteService;
 import net.datafaker.Faker;
@@ -31,11 +35,15 @@ public class SeedService {
     private final LocalService localService;
     private final Faker faker = new Faker(Locale.of("es"));
     private final DeporteService deporteService;
+    private final LocalidadRepository localidadRepository;
+    private final UbicacionRepository ubicacionRepository;
 
-    public SeedService(DeporteService deporteService, ReservaService reservaService, LocalService localService) {
+    public SeedService(DeporteService deporteService, ReservaService reservaService, LocalService localService, LocalidadRepository localidadRepository, UbicacionRepository ubicacionRepository) {
         this.deporteService = deporteService;
         this.reservaService = reservaService;
         this.localService = localService;
+        this.localidadRepository = localidadRepository;
+        this.ubicacionRepository = ubicacionRepository;
     }
 
     public void generate() {
@@ -104,10 +112,35 @@ public class SeedService {
     private List<Local> generarLocales(int cantidad, int canchasPorLocal) {
         List<Local> locales = new ArrayList<>();
 
+        List<String> nombresLocalidades = List.of("Puerto Madryn", "Trelew", "Rawson", "Gaiman");
+        List<Localidad> localidadesExistentes = localidadRepository.findAll();
+        List<Localidad> localidades = new ArrayList<>();
+
+        for (String nombreLoc : nombresLocalidades) {
+            Localidad localidad = localidadesExistentes.stream()
+                .filter(l -> l.getNombre() != null && l.getNombre().equalsIgnoreCase(nombreLoc))
+                .findFirst()
+                .orElseGet(() -> {
+                    Localidad newLoc = new Localidad();
+                    newLoc.setNombre(nombreLoc);
+                    return localidadRepository.save(newLoc);
+                });
+            localidades.add(localidad);
+        }
+
         for (int i = 0; i < cantidad; i++) {
             Local local = new Local();
             local.setNombre(generarNombreLocal(faker));
-            local.setDireccion(faker.options().option(DIRECCIONES));
+            local.setTelefono(faker.phoneNumber().phoneNumber());
+            local.setDescripcion("Complejo deportivo con excelentes instalaciones para disfrutar del deporte. " + faker.lorem().paragraph(1));
+            
+            Localidad localidadElegida = localidades.get(faker.number().numberBetween(0, localidades.size()));
+
+            Ubicacion ubicacion = new Ubicacion();
+            ubicacion.setLocalidad(localidadElegida);
+            ubicacion.setDireccion(faker.options().option(DIRECCIONES));
+            local.setUbicacion(ubicacion);
+
             local.setCanchas(generarCanchas(canchasPorLocal));
             // local.setDeportes(generarDeportes( deportesPorLocal));
             local.setHorariosAtencion(generarHorariosAtencionSemanal());

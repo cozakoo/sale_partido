@@ -1,4 +1,4 @@
-package io.github.salepartido.api.domain.reservations.controller.dto;
+package io.github.salepartido.api.domain.locales.controller.dto;
 
 import java.time.LocalDate;
 import java.time.LocalTime;

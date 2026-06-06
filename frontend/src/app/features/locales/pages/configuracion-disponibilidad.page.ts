@@ -2,7 +2,7 @@ import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, FormArray, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { NgbNavModule } from '@ng-bootstrap/ng-bootstrap';
-import { LocalService } from '../services/configuracion-disponibilidad.service';
+import { LocalService } from '../services/local.service';
 import { CanchaDetail } from '../models/cancha-detail';
 import { ConfiguracionDia } from '../models/configuracion-dia';
 import { Constantes } from '../../../core/Constantes';

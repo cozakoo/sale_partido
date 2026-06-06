@@ -18,21 +18,34 @@ INSERT INTO deporte (uuid, nombre) VALUES
 ('a0000000-0000-0000-0000-000000000004', 'Básquet')
 ON CONFLICT DO NOTHING;
 
+-- Insertar localidad
+INSERT INTO localidad (uuid, nombre) VALUES
+('b0000000-0000-0000-0000-000000000001', 'Puerto Madryn')
+ON CONFLICT DO NOTHING;
+
+-- Insertar ubicaciones
+INSERT INTO ubicacion (uuid, localidad_uuid, direccion) VALUES
+('b1b2c3d4-e29b-41d4-a716-446655440001', 'b0000000-0000-0000-0000-000000000001', 'Centro'),
+('b1b2c3d4-e29b-41d4-a716-446655440002', 'b0000000-0000-0000-0000-000000000001', 'Sur'),
+('b1b2c3d4-e29b-41d4-a716-446655440003', 'b0000000-0000-0000-0000-000000000001', 'Norte'),
+('b1b2c3d4-e29b-41d4-a716-446655440004', 'b0000000-0000-0000-0000-000000000001', 'Centro')
+ON CONFLICT DO NOTHING;
+
 -- Insertar locales (si no existen)
-INSERT INTO local (uuid, nombre, direccion, telefono, descripcion, horario) VALUES
-('a1b2c3d4-e29b-41d4-a716-446655440001', 'Club Deportivo Centro', 'Centro', '+54 280 411-1001', 'Complejo deportivo céntrico con canchas de césped sintético y polvo de ladrillo.', '08:00-23:00')
+INSERT INTO local (uuid, nombre, ubicacion_uuid, telefono, descripcion) VALUES
+('a1b2c3d4-e29b-41d4-a716-446655440001', 'Club Deportivo Centro', 'b1b2c3d4-e29b-41d4-a716-446655440001', '+54 280 411-1001', 'Complejo deportivo céntrico con canchas de césped sintético y polvo de ladrillo.')
 ON CONFLICT DO NOTHING;
 
-INSERT INTO local (uuid, nombre, direccion, telefono, descripcion, horario) VALUES
-('a1b2c3d4-e29b-41d4-a716-446655440002', 'Estadio del Sur', 'Sur', '+54 280 411-1002', 'Canchas de fútbol 11 y básquet cubierto. Estacionamiento amplio.', '09:00-22:00')
+INSERT INTO local (uuid, nombre, ubicacion_uuid, telefono, descripcion) VALUES
+('a1b2c3d4-e29b-41d4-a716-446655440002', 'Estadio del Sur', 'b1b2c3d4-e29b-41d4-a716-446655440002', '+54 280 411-1002', 'Canchas de fútbol 11 y básquet cubierto. Estacionamiento amplio.')
 ON CONFLICT DO NOTHING;
 
-INSERT INTO local (uuid, nombre, direccion, telefono, descripcion, horario) VALUES
-('a1b2c3d4-e29b-41d4-a716-446655440003', 'La Canchita', 'Norte', '+54 280 411-1003', 'Espacio familiar con canchas de fútbol 5, pádel y voley playa.', '10:00-22:00')
+INSERT INTO local (uuid, nombre, ubicacion_uuid, telefono, descripcion) VALUES
+('a1b2c3d4-e29b-41d4-a716-446655440003', 'La Canchita', 'b1b2c3d4-e29b-41d4-a716-446655440003', '+54 280 411-1003', 'Espacio familiar con canchas de fútbol 5, pádel y voley playa.')
 ON CONFLICT DO NOTHING;
 
-INSERT INTO local (uuid, nombre, direccion, telefono, descripcion, horario) VALUES
-('a1b2c3d4-e29b-41d4-a716-446655440004', 'Madryn Tenis Club', 'Centro', '+54 280 411-1004', 'Club especializado en tenis y pádel con profesorado incluido.', '07:00-22:00')
+INSERT INTO local (uuid, nombre, ubicacion_uuid, telefono, descripcion) VALUES
+('a1b2c3d4-e29b-41d4-a716-446655440004', 'Madryn Tenis Club', 'b1b2c3d4-e29b-41d4-a716-446655440004', '+54 280 411-1004', 'Club especializado en tenis y pádel con profesorado incluido.')
 ON CONFLICT DO NOTHING;
 
 -- Insertar canchas (si no existen)

@@ -1,9 +1,8 @@
-package io.github.salepartido.api.domain.reservations.model;
+package io.github.salepartido.api.domain.locales.model;
 
 import java.time.LocalDate;
 import java.util.UUID;
 
-import io.github.salepartido.api.domain.locales.model.Cancha;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;

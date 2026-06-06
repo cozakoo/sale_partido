@@ -1,4 +1,4 @@
-package io.github.salepartido.api.domain.reservations.controller;
+package io.github.salepartido.api.domain.locales.controller;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
@@ -14,13 +14,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
-import io.github.salepartido.api.domain.reservations.controller.dto.DisponibilidadCanchaDTO;
-import io.github.salepartido.api.domain.reservations.service.DisponibilidadService;
+import io.github.salepartido.api.domain.locales.controller.dto.DisponibilidadCanchaDTO;
+import io.github.salepartido.api.domain.locales.service.DisponibilidadService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 

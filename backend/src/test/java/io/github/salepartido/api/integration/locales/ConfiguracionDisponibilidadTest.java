@@ -14,6 +14,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import io.github.salepartido.api.domain.locales.model.Cancha;
 import io.github.salepartido.api.domain.locales.model.Deporte;
 import io.github.salepartido.api.domain.locales.model.Local;
+import io.github.salepartido.api.domain.locales.model.Localidad;
+import io.github.salepartido.api.domain.locales.model.Ubicacion;
 import io.github.salepartido.api.domain.locales.repository.LocalRepository;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -44,7 +46,13 @@ public class ConfiguracionDisponibilidadTest {
 
         Local local = new Local();
         local.setNombre("Complejo El Diez");
-        local.setDireccion("Calle Falsa 123");
+
+        Localidad localidad = new Localidad();
+        localidad.setNombre("Puerto Madryn");
+        Ubicacion ubicacion = new Ubicacion();
+        ubicacion.setLocalidad(localidad);
+        ubicacion.setDireccion("Calle Falsa 123");
+        local.setUbicacion(ubicacion);
 
         Cancha cancha1 = new Cancha();
         cancha1.setNombre("Cancha 1");

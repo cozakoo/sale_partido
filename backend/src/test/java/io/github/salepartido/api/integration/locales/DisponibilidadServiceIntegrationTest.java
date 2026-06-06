@@ -1,4 +1,4 @@
-package io.github.salepartido.api.integration.domain.reservations.service;
+package io.github.salepartido.api.integration.locales;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -21,12 +21,14 @@ import io.github.salepartido.api.domain.locales.model.ConfiguracionDia;
 import io.github.salepartido.api.domain.locales.model.ConfiguracionHorario;
 import io.github.salepartido.api.domain.locales.model.Deporte;
 import io.github.salepartido.api.domain.locales.model.Local;
+import io.github.salepartido.api.domain.locales.model.Localidad;
+import io.github.salepartido.api.domain.locales.model.Ubicacion;
+import io.github.salepartido.api.domain.locales.model.Reserva;
 import io.github.salepartido.api.domain.locales.repository.LocalRepository;
-import io.github.salepartido.api.domain.reservations.controller.dto.DisponibilidadCanchaDTO;
-import io.github.salepartido.api.domain.reservations.controller.dto.TurnoDTO;
-import io.github.salepartido.api.domain.reservations.model.Reserva;
-import io.github.salepartido.api.domain.reservations.repository.ReservaRepository;
-import io.github.salepartido.api.domain.reservations.service.DisponibilidadService;
+import io.github.salepartido.api.domain.locales.repository.ReservaRepository;
+import io.github.salepartido.api.domain.locales.service.DisponibilidadService;
+import io.github.salepartido.api.domain.locales.controller.dto.DisponibilidadCanchaDTO;
+import io.github.salepartido.api.domain.locales.controller.dto.TurnoDTO;
 
 @SpringBootTest
 @Transactional
@@ -50,7 +52,7 @@ class DisponibilidadServiceIntegrationTest {
 
         Local local = new Local();
         local.setNombre("Complejo Test");
-        local.setDireccion("Av. Test 123");
+        setUbicacionHelper(local, "Av. Test 123");
 
         var deporte = new Deporte();
         deporte.setNombre("Fútbol");
@@ -129,7 +131,7 @@ class DisponibilidadServiceIntegrationTest {
     void obtenerDisponibilidadLocal_LocalSinCanchas_RetornaVacio() {
         Local local = new Local();
         local.setNombre("Local Vacío");
-        local.setDireccion("Av. Test 456");
+        setUbicacionHelper(local, "Av. Test 456");
 
         Local saved = localRepository.save(local);
 
@@ -144,7 +146,7 @@ class DisponibilidadServiceIntegrationTest {
     void obtenerDisponibilidadLocal_CanchaSinConfiguracion_RetornaDisponibilidadSinTurnos() {
         Local local = new Local();
         local.setNombre("Local sin config");
-        local.setDireccion("Av. Test 789");
+        setUbicacionHelper(local, "Av. Test 789");
 
         var deporte = new Deporte();
         deporte.setNombre("Fútbol");
@@ -162,5 +164,14 @@ class DisponibilidadServiceIntegrationTest {
         assertNotNull(resultado);
         assertEquals(1, resultado.size());
         assertTrue(resultado.get(0).turnos().isEmpty());
+    }
+
+    private void setUbicacionHelper(Local local, String direccion) {
+        Localidad localidad = new Localidad();
+        localidad.setNombre("Puerto Madryn");
+        Ubicacion ubicacion = new Ubicacion();
+        ubicacion.setLocalidad(localidad);
+        ubicacion.setDireccion(direccion);
+        local.setUbicacion(ubicacion);
     }
 }
