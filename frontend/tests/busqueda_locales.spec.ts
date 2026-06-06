@@ -71,9 +71,7 @@ test.describe('Búsqueda de locales deportivos - Jugador', () => {
     await page.getByRole('button', { name: 'Buscar' }).click();
 
     // Debe haber al menos un local en Centro con Tenis en sus deportes disponibles
-    const cards = page.locator('.local-card');
-    const count = await cards.count();
-    await expect(count).toBeGreaterThan(0);
+    await expect(page.locator('.local-card')).toHaveCount(1);
   });
 
   test('Escenario: No se encontraron resultados', async ({ page }) => {
@@ -88,14 +86,12 @@ test.describe('Búsqueda de locales deportivos - Jugador', () => {
     // Filtrar por una ubicación específica
     await page.selectOption('select#filtroUbicacion', 'Sur');
     await page.getByRole('button', { name: 'Buscar' }).click();
-    const cardsFiltered = await page.locator('.local-card').count();
-    await expect(cardsFiltered).toBeGreaterThan(0);
+    await expect(page.locator('.local-card')).toHaveCount(1);
 
     // Limpiar filtros
     await page.getByRole('button', { name: 'Limpiar' }).click();
 
     // Debe haber más locales después de limpiar
-    const cardsTotal = await page.locator('.local-card').count();
-    await expect(cardsTotal).toBeGreaterThanOrEqual(cardsFiltered);
+    await expect(page.locator('.local-card')).toHaveCount(2);
   });
 });
