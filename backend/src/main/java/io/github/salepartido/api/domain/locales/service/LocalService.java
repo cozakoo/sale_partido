@@ -64,7 +64,7 @@ public class LocalService {
 
         return locales.stream()
             .filter(this::localActivo)
-            .filter(local -> matchesUbicacion(local, filtro.ubicacion(), filtro.zona()))
+            .filter(local -> matchesUbicacion(local, filtro.ubicacion()))
             .filter(local -> matchesTipoDeporte(local, filtro.tipoDeporte()))
             .filter(local -> matchesFecha(local, fechaFiltro))
             .filter(local -> matchesHorarioDisponible(local, fechaFiltro, desde, hasta))
@@ -77,8 +77,8 @@ public class LocalService {
             .anyMatch(io.github.salepartido.api.domain.locales.model.ConfiguracionHorario::isActivo);
     }
 
-    private boolean matchesUbicacion(Local local, String ubicacion, String zona) {
-        if ((ubicacion == null || ubicacion.isBlank()) && (zona == null || zona.isBlank())) {
+    private boolean matchesUbicacion(Local local, String ubicacion) {
+        if (ubicacion == null || ubicacion.isBlank()) {
             return true;
         }
         if (local.getUbicacion() == null) {
@@ -90,20 +90,7 @@ public class LocalService {
                 ? local.getUbicacion().getLocalidad().getNombre().toLowerCase()
                 : "";
 
-        boolean matchUbi = false;
-        if (ubicacion != null && !ubicacion.isBlank()) {
-            matchUbi = direccion.contains(ubicacion.toLowerCase()) || localidad.contains(ubicacion.toLowerCase());
-        }
-
-        boolean matchZona = false;
-        if (zona != null && !zona.isBlank()) {
-            matchZona = direccion.contains(zona.toLowerCase()) || localidad.contains(zona.toLowerCase());
-        }
-
-        if (ubicacion != null && !ubicacion.isBlank() && zona != null && !zona.isBlank()) {
-            return matchUbi || matchZona;
-        }
-        return matchUbi || matchZona;
+        return direccion.contains(ubicacion.toLowerCase()) || localidad.contains(ubicacion.toLowerCase());
     }
 
     private boolean matchesTipoDeporte(Local local, String tipoDeporte) {

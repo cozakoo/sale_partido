@@ -1,4 +1,4 @@
-package io.github.salepartido.api.unit.domain.locales.service;
+package io.github.salepartido.api.etc;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -24,12 +24,12 @@ import io.github.salepartido.api.domain.locales.model.Cancha;
 import io.github.salepartido.api.domain.locales.model.ConfiguracionDia;
 import io.github.salepartido.api.domain.locales.model.ConfiguracionHorario;
 import io.github.salepartido.api.domain.locales.model.Local;
-import io.github.salepartido.api.domain.locales.model.Reserva;
+import io.github.salepartido.api.domain.locales.model.Turno;
 import io.github.salepartido.api.domain.locales.repository.LocalRepository;
-import io.github.salepartido.api.domain.locales.repository.ReservaRepository;
+import io.github.salepartido.api.domain.locales.repository.TurnoRepository;
 import io.github.salepartido.api.domain.locales.service.DisponibilidadService;
 import io.github.salepartido.api.domain.locales.controller.dto.DisponibilidadCanchaDTO;
-import io.github.salepartido.api.domain.locales.controller.dto.TurnoDTO;
+import io.github.salepartido.api.domain.locales.controller.dto.TurnoSlotDTO;
 
 @ExtendWith(MockitoExtension.class)
 class DisponibilidadServiceTest {
@@ -38,7 +38,7 @@ class DisponibilidadServiceTest {
     private LocalRepository localRepository;
 
     @Mock
-    private ReservaRepository reservaRepository;
+    private TurnoRepository turnoRepository;
 
     @InjectMocks
     private DisponibilidadService disponibilidadService;
@@ -106,21 +106,21 @@ class DisponibilidadServiceTest {
 
         local.setCanchas(List.of(cancha));
 
-        // Reserva existente para esa cancha el lunes de 09:00 a 10:00
-        Reserva reserva = new Reserva();
-        reserva.setUuid(UUID.randomUUID());
-        reserva.setCancha(cancha);
-        reserva.setFecha(fechaTest);
-        reserva.setHoraInicio(LocalTime.of(9, 0));
-        reserva.setHoraFin(LocalTime.of(10, 0));
-        reserva.setNombreOrganizador("Martín");
-        reserva.setDeporte("Fútbol");
-        reserva.setCantidadParticipantesConfirmados(10);
-        reserva.setEstadoEvento("CONFIRMADO");
+        // Turno existente para esa cancha el lunes de 09:00 a 10:00
+        Turno turno = new Turno();
+        turno.setUuid(UUID.randomUUID());
+        turno.setCancha(cancha);
+        turno.setFecha(fechaTest);
+        turno.setHoraInicio(LocalTime.of(9, 0));
+        turno.setHoraFin(LocalTime.of(10, 0));
+        turno.setNombreOrganizador("Martín");
+        turno.setDeporte("Fútbol");
+        turno.setCantidadParticipantesConfirmados(10);
+        turno.setEstadoEvento("CONFIRMADO");
 
         when(localRepository.findById(localUuid)).thenReturn(Optional.of(local));
-        when(reservaRepository.findByCanchasAndDateRange(List.of(cancha.getUuid()), fechaTest, fechaTest))
-                .thenReturn(List.of(reserva));
+        when(turnoRepository.findByCanchasAndDateRange(List.of(cancha.getUuid()), fechaTest, fechaTest))
+                .thenReturn(List.of(turno));
 
         List<DisponibilidadCanchaDTO> resultado = disponibilidadService.obtenerDisponibilidadLocal(localUuid, fechaTest, fechaTest);
 
@@ -131,32 +131,32 @@ class DisponibilidadServiceTest {
         assertEquals(cancha.getUuid(), canchaDisp.canchaUuid());
         assertEquals("Cancha 1", canchaDisp.canchaNombre());
 
-        List<TurnoDTO> turnos = canchaDisp.turnos();
+        List<TurnoSlotDTO> turnos = canchaDisp.turnos();
         // Debería generar exactamente 2 turnos: 08:00-09:00 y 09:00-10:00
         assertEquals(2, turnos.size());
 
         // Primer turno: 08:00 - 09:00 (LIBRE)
-        TurnoDTO t1 = turnos.get(0);
+        TurnoSlotDTO t1 = turnos.get(0);
         assertEquals(fechaTest, t1.fecha());
         assertEquals(LocalTime.of(8, 0), t1.horaInicio());
         assertEquals(LocalTime.of(9, 0), t1.horaFin());
         assertEquals("Cancha 1", t1.espacioNombre());
         assertNull(t1.deporte());
         assertEquals("LIBRE", t1.estado());
-        assertNull(t1.reserva());
+        assertNull(t1.turno());
 
         // Segundo turno: 09:00 - 10:00 (OCUPADO)
-        TurnoDTO t2 = turnos.get(1);
+        TurnoSlotDTO t2 = turnos.get(1);
         assertEquals(fechaTest, t2.fecha());
         assertEquals(LocalTime.of(9, 0), t2.horaInicio());
         assertEquals(LocalTime.of(10, 0), t2.horaFin());
         assertEquals("Cancha 1", t2.espacioNombre());
         assertEquals("Fútbol", t2.deporte());
         assertEquals("OCUPADO", t2.estado());
-        assertNotNull(t2.reserva());
-        assertEquals("Martín", t2.reserva().nombreOrganizador());
-        assertEquals("Fútbol", t2.reserva().deporte());
-        assertEquals(10, t2.reserva().cantidadParticipantesConfirmados());
-        assertEquals("CONFIRMADO", t2.reserva().estadoEvento());
+        assertNotNull(t2.turno());
+        assertEquals("Martín", t2.turno().nombreOrganizador());
+        assertEquals("Fútbol", t2.turno().deporte());
+        assertEquals(10, t2.turno().cantidadParticipantesConfirmados());
+        assertEquals("CONFIRMADO", t2.turno().estadoEvento());
     }
 }

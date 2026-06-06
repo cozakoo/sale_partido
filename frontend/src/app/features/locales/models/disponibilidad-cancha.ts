@@ -1,4 +1,4 @@
-export interface ReservaBackendDTO {
+export interface TurnoDetalleBackendDTO {
   uuid: string;
   nombreOrganizador: string;
   deporte: string;
@@ -15,7 +15,7 @@ export interface TurnoBackendDTO {
   espacioNombre: string;
   deporte: string | null;
   estado: 'LIBRE' | 'OCUPADO';
-  reserva: ReservaBackendDTO | null;
+  turno: TurnoDetalleBackendDTO | null;
 }
 
 export interface DisponibilidadCanchaBackendDTO {

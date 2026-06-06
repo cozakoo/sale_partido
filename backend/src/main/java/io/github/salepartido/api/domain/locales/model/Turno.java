@@ -19,7 +19,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class Reserva {
+public class Turno {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

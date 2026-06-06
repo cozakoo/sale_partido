@@ -9,13 +9,13 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import io.github.salepartido.api.domain.locales.model.Reserva;
+import io.github.salepartido.api.domain.locales.model.Turno;
 
 @Repository
-public interface ReservaRepository extends JpaRepository<Reserva, UUID> {
+public interface TurnoRepository extends JpaRepository<Turno, UUID> {
 
-    @Query("SELECT r FROM Reserva r WHERE r.cancha.uuid IN :canchaUuids AND r.fecha >= :fechaInicio AND r.fecha <= :fechaFin")
-    List<Reserva> findByCanchasAndDateRange(
+    @Query("SELECT t FROM Turno t WHERE t.cancha.uuid IN :canchaUuids AND t.fecha >= :fechaInicio AND t.fecha <= :fechaFin")
+    List<Turno> findByCanchasAndDateRange(
         @Param("canchaUuids") List<UUID> canchaUuids,
         @Param("fechaInicio") LocalDate fechaInicio,
         @Param("fechaFin") LocalDate fechaFin

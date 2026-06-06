@@ -136,11 +136,11 @@ export class CalendarioDisponibilidadPage implements OnInit {
       espacioNombre: dto.espacioNombre,
       deporte: dto.deporte ?? '',
       estado: this.mapearEstado(dto),
-      reserva: dto.reserva ? {
-        organizadorNombre: dto.reserva.nombreOrganizador,
-        cantidadConfirmados: dto.reserva.cantidadParticipantesConfirmados,
-        capacidad: dto.reserva.capacidad,
-        estadoEvento: dto.reserva.estadoEvento.toLowerCase() as EstadoEvento
+      turno: dto.turno ? {
+        organizadorNombre: dto.turno.nombreOrganizador,
+        cantidadConfirmados: dto.turno.cantidadParticipantesConfirmados,
+        capacidad: dto.turno.capacidad,
+        estadoEvento: dto.turno.estadoEvento.toLowerCase() as EstadoEvento
       } : undefined
     };
   }
@@ -157,7 +157,7 @@ export class CalendarioDisponibilidadPage implements OnInit {
       return 'finalizado';
     }
 
-    switch (dto.reserva?.estadoEvento) {
+    switch (dto.turno?.estadoEvento) {
       case 'PENDIENTE':
         return 'incompleto';
       case 'CONFIRMADO':

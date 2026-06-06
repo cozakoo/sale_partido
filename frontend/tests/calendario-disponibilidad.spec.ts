@@ -37,7 +37,7 @@ test.describe('Visualización de disponibilidad y gestión de turnos', () => {
                 estado: 'OCUPADO',
                 deporte: 'Fútbol',
                 espacioNombre: 'Cancha 1',
-                reserva: {
+                turno: {
                   nombreOrganizador: 'Juan Pérez',
                   cantidadParticipantesConfirmados: 10,
                   estadoEvento: 'CONFIRMADO',
@@ -51,7 +51,7 @@ test.describe('Visualización de disponibilidad y gestión de turnos', () => {
                 estado: 'LIBRE',
                 deporte: 'Fútbol',
                 espacioNombre: 'Cancha 1',
-                reserva: null
+                turno: null
               }
             ]
           }
@@ -127,7 +127,7 @@ test.describe('Visualización de disponibilidad y gestión de turnos', () => {
                 estado: 'finalizado', // Un turno finalizado
                 deporte: 'Tenis',
                 espacioNombre: 'Cancha 1',
-                reserva: {
+                turno: {
                   nombreOrganizador: 'María Gómez',
                   cantidadParticipantesConfirmados: 4,
                   estadoEvento: 'FINALIZADO',

@@ -1,4 +1,4 @@
-package io.github.salepartido.api.integration.locales;
+package io.github.salepartido.api.etc;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -23,12 +23,12 @@ import io.github.salepartido.api.domain.locales.model.Deporte;
 import io.github.salepartido.api.domain.locales.model.Local;
 import io.github.salepartido.api.domain.locales.model.Localidad;
 import io.github.salepartido.api.domain.locales.model.Ubicacion;
-import io.github.salepartido.api.domain.locales.model.Reserva;
+import io.github.salepartido.api.domain.locales.model.Turno;
 import io.github.salepartido.api.domain.locales.repository.LocalRepository;
-import io.github.salepartido.api.domain.locales.repository.ReservaRepository;
+import io.github.salepartido.api.domain.locales.repository.TurnoRepository;
 import io.github.salepartido.api.domain.locales.service.DisponibilidadService;
 import io.github.salepartido.api.domain.locales.controller.dto.DisponibilidadCanchaDTO;
-import io.github.salepartido.api.domain.locales.controller.dto.TurnoDTO;
+import io.github.salepartido.api.domain.locales.controller.dto.TurnoSlotDTO;
 
 @SpringBootTest
 @Transactional
@@ -44,7 +44,7 @@ class DisponibilidadServiceIntegrationTest {
     private LocalRepository localRepository;
 
     @Autowired
-    private ReservaRepository reservaRepository;
+    private TurnoRepository turnoRepository;
 
     @Test
     void obtenerDisponibilidadLocal_ConBaseDeDatosReal_GeneraTurnosCorrectamente() {
@@ -79,17 +79,17 @@ class DisponibilidadServiceIntegrationTest {
         UUID canchaUuid = savedLocal.getCanchas().get(0).getUuid();
         Cancha savedCancha = savedLocal.getCanchas().get(0);
 
-        Reserva reserva = new Reserva();
-        reserva.setCancha(savedCancha);
-        reserva.setFecha(fechaTest);
-        reserva.setHoraInicio(LocalTime.of(9, 0));
-        reserva.setHoraFin(LocalTime.of(10, 0));
-        reserva.setNombreOrganizador("Martín");
-        reserva.setDeporte("Fútbol");
-        reserva.setCantidadParticipantesConfirmados(10);
-        reserva.setEstadoEvento("CONFIRMADO");
+        Turno turno = new Turno();
+        turno.setCancha(savedCancha);
+        turno.setFecha(fechaTest);
+        turno.setHoraInicio(LocalTime.of(9, 0));
+        turno.setHoraFin(LocalTime.of(10, 0));
+        turno.setNombreOrganizador("Martín");
+        turno.setDeporte("Fútbol");
+        turno.setCantidadParticipantesConfirmados(10);
+        turno.setEstadoEvento("CONFIRMADO");
 
-        reservaRepository.save(reserva);
+        turnoRepository.save(turno);
 
         List<DisponibilidadCanchaDTO> resultado = disponibilidadService.obtenerDisponibilidadLocal(
                 savedLocal.getUuid(), fechaTest, fechaTest);
@@ -101,30 +101,30 @@ class DisponibilidadServiceIntegrationTest {
         assertEquals(canchaUuid, canchaDisp.canchaUuid());
         assertEquals("Cancha 1", canchaDisp.canchaNombre());
 
-        List<TurnoDTO> turnos = canchaDisp.turnos();
+        List<TurnoSlotDTO> turnos = canchaDisp.turnos();
         assertEquals(2, turnos.size());
 
-        TurnoDTO t1 = turnos.get(0);
+        TurnoSlotDTO t1 = turnos.get(0);
         assertEquals(fechaTest, t1.fecha());
         assertEquals(LocalTime.of(8, 0), t1.horaInicio());
         assertEquals(LocalTime.of(9, 0), t1.horaFin());
         assertEquals("Cancha 1", t1.espacioNombre());
         assertEquals("Fútbol", t1.deporte());
         assertEquals("LIBRE", t1.estado());
-        assertNull(t1.reserva());
+        assertNull(t1.turno());
 
-        TurnoDTO t2 = turnos.get(1);
+        TurnoSlotDTO t2 = turnos.get(1);
         assertEquals(fechaTest, t2.fecha());
         assertEquals(LocalTime.of(9, 0), t2.horaInicio());
         assertEquals(LocalTime.of(10, 0), t2.horaFin());
         assertEquals("Cancha 1", t2.espacioNombre());
         assertEquals("Fútbol", t2.deporte());
         assertEquals("OCUPADO", t2.estado());
-        assertNotNull(t2.reserva());
-        assertEquals("Martín", t2.reserva().nombreOrganizador());
-        assertEquals("Fútbol", t2.reserva().deporte());
-        assertEquals(10, t2.reserva().cantidadParticipantesConfirmados());
-        assertEquals("CONFIRMADO", t2.reserva().estadoEvento());
+        assertNotNull(t2.turno());
+        assertEquals("Martín", t2.turno().nombreOrganizador());
+        assertEquals("Fútbol", t2.turno().deporte());
+        assertEquals(10, t2.turno().cantidadParticipantesConfirmados());
+        assertEquals("CONFIRMADO", t2.turno().estadoEvento());
     }
 
     @Test

@@ -1,4 +1,4 @@
-package io.github.salepartido.api.integration.locales;
+package io.github.salepartido.api.features;
 
 import java.util.UUID;
 
@@ -27,7 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
-public class ConfiguracionDisponibilidadTest {
+public class ConfiguracionTurnosEspaciosTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -73,11 +73,6 @@ public class ConfiguracionDisponibilidadTest {
         this.cancha1Uuid = savedLocal.getCanchas().get(0).getUuid();
         this.cancha2Uuid = savedLocal.getCanchas().get(1).getUuid();
     }
-
-    // aca falta un test de
-    // @Test
-    // @DisplayName("Aplicar configuración de horario a una sola cancha")
-
 
     @Test
     @DisplayName("Aplicar configuración de horario a todas las canchas")
@@ -209,8 +204,5 @@ public class ConfiguracionDisponibilidadTest {
         )
         .andExpect(status().isBadRequest());
     }
-
-
-
 
 }

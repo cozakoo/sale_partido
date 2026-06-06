@@ -20,22 +20,22 @@ import io.github.salepartido.api.domain.locales.model.Cancha;
 import io.github.salepartido.api.domain.locales.model.ConfiguracionDia;
 import io.github.salepartido.api.domain.locales.model.ConfiguracionHorario;
 import io.github.salepartido.api.domain.locales.model.Local;
-import io.github.salepartido.api.domain.locales.model.Reserva;
+import io.github.salepartido.api.domain.locales.model.Turno;
 import io.github.salepartido.api.domain.locales.repository.LocalRepository;
-import io.github.salepartido.api.domain.locales.repository.ReservaRepository;
+import io.github.salepartido.api.domain.locales.repository.TurnoRepository;
 import io.github.salepartido.api.domain.locales.controller.dto.DisponibilidadCanchaDTO;
-import io.github.salepartido.api.domain.locales.controller.dto.ReservaDTO;
 import io.github.salepartido.api.domain.locales.controller.dto.TurnoDTO;
+import io.github.salepartido.api.domain.locales.controller.dto.TurnoSlotDTO;
 
 @Service
 public class DisponibilidadService {
 
     private final LocalRepository localRepository;
-    private final ReservaRepository reservaRepository;
+    private final TurnoRepository turnoRepository;
 
-    public DisponibilidadService(LocalRepository localRepository, ReservaRepository reservaRepository) {
+    public DisponibilidadService(LocalRepository localRepository, TurnoRepository turnoRepository) {
         this.localRepository = localRepository;
-        this.reservaRepository = reservaRepository;
+        this.turnoRepository = turnoRepository;
     }
 
     @Transactional(readOnly = true)
@@ -54,14 +54,14 @@ public class DisponibilidadService {
                 .map(Cancha::getUuid)
                 .collect(Collectors.toList());
 
-        // 3. Buscar todas las reservas correspondientes en el rango de fechas
-        List<Reserva> reservas = reservaRepository.findByCanchasAndDateRange(canchaUuids, fechaInicio, fechaFin);
+        // 3. Buscar todos los turnos correspondientes en el rango de fechas
+        List<Turno> turnos = turnoRepository.findByCanchasAndDateRange(canchaUuids, fechaInicio, fechaFin);
 
         List<DisponibilidadCanchaDTO> disponibilidadCanchas = new ArrayList<>();
 
         // 4. Calcular la disponibilidad para cada cancha
         for (Cancha cancha : canchas) {
-            List<TurnoDTO> turnosList = new ArrayList<>();
+            List<TurnoSlotDTO> turnosList = new ArrayList<>();
 
             // Buscar configuración horaria activa
             ConfiguracionHorario configHorario = null;
@@ -102,31 +102,31 @@ public class DisponibilidadService {
                                 final LocalTime finalSlotStart = currentSlotStart;
                                 final LocalTime finalSlotEnd = currentSlotEnd;
 
-                                // Comprobar si hay alguna reserva que solape con el turno
-                                Optional<Reserva> overlappingReserva = reservas.stream()
-                                        .filter(r -> r.getCancha().getUuid().equals(cancha.getUuid()))
-                                        .filter(r -> r.getFecha().equals(finalFecha))
-                                        .filter(r -> r.getHoraInicio().isBefore(finalSlotEnd) && r.getHoraFin().isAfter(finalSlotStart))
+                                // Comprobar si hay algún turno que solape con el slot
+                                Optional<Turno> overlappingTurno = turnos.stream()
+                                        .filter(t -> t.getCancha().getUuid().equals(cancha.getUuid()))
+                                        .filter(t -> t.getFecha().equals(finalFecha))
+                                        .filter(t -> t.getHoraInicio().isBefore(finalSlotEnd) && t.getHoraFin().isAfter(finalSlotStart))
                                         .findFirst();
 
-                                TurnoDTO turnoDTO;
-                                if (overlappingReserva.isPresent()) {
-                                    Reserva r = overlappingReserva.get();
-                                    ReservaDTO rDto = new ReservaDTO(
-                                            r.getUuid(),
-                                            r.getNombreOrganizador(),
-                                            r.getDeporte(),
+                                TurnoSlotDTO turnoSlotDTO;
+                                if (overlappingTurno.isPresent()) {
+                                    Turno t = overlappingTurno.get();
+                                    TurnoDTO tDto = new TurnoDTO(
+                                            t.getUuid(),
+                                            t.getNombreOrganizador(),
+                                            t.getDeporte(),
                                             cancha.getCapacidad(),
-                                            r.getCantidadParticipantesConfirmados(),
-                                            r.getEstadoEvento()
+                                            t.getCantidadParticipantesConfirmados(),
+                                            t.getEstadoEvento()
                                     );
-                                    turnoDTO = new TurnoDTO(finalFecha, finalSlotStart, finalSlotEnd, cancha.getNombre(), r.getDeporte(), "OCUPADO", rDto);
+                                    turnoSlotDTO = new TurnoSlotDTO(finalFecha, finalSlotStart, finalSlotEnd, cancha.getNombre(), t.getDeporte(), "OCUPADO", tDto);
                                 } else {
                                     String deporteCancha = cancha.getDeporte() != null ? cancha.getDeporte().getNombre() : null;
-                                    turnoDTO = new TurnoDTO(finalFecha, finalSlotStart, finalSlotEnd, cancha.getNombre(), deporteCancha, "LIBRE", null);
+                                    turnoSlotDTO = new TurnoSlotDTO(finalFecha, finalSlotStart, finalSlotEnd, cancha.getNombre(), deporteCancha, "LIBRE", null);
                                 }
 
-                                turnosList.add(turnoDTO);
+                                turnosList.add(turnoSlotDTO);
                                 currentSlotStart = currentSlotEnd;
                             }
                         }

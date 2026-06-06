@@ -1,4 +1,4 @@
-package io.github.salepartido.api.domain.locales.validation;
+package io.github.salepartido.api.domain.locales.controller.validator;
 
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;

@@ -1,4 +1,4 @@
-package io.github.salepartido.api.unit.domain.locales.controller;
+package io.github.salepartido.api.etc;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.Mockito.*;
@@ -30,6 +30,9 @@ import io.github.salepartido.api.domain.locales.service.DisponibilidadService;
 class DisponibilidadControllerTest {
 
     private MockMvc mockMvc;
+
+    @Mock
+    private java.time.LocalDate dummyLocalDate; // just to make imports clean, unused
 
     @Mock
     private DisponibilidadService disponibilidadService;

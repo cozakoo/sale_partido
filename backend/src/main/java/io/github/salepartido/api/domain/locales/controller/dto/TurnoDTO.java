@@ -1,30 +1,26 @@
 package io.github.salepartido.api.domain.locales.controller.dto;
 
-import java.time.LocalDate;
-import java.time.LocalTime;
+import java.util.UUID;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-@Schema(description = "Turno de una cancha en una fecha específica")
+@Schema(description = "Turno ocupado asociado a un slot")
 public record TurnoDTO(
-    @Schema(description = "Fecha del turno", example = "2026-06-01")
-    LocalDate fecha,
+    @Schema(description = "UUID del turno")
+    UUID uuid,
 
-    @Schema(description = "Hora de inicio", example = "09:00")
-    LocalTime horaInicio,
+    @Schema(description = "Nombre del organizador", example = "Martín")
+    String nombreOrganizador,
 
-    @Schema(description = "Hora de fin", example = "10:00")
-    LocalTime horaFin,
-
-    @Schema(description = "Nombre de la cancha", example = "Cancha 1")
-    String espacioNombre,
-
-    @Schema(description = "Deporte (null si está libre)", example = "Fútbol")
+    @Schema(description = "Deporte", example = "Fútbol")
     String deporte,
 
-    @Schema(description = "Estado del turno", allowableValues = {"LIBRE", "OCUPADO"})
-    String estado,
+    @Schema(description = "Capacidad", example = "10")
+    Integer capacidad,
 
-    @Schema(description = "Reserva asociada (null si está libre)")
-    ReservaDTO reserva
+    @Schema(description = "Cantidad de participantes confirmados", example = "10")
+    Integer cantidadParticipantesConfirmados,
+
+    @Schema(description = "Estado del evento", example = "CONFIRMADO")
+    String estadoEvento
 ) {}

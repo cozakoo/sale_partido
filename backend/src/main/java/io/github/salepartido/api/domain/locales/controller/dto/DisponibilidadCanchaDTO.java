@@ -14,5 +14,5 @@ public record DisponibilidadCanchaDTO(
     String canchaNombre,
 
     @Schema(description = "Lista de turnos generados")
-    List<TurnoDTO> turnos
+    List<TurnoSlotDTO> turnos
 ) {}

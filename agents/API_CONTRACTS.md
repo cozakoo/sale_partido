@@ -14,7 +14,6 @@ Lista todos los locales. Soporta filtros opcionales por query parameters.
 
 **Query params (opcionales):**
 - `ubicacion` (String): Búsqueda parcial de texto en la dirección o nombre de localidad.
-- `zona` (String): Búsqueda parcial de texto en la dirección o nombre de localidad.
 - `fecha` (String): Búsqueda por fecha (ej: `"hoy"`, `"mañana"` o fecha ISO `"YYYY-MM-DD"`).
 - `tipoDeporte` (String): Nombre del deporte (ej: `"Fútbol"`).
 - `horarioDesde` (String): Horario de inicio (ej: `"08:00"` o `"08:00 hs"`).
@@ -234,7 +233,7 @@ Obtiene la disponibilidad (turnos libres y ocupados) de todas las canchas de un 
         "espacioNombre": "Cancha 1",
         "deporte": null,
         "estado": "LIBRE",
-        "reserva": null
+        "turno": null
       },
       {
         "fecha": "2026-06-01",
@@ -243,7 +242,7 @@ Obtiene la disponibilidad (turnos libres y ocupados) de todas las canchas de un 
         "espacioNombre": "Cancha 1",
         "deporte": "Fútbol",
         "estado": "OCUPADO",
-        "reserva": {
+        "turno": {
           "uuid": "770e8400-e29b-41d4-a716-446655440002",
           "nombreOrganizador": "Juan Pérez",
           "deporte": "Fútbol",

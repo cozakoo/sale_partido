@@ -1,33 +1,33 @@
-<div class="turno-row" (click)="turno().reserva && toggleDetalle.emit()" [class.clickable]="turno().reserva">
+<div class="turno-row" (click)="turno().turno && toggleDetalle.emit()" [class.clickable]="turno().turno">
   <span class="time">{{ turno().horaInicio }} – {{ turno().horaFin }}</span>
   <span class="dot" [class]="turno().estado"></span>
   <div class="turno-info">
     <div class="turno-main">{{ turno().deporte }} · {{ turno().espacioNombre }}</div>
-    @if (turno().reserva) {
+    @if (turno().turno) {
       <div class="turno-sub">
-        Org: {{ turno().reserva!.organizadorNombre }} ·
-        {{ turno().reserva!.cantidadConfirmados }}/{{ turno().reserva!.capacidad}} confirmados
+        Org: {{ turno().turno!.organizadorNombre }} ·
+        {{ turno().turno!.cantidadConfirmados }}/{{ turno().turno!.capacidad}} confirmados
       </div>
     }
   </div>
   <span class="badge" [class]="turno().estado">{{ turno().estado }}</span>
-  <span class="chevron" [class.open]="abierto()" [style.visibility]="turno().reserva ? 'visible' : 'hidden'">›</span>
+  <span class="chevron" [class.open]="abierto()" [style.visibility]="turno().turno ? 'visible' : 'hidden'">›</span>
 </div>
 
-@if (turno().reserva) {
+@if (turno().turno) {
   <div class="detalle" [class.open]="abierto()">
     <div class="detalle-grid">
       <div class="detalle-item">
         <span class="detalle-label">organizador</span>
-        <span class="detalle-valor">{{ turno().reserva!.organizadorNombre }}</span>
+        <span class="detalle-valor">{{ turno().turno!.organizadorNombre }}</span>
       </div>
       <div class="detalle-item">
         <span class="detalle-label">estado evento</span>
-        <span class="detalle-valor">{{ turno().reserva!.estadoEvento }}</span>
+        <span class="detalle-valor">{{ turno().turno!.estadoEvento }}</span>
       </div>
       <div class="detalle-item">
         <span class="detalle-label">confirmados</span>
-        <span class="detalle-valor">{{ turno().reserva!.cantidadConfirmados }} / {{ turno().reserva!.capacidad }}</span>
+        <span class="detalle-valor">{{ turno().turno!.cantidadConfirmados }} / {{ turno().turno!.capacidad }}</span>
       </div>
       <div class="detalle-item">
         <span class="detalle-label">horario</span>
