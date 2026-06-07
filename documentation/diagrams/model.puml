@@ -63,21 +63,7 @@ class Turno {
     - fecha: LocalDate
     - horaInicio: LocalTime
     - horaFin: LocalTime
-    - nombreOrganizador: String
-    - deporte: String
-    - cantidadParticipantesConfirmados: int
-    - estadoEvento: String
 }
-
-note right of Turno
-  Los campos nombreOrganizador, deporte,
-  cantidadParticipantesConfirmados y estadoEvento
-  son campos legacy incorporados antes de que existiera
-  Evento como entidad propia.
-  El modelo objetivo los migra a Evento.
-  Se conservan en Turno para compatibilidad
-  con el código existente hasta completar la migración.
-end note
 
 
 ' =====================================================
