@@ -63,7 +63,7 @@ Comandos / Opciones:
   3, load-staging            Carga el archivo scripts/sql/staging.sql
   4, seed                    Pobla la base de datos con datos aleatorios (GET /dev/seed-db)
   5, dump                    Exporta los datos actuales de la DB a scripts/sql/staging.sql
-  6, restart                 Recrear las tablas (reinicia el contenedor del backend)
+  6, restart                 Crear las tablas (reinicia el contenedor del backend)
 
   [ Acciones completas ]
   7, drop-recreate           Ejecuta drop.sql y reinicia el contenedor del backend (Requiere confirmación)
@@ -230,6 +230,12 @@ async function runOption(option) {
 
     case '6':
     case 'restart':
+      warn('¡ATENCIÓN! Este comando reiniciará el contenedor del backend (Spring Boot).');
+      const confirmed6 = await askConfirmation('¿Está seguro de que desea continuar? (y/yes para confirmar, cualquier otra tecla para cancelar): ');
+      if (!confirmed6) {
+        info('Operación cancelada por el usuario.');
+        process.exit(0);
+      }
       restartBackend();
       break;
 
@@ -237,8 +243,8 @@ async function runOption(option) {
     case '7':
     case 'drop-recreate':
       warn('¡ATENCIÓN! Este comando ejecutará "drop.sql" y reiniciará el contenedor del backend (Spring Boot).');
-      const confirmed = await askConfirmation('¿Está seguro de que desea continuar? (y/yes para confirmar, cualquier otra tecla para cancelar): ');
-      if (!confirmed) {
+      const confirmed7 = await askConfirmation('¿Está seguro de que desea continuar? (y/yes para confirmar, cualquier otra tecla para cancelar): ');
+      if (!confirmed7) {
         info('Operación cancelada por el usuario.');
         process.exit(0);
       }
@@ -290,7 +296,7 @@ ${colors.yellow}[ Acciones Granulares / Simples ]${colors.reset}
   ${colors.green}3.${colors.reset} Cargar datos de staging (staging)
   ${colors.green}4.${colors.reset} Poblar base de datos con datos aleatorios (API GET /dev/seed-db)
   ${colors.green}5.${colors.reset} Exportar datos actuales al archivo de staging (dump)
-  ${colors.green}6.${colors.reset} Recrear tablas (reinicia el contenedor del backend)
+  ${colors.green}6.${colors.reset} Crear tablas (reinicia el contenedor del backend)
 
 ${colors.yellow}[ Acciones Compuestas / Flujos ]${colors.reset}
   ${colors.green}7.${colors.reset} Dropear todas las tablas (drop) y reiniciar contenedor del backend
