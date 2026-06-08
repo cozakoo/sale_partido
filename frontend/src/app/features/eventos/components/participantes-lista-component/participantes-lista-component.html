@@ -1,0 +1,24 @@
+<div class="card participantes">
+  <div class="card-body">
+
+    <h6 class="participantes__titulo">
+      Participantes confirmados ({{ participantes().length }})
+    </h6>
+
+    @if (participantes().length === 0) {
+      <p class="participantes__vacio">
+        Todavía no hay participantes confirmados.
+      </p>
+    } @else {
+      <ul class="participantes__lista">
+        @for (p of participantes(); track p.id) {
+          <li class="participantes__item">
+            <i class="bi bi-person-circle" aria-hidden="true"></i>
+            {{ p.nombre }}
+          </li>
+        }
+      </ul>
+    }
+
+  </div>
+</div>

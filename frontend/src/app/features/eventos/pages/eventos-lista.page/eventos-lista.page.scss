@@ -1,0 +1,14 @@
+.evento-card {
+  cursor: pointer;
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+  border: 1px solid var(--bs-border-color);
+
+  &:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
