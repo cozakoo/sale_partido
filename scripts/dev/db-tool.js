@@ -65,7 +65,7 @@ Comandos / Opciones:
   5, dump                    Exporta los datos actuales de la DB a scripts/sql/staging.sql
   6, restart                 Crear las tablas (reinicia el contenedor del backend)
 
-  [ Acciones completas ]
+  [ Acciones compuestas ]
   7, drop-recreate           Ejecuta drop.sql y reinicia el contenedor del backend (Requiere confirmación)
   8, truncate-load-staging   Limpia las tablas y carga scripts/sql/staging.sql
   9, truncate-seed           Limpia las tablas y pobla con datos aleatorios
@@ -290,7 +290,7 @@ ${colors.blue}================================================================${
 ${colors.cyan}                  GESTOR DE BASE DE DATOS (DEV)                 ${colors.reset}
 ${colors.blue}================================================================${colors.reset}
 
-${colors.yellow}[ Acciones Granulares / Simples ]${colors.reset}
+${colors.yellow}[ Acciones simples ]${colors.reset}
   ${colors.green}1.${colors.reset} Dropear todas las tablas (drop)
   ${colors.green}2.${colors.reset} Limpiar datos de todas las tablas (truncate)
   ${colors.green}3.${colors.reset} Cargar datos de staging (staging)
@@ -298,7 +298,7 @@ ${colors.yellow}[ Acciones Granulares / Simples ]${colors.reset}
   ${colors.green}5.${colors.reset} Exportar datos actuales al archivo de staging (dump)
   ${colors.green}6.${colors.reset} Crear tablas (reinicia el contenedor del backend)
 
-${colors.yellow}[ Acciones Compuestas / Flujos ]${colors.reset}
+${colors.yellow}[ Acciones compuestas ]${colors.reset}
   ${colors.green}7.${colors.reset} Dropear todas las tablas (drop) y reiniciar contenedor del backend
   ${colors.green}8.${colors.reset} Limpiar datos de todas las tablas y cargar staging (truncate + staging)
   ${colors.green}9.${colors.reset} Limpiar datos de todas las tablas y poblar con datos aleatorios (truncate + seed-db)
