@@ -114,6 +114,9 @@ note right of Usuario
   generaría conflictos con el modelo de ranking futuro.
 end note
 
+' Ahora mismo no se esta usando ni es necesario
+' Probablemente se revisará recién cuando se necesite
+' login o autorización de acciones o visibilidad.
 enum Rol {
     DEPORTISTA
     PROPIETARIO
@@ -126,6 +129,7 @@ class Evento {
     - cupoMinimo : int
     - cupoMaximo : int
     - estado : EstadoEvento
+    - limiteCancelacionParticipacion : Duration
 }
 
 note right of Evento
@@ -139,6 +143,9 @@ note right of Evento
   Evento referencia un Turno existente para obtener
   fecha, hora y cancha, evitando duplicar datos de scheduling.
   Un Turno puede tener a lo sumo un Evento activo.
+
+  El límite de cancelación de participación representa cuánto tiempo
+  antes del evento puede un participante confirmado cancelar su participación.
 end note
 
 enum TipoEvento {
@@ -147,12 +154,24 @@ enum TipoEvento {
     CON_CONFIRMACION
 }
 
+note right of TipoEvento
+  Representa el Tipo de Ingreso 
+  que puede tener un evento
+end note
+
 enum EstadoEvento {
     DISPONIBLE
     COMPLETO
     CANCELADO
     FINALIZADO
 }
+
+note top of EstadoEvento
+  DISPONIBLE: el evento está en espera de participantes
+  COMPLETO: el evento puede llevarse a cabo (su cupo mínimo fue alcanzado)
+  CANCELADO: el evento no se llevará a cabo 
+  FINALIZADO: el evento ya se llevó a cabo
+end note
 
 class Participacion {
     - uuid : UUID
@@ -162,7 +181,7 @@ class Participacion {
     - asistio : Boolean
 }
 
-note right of Participacion
+note bottom of Participacion
   esInvitacion=true: el organizador invitó al participante.
   esInvitacion=false: el participante solicitó unirse.
 
@@ -182,6 +201,12 @@ enum EstadoParticipacion {
     CANCELADO
 }
 
+note top of EstadoParticipacion
+  DISPONIBLE: el evento está en espera de participantes
+  COMPLETO: el evento puede llevarse a cabo (su cupo mínimo fue alcanzado)
+  CANCELADO: el evento no se llevará a cabo 
+  FINALIZADO: el evento ya se llevó a cabo
+end note
 
 ' =====================================================
 ' Relaciones — E1–E4
