@@ -27,13 +27,8 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
-      - name: Build and test backend (dev/pre_prod)
-        if: github.ref != 'refs/heads/main'
+      - name: Build and test backend
         run: cd backend && ./mvnw verify --no-transfer-progress
-
-      - name: Build backend without tests (main - canary deployment)
-        if: github.ref == 'refs/heads/main'
-        run: cd backend && ./mvnw clean package -DskipTests --no-transfer-progress
 
       - name: Copy dependencies for SonarQube
         run: cd backend && ./mvnw dependency:copy-dependencies -DincludeScope=compile --no-transfer-progress

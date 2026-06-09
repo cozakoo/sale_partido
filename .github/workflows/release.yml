@@ -61,8 +61,8 @@ jobs:
               echo "Reseteando a v0.1.0"
               NEW_VERSION="v0.1.0"
             else
-              # Detectar si hay commits feat: o solo fix:
-              if git log ${LAST_TAG}..HEAD --oneline | grep -q "^[a-f0-9]* feat("; then
+              # Detectar si hay commits feat: o solo fix: (con o sin scope)
+              if git log ${LAST_TAG}..HEAD --oneline | grep -qE "^[a-f0-9]+ feat(\(|:)"; then
                 # Bump MINOR
                 MINOR=$((MINOR + 1))
                 PATCH=0
@@ -77,6 +77,13 @@ jobs:
 
           echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
           echo "Next version: $NEW_VERSION"
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven'
 
       - name: Set up Node (para usar script)
         uses: actions/setup-node@v4
@@ -96,19 +103,19 @@ jobs:
           fi
 
           echo "### ✨ Features" > /tmp/changelog_section.txt
-          echo "$COMMITS" | grep "^[a-f0-9]* feat(" | sed "s/^[a-f0-9]* feat(\([^)]*\)): /- /" >> /tmp/changelog_section.txt || true
+          echo "$COMMITS" | grep -E "^[a-f0-9]+ feat(\(|:)" | sed -E 's/^[a-f0-9]+ feat(\([^)]*\))?: /- /' >> /tmp/changelog_section.txt || true
 
           echo "" >> /tmp/changelog_section.txt
           echo "### 🐛 Bug Fixes" >> /tmp/changelog_section.txt
-          echo "$COMMITS" | grep "^[a-f0-9]* fix(" | sed "s/^[a-f0-9]* fix(\([^)]*\)): /- /" >> /tmp/changelog_section.txt || true
+          echo "$COMMITS" | grep -E "^[a-f0-9]+ fix(\(|:)" | sed -E 's/^[a-f0-9]+ fix(\([^)]*\))?: /- /' >> /tmp/changelog_section.txt || true
 
           echo "" >> /tmp/changelog_section.txt
           echo "### 📖 Documentation" >> /tmp/changelog_section.txt
-          echo "$COMMITS" | grep "^[a-f0-9]* docs(" | sed "s/^[a-f0-9]* docs(\([^)]*\)): /- /" >> /tmp/changelog_section.txt || true
+          echo "$COMMITS" | grep -E "^[a-f0-9]+ docs(\(|:)" | sed -E 's/^[a-f0-9]+ docs(\([^)]*\))?: /- /' >> /tmp/changelog_section.txt || true
 
           echo "" >> /tmp/changelog_section.txt
           echo "### 🔧 Other Changes" >> /tmp/changelog_section.txt
-          echo "$COMMITS" | grep -v "^[a-f0-9]* \(feat\|fix\|docs\)(" | head -5 | sed "s/^[a-f0-9]* /- /" >> /tmp/changelog_section.txt || true
+          echo "$COMMITS" | grep -vE "^[a-f0-9]+ (feat|fix|docs)(\(|:)" | head -5 | sed -E 's/^[a-f0-9]+ /- /' >> /tmp/changelog_section.txt || true
 
           cat /tmp/changelog_section.txt
 
@@ -137,28 +144,19 @@ jobs:
           prerelease: false
           allowUpdates: true
 
-      - name: Update pom.xml version
+      - name: Bump versions
         run: |
           NEW_VERSION="${{ steps.version.outputs.new_version }}"
           VERSION_NUMBER="${NEW_VERSION#v}"
 
-          # Actualizar version en pom.xml
-          sed -i "s/<version>.*<\/version>/<version>$VERSION_NUMBER<\/version>/g" backend/pom.xml
-
-          git add backend/pom.xml
-          git commit -m "chore(release): bump version to $VERSION_NUMBER" || true
-          git push || true
-
-      - name: Update package.json version
-        run: |
-          NEW_VERSION="${{ steps.version.outputs.new_version }}"
-          VERSION_NUMBER="${NEW_VERSION#v}"
+          # Actualizar version en pom.xml usando el plugin de Maven (seguro: solo toca <version> del proyecto)
+          cd backend && ./mvnw versions:set -DnewVersion=$VERSION_NUMBER -DgenerateBackupPoms=false && cd ..
 
           # Actualizar version en frontend/package.json
           sed -i "s/\"version\": \".*\"/\"version\": \"$VERSION_NUMBER\"/g" frontend/package.json
 
-          git add frontend/package.json
-          git commit -m "chore(release): bump frontend version to $VERSION_NUMBER" || true
+          git add backend/pom.xml frontend/package.json
+          git commit -m "chore(release): bump version to $VERSION_NUMBER" || true
           git push || true
 
       - name: Summary
