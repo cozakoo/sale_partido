@@ -1,0 +1,66 @@
+<div class="card evento-info" data-testid="evento-detalle">
+  <div class="card-body">
+
+    <div class="evento-info__header">
+      <span class="badge bg-primary" data-testid="evento-deporte">
+        {{ evento().deporte }}
+      </span>
+      <h5 class="evento-info__titulo">{{ evento().titulo }}</h5>
+    </div>
+
+    <ul class="evento-info__lista">
+
+      <li class="evento-info__item">
+        <i class="bi bi-calendar-event" aria-hidden="true"></i>
+        <span>
+          <span data-testid="evento-fecha">{{ evento().fecha }}</span>
+          —
+          <span data-testid="evento-hora">{{ evento().hora }}hs</span>
+        </span>
+      </li>
+
+      <li class="evento-info__item">
+        <i class="bi bi-geo-alt" aria-hidden="true"></i>
+        <span>
+          <strong data-testid="evento-local">{{ evento().local }}</strong>
+          · <span data-testid="evento-direccion">{{ evento().direccion }}</span>
+        </span>
+      </li>
+
+      <li class="evento-info__item">
+        <i class="bi bi-trophy" aria-hidden="true"></i>
+        <span>
+          Nivel requerido:
+          <strong data-testid="evento-nivel-requerido">{{ evento().nivelRequerido }}</strong>
+        </span>
+      </li>
+
+      <li class="evento-info__item">
+        <i class="bi bi-people" aria-hidden="true"></i>
+        <span>
+          <span data-testid="evento-participantes-confirmados">
+            {{ evento().participantesConfirmados.length }}
+          </span>/<span data-testid="evento-cupo-maximo">{{ evento().cupoMaximo }}</span>
+          confirmados
+          <span class="text-muted">
+            (mín. <span data-testid="evento-cupo-minimo">{{ evento().cupoMinimo }}</span>)
+          </span>
+        </span>
+      </li>
+
+      <li class="evento-info__item">
+        <i class="bi bi-door-open" aria-hidden="true"></i>
+        <span>
+          Ingreso:
+          <strong data-testid="evento-tipo-ingreso">{{ evento().tipoIngreso }}</strong>
+        </span>
+      </li>
+
+    </ul>
+
+    @if (evento().descripcion) {
+      <p class="evento-info__descripcion">{{ evento().descripcion }}</p>
+    }
+
+  </div>
+</div>
