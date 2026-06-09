@@ -1568,6 +1568,70 @@ INSERT INTO public.turno VALUES ('f447aa49-daaa-4330-afd3-69061465ca0c', 6, 'Vó
 
 
 --
+-- Data for Name: usuario; Type: TABLE DATA; Schema: public; Owner: admin
+--
+
+INSERT INTO public.usuario VALUES ('f1000001-0000-4000-a000-000000000001', 'Carlos Gómez', 'DEPORTISTA');
+INSERT INTO public.usuario VALUES ('f1000001-0000-4000-a000-000000000002', 'Lionel Messi', 'DEPORTISTA');
+INSERT INTO public.usuario VALUES ('f1000001-0000-4000-a000-000000000003', 'María Becerra', 'DEPORTISTA');
+INSERT INTO public.usuario VALUES ('f1000001-0000-4000-a000-000000000004', 'Diego Silva', 'DEPORTISTA');
+INSERT INTO public.usuario VALUES ('f1000001-0000-4000-a000-000000000005', 'Martín Rodríguez', 'PROPIETARIO');
+
+
+--
+-- Data for Name: nivel_deporte; Type: TABLE DATA; Schema: public; Owner: admin
+--
+
+INSERT INTO public.nivel_deporte VALUES ('f2000001-0001-4001-a001-000000000001', 'Nivel de iniciación al fútbol.', 'Básico', 1, 'b076afde-1098-48a1-9909-0b9f083be2b7');
+INSERT INTO public.nivel_deporte VALUES ('f2000001-0001-4001-a001-000000000002', 'Experiencia intermedia en fútbol.', 'Intermedio', 2, 'b076afde-1098-48a1-9909-0b9f083be2b7');
+INSERT INTO public.nivel_deporte VALUES ('f2000001-0001-4001-a001-000000000003', 'Alto nivel competitivo en fútbol.', 'Avanzado', 3, 'b076afde-1098-48a1-9909-0b9f083be2b7');
+INSERT INTO public.nivel_deporte VALUES ('f2000002-0002-4002-a002-000000000001', 'Nivel de iniciación al tenis.', 'Básico', 1, '5d697726-49cf-43dd-8555-9f76bbe57486');
+INSERT INTO public.nivel_deporte VALUES ('f2000002-0002-4002-a002-000000000002', 'Experiencia intermedia en tenis.', 'Intermedio', 2, '5d697726-49cf-43dd-8555-9f76bbe57486');
+INSERT INTO public.nivel_deporte VALUES ('f2000002-0002-4002-a002-000000000003', 'Alto nivel competitivo en tenis.', 'Avanzado', 3, '5d697726-49cf-43dd-8555-9f76bbe57486');
+INSERT INTO public.nivel_deporte VALUES ('f2000003-0003-4003-a003-000000000001', '8.ª categoría del ranking de pádel.', '8va', 1, '9b625967-eaaf-4fcf-a658-8eb36185038e');
+INSERT INTO public.nivel_deporte VALUES ('f2000003-0003-4003-a003-000000000002', '7.ª categoría del ranking de pádel.', '7ma', 2, '9b625967-eaaf-4fcf-a658-8eb36185038e');
+INSERT INTO public.nivel_deporte VALUES ('f2000003-0003-4003-a003-000000000003', '6.ª categoría del ranking de pádel.', '6ta', 3, '9b625967-eaaf-4fcf-a658-8eb36185038e');
+INSERT INTO public.nivel_deporte VALUES ('f2000003-0003-4003-a003-000000000004', '5.ª categoría del ranking de pádel.', '5ta', 4, '9b625967-eaaf-4fcf-a658-8eb36185038e');
+INSERT INTO public.nivel_deporte VALUES ('f2000003-0003-4003-a003-000000000005', '4.ª categoría del ranking de pádel.', '4ta', 5, '9b625967-eaaf-4fcf-a658-8eb36185038e');
+INSERT INTO public.nivel_deporte VALUES ('f2000003-0003-4003-a003-000000000006', '3.ª categoría del ranking de pádel.', '3ra', 6, '9b625967-eaaf-4fcf-a658-8eb36185038e');
+INSERT INTO public.nivel_deporte VALUES ('f2000003-0003-4003-a003-000000000007', '2.ª categoría del ranking de pádel.', '2da', 7, '9b625967-eaaf-4fcf-a658-8eb36185038e');
+INSERT INTO public.nivel_deporte VALUES ('f2000003-0003-4003-a003-000000000008', '1.ª categoría del ranking de pádel.', '1ra', 8, '9b625967-eaaf-4fcf-a658-8eb36185038e');
+INSERT INTO public.nivel_deporte VALUES ('f2000004-0004-4004-a004-000000000001', 'Nivel de iniciación al vóley.', 'Básico', 1, '0f1c9c52-ad19-4146-b9ee-04e0bb186ed8');
+INSERT INTO public.nivel_deporte VALUES ('f2000004-0004-4004-a004-000000000002', 'Experiencia intermedia en vóley.', 'Intermedio', 2, '0f1c9c52-ad19-4146-b9ee-04e0bb186ed8');
+INSERT INTO public.nivel_deporte VALUES ('f2000004-0004-4004-a004-000000000003', 'Alto nivel competitivo en vóley.', 'Avanzado', 3, '0f1c9c52-ad19-4146-b9ee-04e0bb186ed8');
+INSERT INTO public.nivel_deporte VALUES ('f2000005-0005-4005-a005-000000000001', 'Nivel de iniciación al básquet.', 'Básico', 1, '8e318c98-01df-4fdd-b9bc-54748683a1b7');
+INSERT INTO public.nivel_deporte VALUES ('f2000005-0005-4005-a005-000000000002', 'Experiencia intermedia en básquet.', 'Intermedio', 2, '8e318c98-01df-4fdd-b9bc-54748683a1b7');
+INSERT INTO public.nivel_deporte VALUES ('f2000005-0005-4005-a005-000000000003', 'Alto nivel competitivo en básquet.', 'Avanzado', 3, '8e318c98-01df-4fdd-b9bc-54748683a1b7');
+
+
+--
+-- Data for Name: habilidad_jugador; Type: TABLE DATA; Schema: public; Owner: admin
+--
+
+INSERT INTO public.habilidad_jugador VALUES ('f3000001-0001-4001-a001-000000000001', 'b076afde-1098-48a1-9909-0b9f083be2b7', 'f2000001-0001-4001-a001-000000000003', 'f1000001-0000-4000-a000-000000000001');
+INSERT INTO public.habilidad_jugador VALUES ('f3000001-0001-4001-a001-000000000002', '0f1c9c52-ad19-4146-b9ee-04e0bb186ed8', 'f2000004-0004-4004-a004-000000000002', 'f1000001-0000-4000-a000-000000000001');
+INSERT INTO public.habilidad_jugador VALUES ('f3000001-0002-4001-a001-000000000001', 'b076afde-1098-48a1-9909-0b9f083be2b7', 'f2000001-0001-4001-a001-000000000003', 'f1000001-0000-4000-a000-000000000002');
+INSERT INTO public.habilidad_jugador VALUES ('f3000001-0002-4001-a001-000000000002', '9b625967-eaaf-4fcf-a658-8eb36185038e', 'f2000003-0003-4003-a003-000000000006', 'f1000001-0000-4000-a000-000000000002');
+INSERT INTO public.habilidad_jugador VALUES ('f3000001-0003-4001-a001-000000000001', '0f1c9c52-ad19-4146-b9ee-04e0bb186ed8', 'f2000004-0004-4004-a004-000000000003', 'f1000001-0000-4000-a000-000000000003');
+INSERT INTO public.habilidad_jugador VALUES ('f3000001-0003-4001-a001-000000000002', '8e318c98-01df-4fdd-b9bc-54748683a1b7', 'f2000005-0005-4005-a005-000000000002', 'f1000001-0000-4000-a000-000000000003');
+INSERT INTO public.habilidad_jugador VALUES ('f3000001-0004-4001-a001-000000000001', '9b625967-eaaf-4fcf-a658-8eb36185038e', 'f2000003-0003-4003-a003-000000000004', 'f1000001-0000-4000-a000-000000000004');
+INSERT INTO public.habilidad_jugador VALUES ('f3000001-0004-4001-a001-000000000002', '5d697726-49cf-43dd-8555-9f76bbe57486', 'f2000002-0002-4002-a002-000000000002', 'f1000001-0000-4000-a000-000000000004');
+INSERT INTO public.habilidad_jugador VALUES ('f3000001-0005-4001-a001-000000000001', 'b076afde-1098-48a1-9909-0b9f083be2b7', 'f2000001-0001-4001-a001-000000000001', 'f1000001-0000-4000-a000-000000000005');
+INSERT INTO public.habilidad_jugador VALUES ('f3000001-0005-4001-a001-000000000002', '8e318c98-01df-4fdd-b9bc-54748683a1b7', 'f2000005-0005-4005-a005-000000000001', 'f1000001-0000-4000-a000-000000000005');
+
+
+--
+-- Data for Name: evento; Type: TABLE DATA; Schema: public; Owner: admin
+--
+
+INSERT INTO public.evento VALUES ('f4000001-0001-4001-a001-000000000001', 8, 4, 'DISPONIBLE', 7200000000000, 'Partido de Vóley', 'ABIERTO', 'f2000004-0004-4004-a004-000000000002', 'f1000001-0000-4000-a000-000000000005', 'bf1cff2b-0d22-4a1a-8ec4-353668ceb755');
+INSERT INTO public.evento VALUES ('f4000001-0001-4001-a001-000000000002', 10, 10, 'DISPONIBLE', 3600000000000, 'Partido de Fútbol', 'ABIERTO', NULL, 'f1000001-0000-4000-a000-000000000005', '6772af5c-b46a-4fc1-885f-12040df9b3b7');
+INSERT INTO public.evento VALUES ('f4000001-0001-4001-a001-000000000003', 10, 10, 'COMPLETO', 86400000000000, 'Fútbol Competitivo', 'CON_CONFIRMACION', 'f2000001-0001-4001-a001-000000000003', 'f1000001-0000-4000-a000-000000000002', 'e8107102-650c-4958-ad78-3934d28d345e');
+INSERT INTO public.evento VALUES ('f4000001-0001-4001-a001-000000000004', 10, 5, 'DISPONIBLE', 3600000000000, 'Encuentro de Básquet', 'CERRADO', NULL, 'f1000001-0000-4000-a000-000000000005', 'a1cc0027-594c-48e2-bd00-d10e48120051');
+INSERT INTO public.evento VALUES ('f4000001-0001-4001-a001-000000000005', 4, 2, 'COMPLETO', 7200000000000, 'Paddle Abierto', 'ABIERTO', 'f2000003-0003-4003-a003-000000000005', 'f1000001-0000-4000-a000-000000000005', '7e3f7a60-cd3d-483d-8599-92d44ba9b371');
+
+
+--
 -- PostgreSQL database dump complete
 --
 
