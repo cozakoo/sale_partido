@@ -1,3 +1,15 @@
+<!-- Encabezado de documentación -->
+<div align="center">
+  <img src="../assets/logo.png" alt="Logo" width="140" />
+
+  <p>
+    <img src="https://img.shields.io/badge/build-passing-brightgreen" alt="build" />
+    <img src="https://img.shields.io/badge/coverage-80%25-yellow" alt="coverage" />
+  </p>
+</div>
+
+---
+
 En español sólo términos propios del dominio del problema (Locales, Canchas, Usuarios, Invitaciones, etc.)
 
 En inglés todo lo demás (filter, view, get, save, generate, from, etc.)

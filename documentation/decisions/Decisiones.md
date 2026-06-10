@@ -1,3 +1,15 @@
+<!-- Encabezado de documentación -->
+<div align="center">
+   <img src="../assets/logo.png" alt="Logo" width="140" />
+
+   <p>
+      <img src="https://img.shields.io/badge/build-passing-brightgreen" alt="build" />
+      <img src="https://img.shields.io/badge/coverage-80%25-yellow" alt="coverage" />
+   </p>
+</div>
+
+---
+
   
 **Arquitectura**   
 Monolito modular 
@@ -23,7 +35,7 @@ Docker \+ Kubernetes
 Github Actions
 
 **Testing**   
-Playwright (a ver en 2do sprint)  
+Playwright   
 Typescript   
 Test unitarios con Springboot
 
@@ -37,8 +49,8 @@ SCRUMBAN
 
 - **Análisis**  
 - **Desarrollo**  
-- **Test**  
-- **Prod**
+- **Verificacion (Test)**  
+- **Despliegue (Produccion)**
 
 **Flujo de ambientes**
 
@@ -46,8 +58,8 @@ Una rama por h.u
 dev local \-\> pr a dev origin \-\> ci cd \-\> testing actualizado con cambios nuevos \-\>lista para testear \-\> ejecutar tests ( pruebas de integración y/o pruebas de usuario y/o pruebas automatizadas) \-\>\* pruebas manuales \-\> \* testeada \-\> pr preproduccion  para visto bueno del cliente (demo-review)-\>pr a produccion con mas personas involucradas
 
 **IA:**  
-Gemini PRO para estudiantes  
-Martin tiene claude
+Gemini PRO para estudiantes (Fabian / Ariel)  
+Claude (Martin)
 
 **Tareas**
 

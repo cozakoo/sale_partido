@@ -1,3 +1,15 @@
+<!-- Encabezado de documentación -->
+<div align="center">
+  <img src="../assets/logo.png" alt="Logo" width="140" />
+
+  <p>
+    <img src="https://img.shields.io/badge/build-passing-brightgreen" alt="build" />
+    <img src="https://img.shields.io/badge/coverage-80%25-yellow" alt="coverage" />
+  </p>
+</div>
+
+---
+
 # Stack Técnico — Detallado
 
 **Versiones exactas y justificación de cada componente.**
@@ -17,11 +29,8 @@
 | **Spring Data JPA** | 3.x | Hibernate 6, modern ORM |
 | **JUnit 5** | 5.9+ | Parameterized tests, composable annotations |
 | **Mockito** | 5.x+ | Modern mocking, good Spring integration |
-| **TestContainers** | 1.19+ | Real DB testing, Docker integration |
+| **TestContainers** | 1.19+ | Real DB testing, Docker integration (Pendiente de implementacion) |
 | **JaCoCo** | 0.8.x | Coverage reporting, Maven plugin |
-| **SonarQube** | 9.x | Code quality gates |
-| **Checkstyle** | 10.x | Code style enforcement |
-
 ---
 
 ## Frontend

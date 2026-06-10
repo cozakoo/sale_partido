@@ -1,3 +1,15 @@
+<!-- Encabezado de documentación -->
+<div align="center">
+    <img src="../assets/logo.png" alt="Logo" width="140" />
+
+    <p>
+        <img src="https://img.shields.io/badge/build-passing-brightgreen" alt="build" />
+        <img src="https://img.shields.io/badge/coverage-80%25-yellow" alt="coverage" />
+    </p>
+</div>
+
+---
+
 # GitHub Projects — Gestión de Historias de Usuario
 
 **Cómo organizamos el trabajo y cómo las IAs deben consultarlo.**
@@ -10,9 +22,9 @@
 
 Este tablero contiene:
 - **Historias de Usuario (HUs)** — Requisitos funcionales
-- **Épicas (E1-E9)** — Features grandes
+- **Tareas por cada HU** - Tareas tecnicas y funcionales 
 - **Tasks** — Trabajo técnico
-- **Estados:** Backlog → Todo → In Progress → In Review → Done
+- **Estados de la HU:** Analisis → En desarrollo → Verifcacion → Despligue → Terminado
 
 ---
 
