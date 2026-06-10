@@ -80,6 +80,11 @@ public class EventoService {
         return eventoRepository.save(evento);
     }
 
+    public Evento getEvento(UUID eventoId) {
+        return eventoRepository.findById(eventoId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Evento no encontrado"));
+    }
+
     /* --- Lookups --- */
 
     private Turno buscarTurno(UUID turnoId) {
