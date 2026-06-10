@@ -11,8 +11,8 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import {
-  EstadoInvitacion,
   EventoDetalle,
+  ParticipacionResponse,
   ResultadoAccion,
   UsuarioSesion,
 } from '../../models/evento-detalle.model';
@@ -29,7 +29,7 @@ export class AccionParticipacionComponent {
   // ── Inputs ─────────────────────────────────────────────────────────────────
   evento = input.required<EventoDetalle>();
   usuario = input.required<UsuarioSesion>();
-  invitacion = input.required<EstadoInvitacion>();
+  participacion = input<ParticipacionResponse | null>(null);
   yaParticipa = input<boolean>(false);
   cargando = input<boolean>(false);
 
@@ -48,26 +48,26 @@ export class AccionParticipacionComponent {
   // ── Computed ───────────────────────────────────────────────────────────────
 
   cupoLleno = computed(
-    () => this.evento().participantesConfirmados.length >= this.evento().cupoMaximo
+    () => this.evento().participantes.length >= this.evento().cupoMaximo
   );
 
   nivelIncompatible = computed(() => {
     const requerido = this.evento().nivelRequerido;
-    if (requerido === 'CUALQUIERA') return false;
-    return this.usuario().nivelHabilidad !== requerido;
+    if (!requerido) return false;
+    return this.usuario().nivelHabilidad !== requerido.nombre;
   });
 
   invitacionPendiente = computed(
     () =>
-      this.invitacion().tieneInvitacion &&
-      this.invitacion().estadoRespuesta === 'PENDIENTE'
+      this.participacion()?.esInvitacion === true &&
+      this.participacion()?.estado === 'PENDIENTE'
   );
 
   invitacionYaRespondida = computed(
     () =>
-      this.invitacion().tieneInvitacion &&
-      !!this.invitacion().estadoRespuesta &&
-      this.invitacion().estadoRespuesta !== 'PENDIENTE'
+      this.participacion()?.esInvitacion === true &&
+      !!this.participacion()?.estado &&
+      this.participacion()?.estado !== 'PENDIENTE'
   );
 
   mostrarBotonesInvitacion = computed(
@@ -80,22 +80,24 @@ export class AccionParticipacionComponent {
 
   mostrarBotonUnirse = computed(
     () =>
-      this.evento().tipoIngreso === 'ABIERTO' &&
+      this.evento().tipo === 'ABIERTO' &&
       !this.invitacionPendiente() &&
-      !this.estadoParticipacionTexto()
+      !this.estadoParticipacionTexto() &&
+      !this.yaParticipa()
   );
 
   mostrarBotonSolicitar = computed(
     () =>
-      this.evento().tipoIngreso === 'CON_CONFIRMACION' &&
+      this.evento().tipo === 'CON_CONFIRMACION' &&
       !this.invitacionPendiente() &&
-      !this.estadoParticipacionTexto()
+      !this.estadoParticipacionTexto() &&
+      !this.yaParticipa()
   );
 
   mostrarMensajeCerrado = computed(
     () =>
-      this.evento().tipoIngreso === 'CERRADO' &&
-      !this.invitacion().tieneInvitacion
+      this.evento().tipo === 'CERRADO' &&
+      (!this.participacion() || !this.participacion()?.esInvitacion)
   );
 
   // ── Handlers ───────────────────────────────────────────────────────────────
@@ -110,12 +112,17 @@ export class AccionParticipacionComponent {
       return;
     }
     this.service
-      .unirse(this.evento().id)
+      .unirse(this.evento().uuid, this.usuario().uuid)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((resultado) => {
         this.estadoParticipacionTexto.set('Confirmado');
         this.mensajeActivo.set('mensaje-confirmacion-participacion');
-        this.accionEjecutada.emit(resultado);
+        this.accionEjecutada.emit({
+          exito: true,
+          nuevoEstadoParticipacion: 'CONFIRMADO',
+          mensaje: 'Tu participación fue confirmada',
+          mensajeTestid: 'mensaje-confirmacion-participacion',
+        });
       });
   }
 
@@ -125,35 +132,55 @@ export class AccionParticipacionComponent {
       return;
     }
     this.service
-      .solicitarParticipacion(this.evento().id)
+      .solicitarParticipacion(this.evento().uuid, this.usuario().uuid)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((resultado) => {
         this.estadoParticipacionTexto.set('Pendiente');
         this.mensajeActivo.set('mensaje-confirmacion-solicitud');
-        this.accionEjecutada.emit(resultado);
+        this.accionEjecutada.emit({
+          exito: true,
+          nuevoEstadoParticipacion: 'PENDIENTE',
+          mensaje: 'Tu solicitud fue enviada',
+          mensajeTestid: 'mensaje-confirmacion-solicitud',
+        });
       });
   }
 
   onAceptarInvitacion(): void {
+    const partUuid = this.participacion()?.uuid;
+    if (!partUuid) return;
     this.service
-      .aceptarInvitacion(this.evento().id)
+      .responderInvitacion(partUuid, 'CONFIRMADO')
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((resultado) => {
         this.estadoParticipacionTexto.set('Confirmado');
         this.estadoInvitacionTexto.set('Aceptada');
         this.mensajeActivo.set('mensaje-confirmacion-participacion');
-        this.accionEjecutada.emit(resultado);
+        this.accionEjecutada.emit({
+          exito: true,
+          nuevoEstadoParticipacion: 'CONFIRMADO',
+          nuevoEstadoInvitacion: 'CONFIRMADO',
+          mensaje: 'Tu participación fue confirmada',
+          mensajeTestid: 'mensaje-confirmacion-participacion',
+        });
       });
   }
 
   onRechazarInvitacion(): void {
+    const partUuid = this.participacion()?.uuid;
+    if (!partUuid) return;
     this.service
-      .rechazarInvitacion(this.evento().id)
+      .responderInvitacion(partUuid, 'RECHAZADO')
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((resultado) => {
         this.estadoInvitacionTexto.set('Rechazada');
         this.mensajeActivo.set('mensaje-confirmacion-rechazo');
-        this.accionEjecutada.emit(resultado);
+        this.accionEjecutada.emit({
+          exito: true,
+          nuevoEstadoInvitacion: 'RECHAZADO',
+          mensaje: 'Rechazaste la invitación',
+          mensajeTestid: 'mensaje-confirmacion-rechazo',
+        });
       });
   }
 

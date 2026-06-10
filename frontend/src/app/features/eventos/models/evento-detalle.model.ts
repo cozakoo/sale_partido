@@ -1,44 +1,71 @@
 export type TipoIngreso = 'ABIERTO' | 'CON_CONFIRMACION' | 'CERRADO';
-export type EstadoParticipacion = 'CONFIRMADO' | 'PENDIENTE' | 'RECHAZADO';
-export type EstadoInvitacionRespuesta = 'PENDIENTE' | 'ACEPTADA' | 'RECHAZADA';
-export type NivelHabilidad = 'PRINCIPIANTE' | 'INTERMEDIO' | 'AVANZADO' | 'CUALQUIERA';
+export type EstadoEvento = 'DISPONIBLE' | 'COMPLETO' | 'CANCELADO' | 'FINALIZADO';
+export type EstadoParticipacion = 'PENDIENTE' | 'CONFIRMADO' | 'RECHAZADO' | 'CANCELADO';
+
+export interface NivelRequerido {
+  uuid: string;
+  nombre: string;
+  orden: number;
+  deporte: string;
+}
+
+export interface Cancha {
+  uuid: string;
+  nombre: string;
+}
+
+export interface Local {
+  uuid: string;
+  nombre: string;
+  direccion: string;
+}
+
+export interface Turno {
+  uuid: string;
+  fecha: string;
+  horaInicio: string;
+  horaFin: string;
+  cancha: Cancha;
+  local: Local;
+}
 
 export interface Participante {
-  id: number;
+  uuid: string;
   nombre: string;
 }
 
 export interface EventoDetalle {
-  id: number;
+  uuid: string;
+  nombre: string;
   deporte: string;
-  titulo: string;
-  fecha: string;
-  hora: string;
-  local: string;
-  direccion: string;
-  nivelRequerido: NivelHabilidad;
+  descripcion?: string;
+  tipo: TipoIngreso;
+  estado: EstadoEvento;
   cupoMinimo: number;
   cupoMaximo: number;
-  participantesConfirmados: Participante[];
-  tipoIngreso: TipoIngreso;
-  descripcion?: string;
+  participantesConfirmados: number;
+  participantes: Participante[];
+  nivelRequerido: NivelRequerido | null;
+  turno: Turno;
 }
 
 export interface UsuarioSesion {
-  id: number;
+  uuid: string;
   nombre: string;
-  nivelHabilidad: NivelHabilidad;
+  nivelHabilidad: string;
 }
 
-export interface EstadoInvitacion {
-  tieneInvitacion: boolean;
-  estadoRespuesta?: EstadoInvitacionRespuesta; // PENDIENTE | ACEPTADA | RECHAZADA
+export interface ParticipacionResponse {
+  uuid: string;
+  estado: EstadoParticipacion;
+  esInvitacion: boolean;
+  fechaEstado?: string;
 }
 
 export interface ResultadoAccion {
   exito: boolean;
   nuevoEstadoParticipacion?: EstadoParticipacion;
-  nuevoEstadoInvitacion?: EstadoInvitacionRespuesta;
+  nuevoEstadoInvitacion?: EstadoParticipacion;
   mensaje: string;
   mensajeTestid: string; // el data-testid del mensaje a mostrar
 }

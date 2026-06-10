@@ -11,7 +11,7 @@
       </p>
     } @else {
       <ul class="participantes__lista">
-        @for (p of participantes(); track p.id) {
+        @for (p of participantes(); track p.uuid) {
           <li class="participantes__item">
             <i class="bi bi-person-circle" aria-hidden="true"></i>
             {{ p.nombre }}

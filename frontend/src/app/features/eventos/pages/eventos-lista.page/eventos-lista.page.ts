@@ -12,7 +12,6 @@ import { EventoParticipacionService } from '../../services/evento-participacion.
 import { EventoModalComponent } from '../../components/evento-modal/evento-modal.component';
 import { EventoDetalle } from '../../models/evento-detalle.model';
 
-
 @Component({
   selector: 'app-eventos-lista-page',
   standalone: true,
@@ -44,7 +43,7 @@ export class EventosListaPage implements OnInit {
       centered: true,
       scrollable: true,
     });
-    ref.componentInstance.eventoId = evento.id;
+    ref.componentInstance.eventoUuid = evento.uuid;
   }
 
   tipoIngresoLabel(tipo: string): string {
