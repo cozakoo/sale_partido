@@ -1,5 +1,6 @@
 package io.github.salepartido.api.domain.participation.model;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -49,6 +50,9 @@ public class Evento {
     @Enumerated(EnumType.STRING)
     @Column(name = "estado", nullable = false, length = 20)
     private EstadoEvento estado;
+
+    @Column(name = "limite_cancelacion_participacion")
+    private Duration limiteCancelacionParticipacion;
 
     // Opcional: el nivel mínimo requerido para participar.
     // nivelRequerido.deporte define implícitamente el deporte del evento.
