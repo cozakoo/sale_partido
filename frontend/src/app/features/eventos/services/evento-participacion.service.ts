@@ -134,6 +134,7 @@ export class EventoParticipacionService {
   // Señal de estado en memoria para reflejar cambios en la sesión de navegación actual
   private _participacionesState = signal<Record<string, Record<string, ParticipacionResponse>>>(this.initialParticipaciones);
 
+  // Endpoint: GET /eventos/{uuid}
   getEvento(uuid: string): Observable<EventoDetalle> {
     const evento = this.mockEventos[uuid];
     if (!evento) {
@@ -142,6 +143,7 @@ export class EventoParticipacionService {
     return of({ ...evento }).pipe(delay(300));
   }
 
+  // Endpoint: GET /eventos
   getEventos(): Observable<EventoDetalle[]> {
     const todos = Object.values(this.mockEventos).map(e => ({ ...e }));
     return of(todos).pipe(delay(300));
@@ -151,12 +153,14 @@ export class EventoParticipacionService {
     return of({ ...this.mockUsuario }).pipe(delay(100));
   }
 
+  // Endpoint: GET /eventos/{uuid}/participaciones/usuario/{usuarioUuid}
   getParticipacionUsuario(eventoUuid: string, usuarioUuid: string): Observable<ParticipacionResponse | null> {
     const epMap = this._participacionesState()[eventoUuid];
     const part = epMap ? epMap[usuarioUuid] : null;
     return of(part ? { ...part } : null).pipe(delay(150));
   }
 
+  // Endpoint: POST /eventos/{uuid}/participaciones (Body: { usuarioUuid })
   unirse(eventoUuid: string, usuarioUuid: string): Observable<ParticipacionResponse> {
     const newPart: ParticipacionResponse = {
       uuid: `part-uuid-new-${Date.now()}`,
@@ -177,6 +181,7 @@ export class EventoParticipacionService {
     return of(newPart).pipe(delay(400));
   }
 
+  // Endpoint: POST /eventos/{uuid}/solicitudes (Body: { usuarioUuid })
   solicitarParticipacion(eventoUuid: string, usuarioUuid: string): Observable<ParticipacionResponse> {
     const newPart: ParticipacionResponse = {
       uuid: `part-uuid-new-${Date.now()}`,
@@ -190,6 +195,7 @@ export class EventoParticipacionService {
     return of(newPart).pipe(delay(400));
   }
 
+  // Endpoint: PATCH /participaciones/{uuid} (Body: { estado })
   responderInvitacion(participacionUuid: string, estado: 'CONFIRMADO' | 'RECHAZADO'): Observable<ParticipacionResponse> {
     // Buscar la participación correspondiente
     let foundEventoUuid = '';
