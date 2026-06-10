@@ -16,14 +16,17 @@ import { LocalSearchResult } from '../models/local-search-result';
             <h2 class="mb-1 fw-bold text-dark">{{ localSearch()?.nombre }}</h2>
             <p class="text-muted mb-0">Detalles e información del complejo deportivo</p>
           </div>
-          <div class="d-flex gap-2">
-            <button class="btn btn-outline-primary" (click)="configurarHorarios()">
-              Configurar horarios
-            </button>
-            <button class="btn btn-primary" (click)="verDisponibilidad()">
-              Ver disponibilidad
-            </button>
-          </div>
+    <div class="d-flex gap-2">
+  <button class="btn btn-outline-primary" (click)="configurarHorarios()">
+    Configurar horarios
+  </button>
+  <button class="btn btn-outline-success" (click)="verEventos()">
+    Ver eventos
+  </button>
+  <button class="btn btn-primary" (click)="verDisponibilidad()">
+    Ver disponibilidad
+  </button>
+</div>
         </div>
 
         <div class="card shadow-sm mb-4">
@@ -170,5 +173,9 @@ export class LocalDetailPage implements OnInit {
       return hora.substring(0, 5);
     }
     return String(hora);
+  }
+
+  verEventos() {
+    this.router.navigate(['/eventos']);
   }
 }

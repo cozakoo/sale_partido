@@ -1,0 +1,45 @@
+<div class="container py-4 detalle-page">
+
+  @if (cargandoPagina()) {
+    <div class="detalle-page__cargando">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Cargando...</span>
+      </div>
+    </div>
+  }
+
+  @else if (error()) {
+    <div class="alert alert-danger detalle-page__error">
+      <i class="bi bi-exclamation-triangle me-2" aria-hidden="true"></i>
+      {{ error() }}
+    </div>
+  }
+
+  @else {
+    <div class="row g-3">
+
+      <div class="col-12">
+        <app-evento-info [evento]="evento()!" />
+      </div>
+
+      <div class="col-12 col-md-7">
+        <app-participantes-lista
+          [participantes]="evento()!.participantesConfirmados"
+        />
+      </div>
+
+      <div class="col-12 col-md-5">
+        <app-accion-participacion
+          [evento]="evento()!"
+          [usuario]="usuario()!"
+          [invitacion]="invitacion()!"
+          [yaParticipa]="yaParticipa()"
+          [cargando]="cargandoAccion()"
+          (accionEjecutada)="onAccionEjecutada($event)"
+        />
+      </div>
+
+    </div>
+  }
+
+</div>
