@@ -82,16 +82,14 @@ export class AccionParticipacionComponent {
     () =>
       this.evento().tipo === 'ABIERTO' &&
       !this.invitacionPendiente() &&
-      !this.estadoParticipacionTexto() &&
-      !this.yaParticipa()
+      !this.estadoParticipacionTexto()
   );
 
   mostrarBotonSolicitar = computed(
     () =>
       this.evento().tipo === 'CON_CONFIRMACION' &&
       !this.invitacionPendiente() &&
-      !this.estadoParticipacionTexto() &&
-      !this.yaParticipa()
+      !this.estadoParticipacionTexto()
   );
 
   mostrarMensajeCerrado = computed(

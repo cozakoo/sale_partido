@@ -10,7 +10,7 @@ import {
 @Injectable({ providedIn: 'root' })
 export class EventoParticipacionService {
 
-  private mockEventos: Record<string, EventoDetalle> = {
+  private _mockEventos: Record<string, EventoDetalle> = {
     'evento-uuid-1': {
       uuid: 'evento-uuid-1',
       nombre: 'Picado del domingo',
@@ -115,6 +115,13 @@ export class EventoParticipacionService {
     },
   };
 
+  private get mockEventos(): Record<string, EventoDetalle> {
+    if (typeof window !== 'undefined' && (window as any).__mockEventos) {
+      return (window as any).__mockEventos;
+    }
+    return this._mockEventos;
+  }
+
   private mockUsuario: UsuarioSesion = {
     uuid: 'user-participante-01',
     nombre: 'Federico Cotrena',
@@ -122,7 +129,7 @@ export class EventoParticipacionService {
   };
 
   // Invitaciones y participaciones iniciales mockeadas en memoria
-  private initialParticipaciones: Record<string, Record<string, ParticipacionResponse>> = {
+  private _initialParticipaciones: Record<string, Record<string, ParticipacionResponse>> = {
     'evento-uuid-2': {
       'user-participante-01': { uuid: 'part-uuid-2', estado: 'PENDIENTE', esInvitacion: true }
     },
@@ -131,8 +138,15 @@ export class EventoParticipacionService {
     }
   };
 
+  private getInitialParticipaciones(): Record<string, Record<string, ParticipacionResponse>> {
+    if (typeof window !== 'undefined' && (window as any).__mockParticipaciones) {
+      return (window as any).__mockParticipaciones;
+    }
+    return this._initialParticipaciones;
+  }
+
   // Señal de estado en memoria para reflejar cambios en la sesión de navegación actual
-  private _participacionesState = signal<Record<string, Record<string, ParticipacionResponse>>>(this.initialParticipaciones);
+  private _participacionesState = signal<Record<string, Record<string, ParticipacionResponse>>>(this.getInitialParticipaciones());
 
   // Endpoint: GET /eventos/{uuid}
   getEvento(uuid: string): Observable<EventoDetalle> {
