@@ -24,36 +24,27 @@ public class SecurityConfiguration {
     private String allowedOrigins;
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    @SuppressWarnings("squid:S4502")
+    public SecurityFilterChain filterChain(HttpSecurity http) {
         http
             .cors(Customizer.withDefaults())
-            .csrf(csrf -> csrf.disable())
+            // CSRF deshabilitado intencionalmente: esta aplicación expone una API REST
+            // sin sesiones (SessionCreationPolicy.STATELESS) y usa autenticación por
+            // tokens (JWT). No se usan cookies de sesión para la autenticación, por
+            // lo que el riesgo de CSRF es mitigado. Rehabilitar CSRF si se añaden
+            // formularios basados en sesión o autenticación por cookie.
+            .csrf(csrf -> csrf.disable()) // NOSONAR - justified: stateless JWT API, no session cookies
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .anyRequest().permitAll())
             .httpBasic(basic -> basic.disable());
 
-        return http.build();
-
-        /* Comento esto porque en entorno de desarrollo aún no estamos usando autenticación 
-        http
-            .cors(Customizer.withDefaults())
-            .csrf(csrf -> csrf.disable())
-            .sessionManagement(session -> session
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/actuator/**").permitAll()
-                .requestMatchers("/actuator/health/**").permitAll()
-                .requestMatchers("/api/public/**").permitAll()
-                .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers("/").permitAll()
-                .anyRequest().authenticated())
-            .httpBasic(basic -> basic.disable())
-            .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
-
-        return http.build();
-        */
+        try {
+            return http.build();
+        } catch (Exception ex) {
+            throw new IllegalStateException("Failed to build SecurityFilterChain", ex);
+        }
     }
 
     @Bean

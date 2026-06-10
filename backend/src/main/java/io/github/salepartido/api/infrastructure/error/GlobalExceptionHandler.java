@@ -25,10 +25,12 @@ import io.github.salepartido.api.domain.participation.exception.TipoEventoInvali
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    private static final String ERROR_TITLE = "Operación fallida";
+
     @ExceptionHandler(ResponseStatusException.class)
     public ProblemDetail handleResponseStatusException(ResponseStatusException exception) {
         ProblemDetail problem = ProblemDetail.forStatus(exception.getStatusCode());
-        problem.setTitle("Operación fallida");
+        problem.setTitle(ERROR_TITLE);
         problem.setDetail(exception.getReason());
         return problem;
     }
@@ -43,7 +45,7 @@ public class GlobalExceptionHandler {
     })
     public ProblemDetail handleConflictException(RuntimeException exception) {
         ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.CONFLICT);
-        problem.setTitle("Operación fallida");
+        problem.setTitle(ERROR_TITLE);
         problem.setDetail(exception.getMessage());
         return problem;
     }
@@ -54,7 +56,7 @@ public class GlobalExceptionHandler {
     })
     public ProblemDetail handleBadRequestException(Exception exception) {
         ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
-        problem.setTitle("Operación fallida");
+        problem.setTitle(ERROR_TITLE);
         problem.setDetail("Su petición contiene datos inválidos.");
         return problem;
     }
@@ -62,7 +64,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
     public ProblemDetail handleUnsupportedMediaType(HttpMediaTypeNotSupportedException exception) {
         ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.UNSUPPORTED_MEDIA_TYPE);
-        problem.setTitle("Operación fallida");
+        problem.setTitle(ERROR_TITLE);
         problem.setDetail("El tipo de contenido no es compatible.");
         return problem;
     }
@@ -70,14 +72,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ProblemDetail handleValidationException(MethodArgumentNotValidException exception) {
         ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
-        problem.setTitle("Operación fallida");
+        problem.setTitle(ERROR_TITLE);
         problem.setDetail("Su petición contiene datos inválidos.");
         Map<String, List<String>> errors = new HashMap<>();
-        exception.getBindingResult().getFieldErrors().forEach(error -> {
-            errors
-                .computeIfAbsent(error.getField(), key -> new ArrayList<>())
-                .add(error.getDefaultMessage());
-        });
+        exception.getBindingResult().getFieldErrors().forEach(error ->
+            errors.computeIfAbsent(error.getField(), key -> new ArrayList<>()).add(error.getDefaultMessage())
+        );
         problem.setProperty("errores", errors);
         return problem;
     }
@@ -85,7 +85,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ProblemDetail handleAnything(Exception exception) {
         ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.INTERNAL_SERVER_ERROR);
-        problem.setTitle("Operación fallida");
+        problem.setTitle(ERROR_TITLE);
         problem.setDetail("Algo salió mal, por favor reintente más tarde.");
         return problem;
     }

@@ -40,7 +40,6 @@ public class DisponibilidadService {
 
     @Transactional(readOnly = true)
     public List<DisponibilidadCanchaDTO> obtenerDisponibilidadLocal(UUID localUuid, LocalDate fechaInicio, LocalDate fechaFin) {
-        // 1. Obtener Local y validar su existencia
         Local local = localRepository.findById(localUuid)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Local no encontrado"));
 
@@ -49,96 +48,117 @@ public class DisponibilidadService {
             return new ArrayList<>();
         }
 
-        // 2. Obtener los UUIDs de las canchas del local
         List<UUID> canchaUuids = canchas.stream()
                 .map(Cancha::getUuid)
                 .collect(Collectors.toList());
 
-        // 3. Buscar todos los turnos correspondientes en el rango de fechas
         List<Turno> turnos = turnoRepository.findByCanchasAndDateRange(canchaUuids, fechaInicio, fechaFin);
 
-        List<DisponibilidadCanchaDTO> disponibilidadCanchas = new ArrayList<>();
+        return canchas.stream()
+                .map(cancha -> new DisponibilidadCanchaDTO(
+                        cancha.getUuid(),
+                        cancha.getNombre(),
+                        buildTurnoSlotsForCancha(cancha, fechaInicio, fechaFin, turnos)
+                ))
+                .collect(Collectors.toList());
+    }
 
-        // 4. Calcular la disponibilidad para cada cancha
-        for (Cancha cancha : canchas) {
-            List<TurnoSlotDTO> turnosList = new ArrayList<>();
-
-            // Buscar configuración horaria activa
-            ConfiguracionHorario configHorario = null;
-            if (cancha.getConfiguracionesHorarios() != null) {
-                configHorario = cancha.getConfiguracionesHorarios().stream()
-                        .filter(ConfiguracionHorario::isActivo)
-                        .findFirst()
-                        .orElse(null);
-            }
-
-            if (configHorario != null) {
-                Duration duration = configHorario.getDuracionTurno();
-                
-                if (duration != null && !duration.isZero() && !duration.isNegative()) {
-                    // Mapear configuraciones de días de la semana para acceso rápido
-                    Map<DayOfWeek, ConfiguracionDia> configDias = configHorario.getConfiguracionesDias().stream()
-                            .collect(Collectors.toMap(ConfiguracionDia::getDiaSemana, d -> d));
-
-                    LocalDate currentFecha = fechaInicio;
-                    while (!currentFecha.isAfter(fechaFin)) {
-                        DayOfWeek dayOfWeek = currentFecha.getDayOfWeek();
-                        ConfiguracionDia configDia = configDias.get(dayOfWeek);
-
-                        if (configDia != null) {
-                            LocalTime start = configDia.getHoraInicio();
-                            LocalTime end = configDia.getHoraFin();
-                            LocalTime currentSlotStart = start;
-
-                            while (currentSlotStart.plus(duration).isBefore(end) || currentSlotStart.plus(duration).equals(end)) {
-                                LocalTime currentSlotEnd = currentSlotStart.plus(duration);
-                                
-                                // Control de desbordamiento de medianoche
-                                if (currentSlotEnd.isBefore(currentSlotStart)) {
-                                    break;
-                                }
-
-                                final LocalDate finalFecha = currentFecha;
-                                final LocalTime finalSlotStart = currentSlotStart;
-                                final LocalTime finalSlotEnd = currentSlotEnd;
-
-                                // Comprobar si hay algún turno que solape con el slot
-                                Optional<Turno> overlappingTurno = turnos.stream()
-                                        .filter(t -> t.getCancha().getUuid().equals(cancha.getUuid()))
-                                        .filter(t -> t.getFecha().equals(finalFecha))
-                                        .filter(t -> t.getHoraInicio().isBefore(finalSlotEnd) && t.getHoraFin().isAfter(finalSlotStart))
-                                        .findFirst();
-
-                                TurnoSlotDTO turnoSlotDTO;
-                                if (overlappingTurno.isPresent()) {
-                                    Turno t = overlappingTurno.get();
-                                    TurnoDTO tDto = new TurnoDTO(
-                                            t.getUuid(),
-                                            t.getNombreOrganizador(),
-                                            t.getDeporte(),
-                                            cancha.getCapacidad(),
-                                            t.getCantidadParticipantesConfirmados(),
-                                            t.getEstadoEvento()
-                                    );
-                                    turnoSlotDTO = new TurnoSlotDTO(finalFecha, finalSlotStart, finalSlotEnd, cancha.getNombre(), t.getDeporte(), "OCUPADO", tDto);
-                                } else {
-                                    String deporteCancha = cancha.getDeporte() != null ? cancha.getDeporte().getNombre() : null;
-                                    turnoSlotDTO = new TurnoSlotDTO(finalFecha, finalSlotStart, finalSlotEnd, cancha.getNombre(), deporteCancha, "LIBRE", null);
-                                }
-
-                                turnosList.add(turnoSlotDTO);
-                                currentSlotStart = currentSlotEnd;
-                            }
-                        }
-                        currentFecha = currentFecha.plusDays(1);
-                    }
-                }
-            }
-
-            disponibilidadCanchas.add(new DisponibilidadCanchaDTO(cancha.getUuid(), cancha.getNombre(), turnosList));
+    private List<TurnoSlotDTO> buildTurnoSlotsForCancha(Cancha cancha, LocalDate fechaInicio, LocalDate fechaFin, List<Turno> turnos) {
+        ConfiguracionHorario configHorario = findActiveConfiguracionHorario(cancha);
+        if (configHorario == null) {
+            return new ArrayList<>();
         }
 
-        return disponibilidadCanchas;
+        Duration duration = configHorario.getDuracionTurno();
+        if (!isValidDuration(duration)) {
+            return new ArrayList<>();
+        }
+
+        Map<DayOfWeek, ConfiguracionDia> configDias = buildConfigDiasMap(configHorario);
+        return buildSlotList(cancha, fechaInicio, fechaFin, duration, configDias, turnos);
+    }
+
+    private ConfiguracionHorario findActiveConfiguracionHorario(Cancha cancha) {
+        if (cancha.getConfiguracionesHorarios() == null) {
+            return null;
+        }
+        return cancha.getConfiguracionesHorarios().stream()
+                .filter(ConfiguracionHorario::isActivo)
+                .findFirst()
+                .orElse(null);
+    }
+
+    private boolean isValidDuration(Duration duration) {
+        return duration != null && !duration.isZero() && !duration.isNegative();
+    }
+
+    private Map<DayOfWeek, ConfiguracionDia> buildConfigDiasMap(ConfiguracionHorario configHorario) {
+        return configHorario.getConfiguracionesDias().stream()
+                .collect(Collectors.toMap(ConfiguracionDia::getDiaSemana, d -> d));
+    }
+
+    private List<TurnoSlotDTO> buildSlotList(Cancha cancha, LocalDate fechaInicio, LocalDate fechaFin, Duration duration,
+            Map<DayOfWeek, ConfiguracionDia> configDias, List<Turno> turnos) {
+        List<TurnoSlotDTO> slotList = new ArrayList<>();
+
+        for (LocalDate currentFecha = fechaInicio; !currentFecha.isAfter(fechaFin); currentFecha = currentFecha.plusDays(1)) {
+            ConfiguracionDia configDia = configDias.get(currentFecha.getDayOfWeek());
+            if (configDia == null) {
+                continue;
+            }
+            slotList.addAll(buildSlotsForDay(cancha, currentFecha, duration, configDia, turnos));
+        }
+
+        return slotList;
+    }
+
+    private List<TurnoSlotDTO> buildSlotsForDay(Cancha cancha, LocalDate fecha, Duration duration,
+            ConfiguracionDia configDia, List<Turno> turnos) {
+        List<TurnoSlotDTO> slots = new ArrayList<>();
+
+        LocalTime currentSlotStart = configDia.getHoraInicio();
+        LocalTime end = configDia.getHoraFin();
+
+        while (!currentSlotStart.plus(duration).isAfter(end)) {
+            LocalTime currentSlotEnd = currentSlotStart.plus(duration);
+            if (currentSlotEnd.isBefore(currentSlotStart)) {
+                break;
+            }
+
+            Optional<Turno> overlappingTurno = findOverlappingTurno(cancha.getUuid(), fecha, currentSlotStart, currentSlotEnd, turnos);
+            slots.add(buildTurnoSlotDTO(cancha, fecha, currentSlotStart, currentSlotEnd, overlappingTurno));
+            currentSlotStart = currentSlotEnd;
+        }
+
+        return slots;
+    }
+
+    private Optional<Turno> findOverlappingTurno(UUID canchaUuid, LocalDate fecha, LocalTime slotStart,
+            LocalTime slotEnd, List<Turno> turnos) {
+        return turnos.stream()
+                .filter(t -> t.getCancha().getUuid().equals(canchaUuid))
+                .filter(t -> t.getFecha().equals(fecha))
+                .filter(t -> t.getHoraInicio().isBefore(slotEnd) && t.getHoraFin().isAfter(slotStart))
+                .findFirst();
+    }
+
+    private TurnoSlotDTO buildTurnoSlotDTO(Cancha cancha, LocalDate fecha, LocalTime slotStart,
+            LocalTime slotEnd, Optional<Turno> turnoOpt) {
+        if (turnoOpt.isPresent()) {
+            Turno t = turnoOpt.get();
+            TurnoDTO turnoDTO = new TurnoDTO(
+                    t.getUuid(),
+                    t.getNombreOrganizador(),
+                    t.getDeporte(),
+                    cancha.getCapacidad(),
+                    t.getCantidadParticipantesConfirmados(),
+                    t.getEstadoEvento()
+            );
+            return new TurnoSlotDTO(fecha, slotStart, slotEnd, cancha.getNombre(), t.getDeporte(), "OCUPADO", turnoDTO);
+        }
+
+        String deporteCancha = cancha.getDeporte() != null ? cancha.getDeporte().getNombre() : null;
+        return new TurnoSlotDTO(fecha, slotStart, slotEnd, cancha.getNombre(), deporteCancha, "LIBRE", null);
     }
 
 }
