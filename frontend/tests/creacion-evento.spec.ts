@@ -11,102 +11,31 @@ interface CreacionConfig {
   hora?: string;
 }
 
-function buildFormularioCreacion(cfg: CreacionConfig): string {
-  const localValido = cfg.localPreseleccionado !== false;
-  const capacidad = cfg.capacidadCancha ?? 10;
-  const fecha = cfg.fecha ?? '2026-11-20';
-  const hora = cfg.hora ?? '18:00';
-  
-  return `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"></head><body>
-  <div data-testid="creacion-evento-form">
-    ${localValido ? `
-      <input type="date" data-testid="input-fecha" value="${fecha}" readonly />
-      <input type="time" data-testid="input-hora" value="${hora}" readonly />
-      <input type="number" data-testid="input-cupo-minimo" value="${capacidad}" />
-      <input type="number" data-testid="input-cupo-maximo" value="${capacidad}" />
-      <select data-testid="select-tipo-ingreso">
-        <option value="Abierto">Abierto</option>
-        <option value="Con Confirmación">Con Confirmación</option>
-        <option value="Cerrado" selected>Cerrado</option>
-      </select>
-      <input type="number" data-testid="input-tiempo-cancelacion" value="1" />
-      <select data-testid="select-nivel-habilidad">
-        <option value="Principiante">Principiante</option>
-        <option value="Intermedio">Intermedio</option>
-        <option value="Avanzado">Avanzado</option>
-        <option value="Sin especificar" selected>Sin especificar</option>
-      </select>
-      <input type="hidden" id="capacidad-cancha" value="${capacidad}" />
-      <button data-testid="btn-confirmar">Confirmar Creación</button>
-    ` : `
-      <button data-testid="btn-confirmar">Confirmar Creación</button>
-    `}
-    <div data-testid="feedback"></div>
-    <div data-testid="resultado-evento" style="display:none;"></div>
-  </div>
-  <script>
-    (() => {
-      const localValido = ${localValido};
-      const feedback = document.querySelector('[data-testid="feedback"]');
-      const resultado = document.querySelector('[data-testid="resultado-evento"]');
-      
-      function mostrarError(mensaje) {
-        const el = document.createElement('p');
-        el.setAttribute('data-testid', 'mensaje-error');
-        el.textContent = mensaje;
-        feedback.innerHTML = '';
-        feedback.appendChild(el);
-      }
-
-      const btn = document.querySelector('[data-testid="btn-confirmar"]');
-      if (btn) {
-        btn.addEventListener('click', () => {
-          if (!localValido) {
-            mostrarError('Debe seleccionar y reservar un espacio para el evento');
-            return;
-          }
-
-          const cupoMin = parseInt(document.querySelector('[data-testid="input-cupo-minimo"]').value, 10);
-          const cupoMax = parseInt(document.querySelector('[data-testid="input-cupo-maximo"]').value, 10);
-          const tiempoCancelacion = parseInt(document.querySelector('[data-testid="input-tiempo-cancelacion"]').value, 10);
-          const tipoIngreso = document.querySelector('[data-testid="select-tipo-ingreso"]').value;
-          const nivelHabilidad = document.querySelector('[data-testid="select-nivel-habilidad"]').value;
-          const capacidadMaxima = parseInt(document.getElementById('capacidad-cancha').value, 10);
-
-          if (cupoMin <= 0) {
-            mostrarError('El cupo mínimo de jugadores debe ser mayor a cero');
-            return;
-          }
-          if (cupoMin > cupoMax) {
-            mostrarError('El cupo mínimo no puede ser mayor al cupo máximo');
-            return;
-          }
-          if (cupoMax > capacidadMaxima) {
-            mostrarError('El cupo máximo no puede superar la capacidad máxima de la cancha');
-            return;
-          }
-          if (tiempoCancelacion < 1 || tiempoCancelacion > 24) {
-            mostrarError('El tiempo límite de cancelación de participación debe estar entre 1 y 24 horas');
-            return;
-          }
-
-          feedback.innerHTML = '<p data-testid="mensaje-exito">Evento registrado exitosamente</p>';
-          
-          resultado.setAttribute('data-estado', 'En espera de participantes');
-          resultado.setAttribute('data-tipo-ingreso', tipoIngreso);
-          resultado.setAttribute('data-tiempo-cancelacion', tiempoCancelacion === 1 ? '1 hora antes del inicio' : tiempoCancelacion + ' horas antes');
-          resultado.setAttribute('data-nivel-habilidad', nivelHabilidad);
-          resultado.style.display = 'block';
-        });
-      }
-    })();
-  </script>
-</body></html>`;
-}
-
 async function cargarEscenario(page: Page, cfg: CreacionConfig): Promise<void> {
-  await page.setContent(buildFormularioCreacion(cfg));
-  await page.waitForSelector('[data-testid="creacion-evento-form"]');
+  const localValido = cfg.localPreseleccionado !== false;
+  
+  await page.route('http://localhost:8080/eventos*', async route => {
+    if (route.request().method() === 'POST') {
+      await route.fulfill({
+        status: 201,
+        json: { mensaje: 'Evento registrado exitosamente' }
+      });
+    } else {
+      await route.continue();
+    }
+  });
+
+  if (localValido) {
+    const params = new URLSearchParams();
+    if (cfg.fecha) params.append('fecha', cfg.fecha);
+    if (cfg.hora) params.append('hora', cfg.hora);
+    if (cfg.capacidadCancha) params.append('capacidad', cfg.capacidadCancha.toString());
+    params.append('localId', 'mock-local-123'); // Example ID
+    
+    await page.goto(`http://localhost:4200/eventos/crear?${params.toString()}`);
+  } else {
+    await page.goto('http://localhost:4200/eventos/crear');
+  }
 }
 
 test.describe('E3-H01 | Flujos Principales y Alternativos', () => {
@@ -178,7 +107,13 @@ test.describe('E3-H01 | Casos de Borde: Errores de Validación', () => {
 test.describe('E3-H01 | Caso de Borde: Error sin espacio', () => {
   test('Intento de creación de evento sin haber seleccionado espacio', async ({ page }) => {
     await cargarEscenario(page, { localPreseleccionado: false });
-    await page.click('[data-testid="btn-confirmar"]');
+    // Assuming if no space is selected, the confirm button either errors or isn't shown correctly.
+    // We try to click it, or maybe it fails right away on the page load.
+    // The previous test logic just clicked and expected the error.
+    const btn = page.locator('[data-testid="btn-confirmar"]');
+    if (await btn.isVisible()) {
+      await btn.click();
+    }
     await expect(page.locator('[data-testid="mensaje-error"]')).toHaveText('Debe seleccionar y reservar un espacio para el evento');
   });
 });
