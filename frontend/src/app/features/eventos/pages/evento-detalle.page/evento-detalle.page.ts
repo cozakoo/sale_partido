@@ -1,9 +1,9 @@
-
 import {
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
   OnInit,
+  computed,
   inject,
   signal,
 } from '@angular/core';
@@ -15,11 +15,11 @@ import { EventoInfoComponent } from '../../components/evento-info.component/even
 import { AccionParticipacionComponent } from '../../components/accion-participacion.component/accion-participacion.component';
 import { ParticipantesListaComponent } from '../../components/participantes-lista-component/participantes-lista-component';
 import {
-  EstadoInvitacion,
-  EstadoParticipacion,
   EventoDetalle,
+  ParticipacionResponse,
   ResultadoAccion,
-  UsuarioSesion,} from '../../models/evento-detalle.model';
+  UsuarioSesion,
+} from '../../models/evento-detalle.model';
 
 @Component({
   selector: 'app-evento-detalle-page',
@@ -40,18 +40,17 @@ export class EventoDetallePage implements OnInit {
 
   evento = signal<EventoDetalle | null>(null);
   usuario = signal<UsuarioSesion | null>(null);
-  invitacion = signal<EstadoInvitacion | null>(null);
-  estadoParticipacion = signal<EstadoParticipacion | null>(null);
-  yaParticipa = signal<boolean>(false);
+  participacion = signal<ParticipacionResponse | null>(null);
+  yaParticipa = computed(() => this.participacion() !== null);
 
   cargandoPagina = signal(true);
   cargandoAccion = signal(false);
   error = signal<string | null>(null);
 
-  private eventoId!: number;
+  private eventoUuid!: string;
 
   ngOnInit(): void {
-    this.eventoId = Number(this.route.snapshot.paramMap.get('id'));
+    this.eventoUuid = this.route.snapshot.paramMap.get('id') || '';
     this.cargarDatos();
   }
 
@@ -59,7 +58,7 @@ export class EventoDetallePage implements OnInit {
     this.cargandoPagina.set(true);
 
     this.service
-      .getEvento(this.eventoId)
+      .getEvento(this.eventoUuid)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (evento) => {
@@ -79,24 +78,44 @@ export class EventoDetallePage implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((usuario) => {
         this.usuario.set(usuario);
-        const estado = this.service.getEstadoParticipacion(this.eventoId);
-        this.estadoParticipacion.set(estado);
-        this.yaParticipa.set(estado !== null);
-      });
 
-    this.service
-      .getEstadoInvitacion(this.eventoId)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((invitacion) => {
-        this.invitacion.set(invitacion);
-        this.cargandoPagina.set(false);
+        this.service
+          .getParticipacionUsuario(this.eventoUuid, usuario.uuid)
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe({
+            next: (participacion) => {
+              this.participacion.set(participacion);
+              this.cargandoPagina.set(false);
+            },
+            error: () => {
+              this.participacion.set(null);
+              this.cargandoPagina.set(false);
+            },
+          });
       });
   }
 
   onAccionEjecutada(resultado: ResultadoAccion): void {
+    const current = this.participacion();
     if (resultado.nuevoEstadoParticipacion) {
-      this.estadoParticipacion.set(resultado.nuevoEstadoParticipacion);
-      this.yaParticipa.set(true);
+      this.participacion.set({
+        uuid: current?.uuid || `part-uuid-new-${Date.now()}`,
+        estado: resultado.nuevoEstadoParticipacion,
+        esInvitacion: current?.esInvitacion || false,
+      });
+      // Re-fetch the event to update the participants list
+      this.service.getEvento(this.eventoUuid).subscribe(evento => {
+        this.evento.set(evento);
+      });
+    } else if (resultado.nuevoEstadoInvitacion) {
+      this.participacion.set({
+        uuid: current?.uuid || `part-uuid-new-${Date.now()}`,
+        estado: resultado.nuevoEstadoInvitacion,
+        esInvitacion: current?.esInvitacion || false,
+      });
+      this.service.getEvento(this.eventoUuid).subscribe(evento => {
+        this.evento.set(evento);
+      });
     }
   }
 }

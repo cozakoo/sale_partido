@@ -55,6 +55,10 @@ public class LocalService {
         return localRepository.findById(uuid);
     }
 
+    public Optional<Local> buscarLocalPorCanchaUuid(UUID canchaUuid) {
+        return localRepository.findByCanchaUuid(canchaUuid);
+    }
+
     public List<Local> buscarLocales(FiltroViewModel filtro) {
         List<Local> locales = localRepository.findAll();
 

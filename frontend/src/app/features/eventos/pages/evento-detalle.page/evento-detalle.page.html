@@ -24,7 +24,7 @@
 
       <div class="col-12 col-md-7">
         <app-participantes-lista
-          [participantes]="evento()!.participantesConfirmados"
+          [participantes]="evento()!.participantes"
         />
       </div>
 
@@ -32,7 +32,7 @@
         <app-accion-participacion
           [evento]="evento()!"
           [usuario]="usuario()!"
-          [invitacion]="invitacion()!"
+          [participacion]="participacion()"
           [yaParticipa]="yaParticipa()"
           [cargando]="cargandoAccion()"
           (accionEjecutada)="onAccionEjecutada($event)"

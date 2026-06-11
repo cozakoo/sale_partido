@@ -9,7 +9,7 @@
 
 | Modelos de API | |
 | :---- | :---- |
-| `EventoDetail` | `{ "uuid": "...", "nombre": "Partido de futbol 5", "tipo": "ABIERTO", "estado": "DISPONIBLE", "cupoMinimo": 6, "cupoMaximo": 10, "participantesConfirmados": 3, "nivelRequerido": { "uuid": "...", "nombre": "Intermedio", "orden": 2, "deporte": "Futbol" }, "turno": { "uuid": "...", "fecha": "2026-06-15", "horaInicio": "18:00:00", "horaFin": "19:00:00", "cancha": { "uuid": "...", "nombre": "Cancha A" }, "local": { "uuid": "...", "nombre": "Complejo Olimpico", "direccion": "Av. Roca 123, Puerto Madryn" } } }` |
+| `EventoDetail` | `{ "uuid": "...", "nombre": "Partido de futbol 5", "deporte": "Futbol", "descripcion": "Picado del domingo", "tipo": "ABIERTO", "estado": "DISPONIBLE", "cupoMinimo": 6, "cupoMaximo": 10, "participantesConfirmados": 3, "participantes": [ { "uuid": "...", "nombre": "Juan" } ], "nivelRequerido": { "uuid": "...", "nombre": "Intermedio", "orden": 2, "deporte": "Futbol" }, "turno": { "uuid": "...", "fecha": "2026-06-15", "horaInicio": "18:00:00", "horaFin": "19:00:00", "cancha": { "uuid": "...", "nombre": "Cancha A" }, "local": { "uuid": "...", "nombre": "Complejo Olimpico", "direccion": "Av. Roca 123, Puerto Madryn" } } }` |
 | `ParticipacionResponse` | `{ "uuid": "...", "estado": "CONFIRMADO", "esInvitacion": false, "fechaEstado": "2026-06-08T15:30:00" }` |
 
 **Enums:**
@@ -32,6 +32,28 @@
 | **Peticion** | - |
 | **Respuesta exitosa** | `200 OK  EventoDetail` |
 | **Validacion: el evento debe existir** | `404 Not Found { "error": "EVENTO_NO_ENCONTRADO", "message": "El evento no existe" }` |
+
+---
+
+| Endpoint: /eventos | |
+| :---- | :---- |
+| **Objetivo** | Obtener el listado de todos los eventos deportivos |
+| **Metodo HTTP** | GET |
+| **Ruta** | /eventos |
+| **Peticion** | - |
+| **Respuesta exitosa** | `200 OK  Array<EventoDetail>` |
+
+---
+
+| Endpoint: /eventos/{uuid}/participaciones/usuario/{usuarioUuid} | |
+| :---- | :---- |
+| **Objetivo** | Obtener la participación o invitación activa de un usuario en un evento |
+| **Metodo HTTP** | GET |
+| **Ruta** | /eventos/{uuid}/participaciones/usuario/{usuarioUuid} |
+| **Parametros de ruta** | `uuid`: identificador del evento, `usuarioUuid`: identificador del usuario |
+| **Peticion** | - |
+| **Respuesta exitosa** | `200 OK  ParticipacionResponse` |
+| **Validacion: no tiene relacion activa** | `404 Not Found { "error": "PARTICIPACION_NO_ENCONTRADA", "message": "El usuario no participa ni tiene invitación activa para este evento" }` |
 
 ---
 
@@ -90,7 +112,7 @@
 
 - **Dos endpoints de participacion separados** (`/participaciones` y `/solicitudes`): aunque ambos crean una `Participacion`, la accion semantica es distinta segun el tipo de evento. El frontend muestra botones distintos ("Unirse" vs "Solicitar participacion") y llama al endpoint correspondiente sin necesidad de conocer la logica interna del backend.
 
-- **409 para reglas de negocio**: se usa `409 Conflict` cuando el request es tecnicamente valido pero viola una regla de negocio (cupo lleno, nivel insuficiente, etc.). El `400 Bad Request` aplica solo cuando el formato del request en si es incorrecto.
+- **409 para reglas de negocio**: se usa `409 Conflict` when el request es tecnicamente valido pero viola una regla de negocio (cupo lleno, nivel insuficiente, etc.). El `400 Bad Request` aplica solo cuando el formato del request en si es incorrecto.
 
 - **usuarioUuid en el body**: campo provisional. Una vez implementada la autenticacion JWT, el backend obtendra el identificador del usuario del token y este campo sera eliminado del body.
 

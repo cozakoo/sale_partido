@@ -85,6 +85,10 @@ public class EventoService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Evento no encontrado"));
     }
 
+    public java.util.List<Evento> getEventos() {
+        return eventoRepository.findAll();
+    }
+
     /* --- Lookups --- */
 
     private Turno buscarTurno(UUID turnoId) {
