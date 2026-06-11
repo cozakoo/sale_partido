@@ -6,9 +6,17 @@ export const EVENTOS_ROUTES: Routes = [
   {
     path: '',
     component: EventosListaPage,
+  },   {
+    path: 'new',
+    loadComponent: () =>
+      import('../eventos/pages/creacion-evento.page/creacion-evento.page').then((m) => m.CreacionEventoPage),
   },
+  
   {
     path: ':id',
     component: EventoDetallePage,
-  },
+  }
+
+
+  
 ];
