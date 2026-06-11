@@ -11,7 +11,8 @@ import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { EventoParticipacionService } from '../../services/evento-participacion.service';
 import { EventoModalComponent } from '../../components/evento-modal/evento-modal.component';
 import { EventoDetalle } from '../../models/evento-detalle.model';
-
+import { RouterModule } from '@angular/router';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-eventos-lista-page',
@@ -19,6 +20,7 @@ import { EventoDetalle } from '../../models/evento-detalle.model';
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './eventos-lista.page.html',
   styleUrl: './eventos-lista.page.scss',
+  imports: [CommonModule, RouterModule],
 })
 export class EventosListaPage implements OnInit {
   private service = inject(EventoParticipacionService);

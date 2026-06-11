@@ -1,9 +1,14 @@
 <div class="container py-4">
 
-  <div class="mb-4">
+<div class="mb-4 d-flex align-items-center justify-content-between">
+  <div>
     <h2 class="fw-bold mb-1">Eventos deportivos</h2>
     <p class="text-muted mb-0">Encontrá un evento y unite a jugar</p>
   </div>
+  <a routerLink="/eventos/new" class="btn btn-primary">
+    <i class="bi bi-plus-lg me-1"></i> Crear evento
+  </a>
+</div>
 
   @if (cargando()) {
     <div class="d-flex justify-content-center py-5">
