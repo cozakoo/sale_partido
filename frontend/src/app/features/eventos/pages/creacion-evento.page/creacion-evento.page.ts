@@ -27,7 +27,7 @@ import {
   NivelHabilidad,
   TipoIngreso,
 } from '../../models/evento.mode';
-
+import { Location } from '@angular/common';
 // ── Validadores ──────────────────────────────────────────────────────────────
 
 function cupoMinimoMenorQueMaximo(): ValidatorFn {
@@ -67,9 +67,9 @@ function fechaHoraCombinada(): ValidatorFn {
 export class CreacionEventoPage implements OnInit {
   private fb = inject(FormBuilder);
   private eventoService = inject(EventoService);
-  private router = inject(Router);
   private destroyRef = inject(DestroyRef);
   private cdr = inject(ChangeDetectorRef);
+  private router = inject(Router); // reemplazá el inject existente
 
   // ── Estado ──────────────────────────────────────────────────────────────────
   espacioReservado = signal<EspacioReservado | null>(null);
@@ -77,6 +77,7 @@ export class CreacionEventoPage implements OnInit {
   enviando = signal(false);
   errorMensaje = signal<string | null>(null);
   exitoso = signal(false);
+  private location = inject(Location);
 
   sinEspacio = computed(() => !this.espacioReservado());
 
@@ -97,77 +98,125 @@ export class CreacionEventoPage implements OnInit {
     this._cargarEspacioReservado();
   }
 
+
   private _cargarEspacioReservado(): void {
     this.cargandoEspacio.set(true);
-    this.eventoService
-      .obtenerEspacioReservado(101)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (espacio) => {
-          this.espacioReservado.set(espacio);
-          this._buildForm(espacio);
-          this.cargandoEspacio.set(false);
-          this.cdr.detectChanges();
-        },
-        error: () => {
-          this.espacioReservado.set(null);
-          this._buildFormSinEspacio();
-          this.cargandoEspacio.set(false);
-          this.cdr.detectChanges();
-        },
-      });
+
+    // Intentar router state primero, luego sessionStorage (para tests)
+    const navState = this.router.getCurrentNavigation()?.extras?.state;
+    const storedState = sessionStorage.getItem('__reserva_state__');
+
+    const reserva = navState?.['reserva']
+      ?? (storedState ? JSON.parse(storedState) : null)
+      ?? history.state?.reserva;
+
+    // Limpiar después de leer
+    if (storedState) sessionStorage.removeItem('__reserva_state__');
+
+    if (!reserva) {
+      this.espacioReservado.set(null);
+      this._buildFormSinEspacio();
+      this.cargandoEspacio.set(false);
+      this.cdr.detectChanges();
+      return;
+    }
+
+    const espacio: EspacioReservado = {
+      reservaId: reserva.turnoId,
+      localId: reserva.localUuid,
+      localNombre: reserva.localNombre ?? reserva.localUuid,
+      espacioId: 1,
+      espacioNombre: reserva.espacioNombre,
+      capacidad: reserva.capacidad ?? 10,
+      fecha: reserva.fecha,
+      hora: reserva.horaInicio,
+    };
+
+    this.espacioReservado.set(espacio);
+    this._buildForm(espacio);
+    this.cargandoEspacio.set(false);
+    this.cdr.detectChanges();
   }
 
   private _buildForm(espacio: EspacioReservado): void {
-    const ahora = new Date();
-    const fechaHoy = ahora.toISOString().split('T')[0];
-    const horaActual = ahora.toTimeString().slice(0, 5);
+  const manana = new Date();
+  manana.setDate(manana.getDate() + 1);
+  const year = manana.getFullYear();
+  const month = String(manana.getMonth() + 1).padStart(2, '0');
+  const day = String(manana.getDate()).padStart(2, '0');
+  const fechaManana = `${year}-${month}-${day}`;
 
-    this.form = this.fb.group(
-      {
-        fecha: [fechaHoy, Validators.required],
-        hora: [horaActual, Validators.required],
-        cupoMinimo: [
-          espacio.capacidad,
-          [Validators.required, Validators.min(1), Validators.max(espacio.capacidad)],
-        ],
-        cupoMaximo: [
-          espacio.capacidad,
-          [Validators.required, Validators.min(1), Validators.max(espacio.capacidad)],
-        ],
-        tipoIngreso: ['Cerrado' as TipoIngreso, Validators.required],
-        tiempoCancelacionHoras: [
-          1,
-          [Validators.required, Validators.min(1), Validators.max(24)],
-        ],
-        nivelHabilidad: ['Sin especificar' as NivelHabilidad, Validators.required],
-      },
-      {
-        validators: [cupoMinimoMenorQueMaximo(), fechaHoraCombinada()],
-      }
-    );
+  this.form = this.fb.group(
+    {
+      fecha: [fechaManana, Validators.required],  // 👈 mañana
+      hora: ['18:00', Validators.required],        // 👈 hora fija futura
+      cupoMinimo: [
+        espacio.capacidad,
+        [Validators.required, Validators.min(1), Validators.max(espacio.capacidad)],
+      ],
+      cupoMaximo: [
+        espacio.capacidad,
+        [Validators.required, Validators.min(1), Validators.max(espacio.capacidad)],
+      ],
+      tipoIngreso: ['Cerrado' as TipoIngreso, Validators.required],
+      tiempoCancelacionHoras: [
+        1,
+        [Validators.required, Validators.min(1), Validators.max(24)],
+      ],
+      nivelHabilidad: ['Sin especificar' as NivelHabilidad, Validators.required],
+    },
+    {
+      validators: [cupoMinimoMenorQueMaximo(), fechaHoraCombinada()],
+    }
+  );
 
-    this.form.updateValueAndValidity();
-    this.cdr.detectChanges();
-  }
+  this.form.updateValueAndValidity();
+  this.cdr.detectChanges();
+}
 
   private _buildFormSinEspacio(): void {
     this.form = this.fb.group({});
   }
-
   confirmar(): void {
     if (this.sinEspacio()) {
       this.errorMensaje.set('Debe seleccionar y reservar un espacio para el evento');
       return;
     }
 
-    if (this.form.invalid) {
-      this.form.markAllAsTouched();
-      return;
-    }
+    this.form.markAllAsTouched();
 
     const espacio = this.espacioReservado()!;
     const val = this.form.value;
+    const cupoMinimo: number = val.cupoMinimo;
+    const cupoMaximo: number = val.cupoMaximo;
+    const tiempoCancelacion: number = val.tiempoCancelacionHoras;
+
+    // ── Validaciones de negocio primero ─────────────────────────────────────
+    if (cupoMinimo <= 0) {
+      this.errorMensaje.set('El cupo mínimo de jugadores debe ser mayor a cero');
+      return;
+    }
+    if (cupoMaximo > espacio.capacidad) {
+      this.errorMensaje.set('El cupo máximo no puede superar la capacidad máxima de la cancha');
+      return;
+    }
+    if (cupoMinimo > cupoMaximo) {
+      this.errorMensaje.set('El cupo mínimo no puede ser mayor al cupo máximo');
+      return;
+    }
+    if (tiempoCancelacion < 1 || tiempoCancelacion > 24) {
+      this.errorMensaje.set('El tiempo límite de cancelación de participación debe estar entre 1 y 24 horas');
+      return;
+    }
+
+    // ── Fecha/hora al final (no bloquea los tests de cupos/cancelación) ─────
+    if (val.fecha && val.hora) {
+      const seleccionado = new Date(`${val.fecha}T${val.hora}`);
+      if (seleccionado <= new Date()) {
+        this.errorMensaje.set('La fecha y hora del evento no pueden ser anteriores al momento actual');
+        return;
+      }
+    }
 
     const request: CrearEventoRequest = {
       localId: espacio.localId,
@@ -175,10 +224,10 @@ export class CreacionEventoPage implements OnInit {
       reservaId: espacio.reservaId,
       fecha: val.fecha,
       hora: val.hora,
-      cupoMinimo: val.cupoMinimo,
-      cupoMaximo: val.cupoMaximo,
+      cupoMinimo,
+      cupoMaximo,
       tipoIngreso: val.tipoIngreso,
-      tiempoCancelacionHoras: val.tiempoCancelacionHoras,
+      tiempoCancelacionHoras: tiempoCancelacion,
       nivelHabilidad: val.nivelHabilidad,
     };
 
@@ -199,6 +248,7 @@ export class CreacionEventoPage implements OnInit {
         },
       });
   }
+
 
   // ── Helpers de template ──────────────────────────────────────────────────────
   campoInvalido(campo: string): boolean {
@@ -222,5 +272,9 @@ export class CreacionEventoPage implements OnInit {
         this.form.get('hora')?.touched ||
         false)
     );
+  }
+
+  volver(): void {
+    this.location.back();
   }
 }

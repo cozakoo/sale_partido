@@ -1,4 +1,3 @@
-import { ActivatedRoute } from '@angular/router';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TurnoItemComponent } from '../components/turno-item/turno-item.component';
@@ -6,6 +5,7 @@ import { BarraFiltrosComponent } from '../components/barra-filtros/barra-filtros
 import { LocalService } from '../services/local.service';
 import { DisponibilidadCanchaBackendDTO, TurnoBackendDTO } from '../models/disponibilidad-cancha';
 import { DiaCalendario, Turno, EstadoTurno, EstadoEvento, FilterSelection } from '../models/calendario';
+import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
   selector: 'app-calendario-disponibilidad',
@@ -17,6 +17,7 @@ import { DiaCalendario, Turno, EstadoTurno, EstadoEvento, FilterSelection } from
 export class CalendarioDisponibilidadPage implements OnInit {
   private service = inject(LocalService);
   private route = inject(ActivatedRoute);
+  private router = inject(Router);
 
   localUuid!: string;
   fechaInicio = signal(this.getLunes(new Date()));
@@ -274,5 +275,20 @@ export class CalendarioDisponibilidadPage implements OnInit {
     const diff = diaSemana === 0 ? -6 : 1 - diaSemana;
     d.setDate(d.getDate() + diff);
     return d;
+  }
+
+  onReservar(turno: Turno): void {
+    this.router.navigate(['/eventos/new'], {
+      state: {
+        reserva: {
+          turnoId: turno.id,
+          localUuid: this.localUuid,
+          espacioNombre: turno.espacioNombre,
+          deporte: turno.deporte,
+          horaInicio: turno.horaInicio,
+          horaFin: turno.horaFin,
+        }
+      }
+    });
   }
 }
