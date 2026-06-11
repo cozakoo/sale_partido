@@ -52,7 +52,7 @@ export interface EventoDetalle {
 export interface UsuarioSesion {
   uuid: string;
   nombre: string;
-  nivelHabilidad: string;
+  habilidades: Record<string, string>;
 }
 
 export interface ParticipacionResponse {

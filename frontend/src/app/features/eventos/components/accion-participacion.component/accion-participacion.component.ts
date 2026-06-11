@@ -54,7 +54,18 @@ export class AccionParticipacionComponent {
   nivelIncompatible = computed(() => {
     const requerido = this.evento().nivelRequerido;
     if (!requerido) return false;
-    return this.usuario().nivelHabilidad !== requerido.nombre;
+
+    const normalizar = (str: string) =>
+      str ? str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim() : '';
+
+    const deporteNormalizado = normalizar(this.evento().deporte);
+    const habilidades = this.usuario().habilidades || {};
+    const keyEncontrada = Object.keys(habilidades).find(
+      key => normalizar(key) === deporteNormalizado
+    );
+    const nivelUsuario = keyEncontrada ? habilidades[keyEncontrada] : undefined;
+
+    return nivelUsuario !== requerido.nombre;
   });
 
   invitacionPendiente = computed(

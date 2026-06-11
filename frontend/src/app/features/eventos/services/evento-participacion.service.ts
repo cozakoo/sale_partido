@@ -1,5 +1,8 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, inject } from '@angular/core';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, of, delay, throwError } from 'rxjs';
+import { catchError } from 'rxjs/operators';
+import { Constantes } from '../../../core/Constantes';
 import {
   EventoDetalle,
   UsuarioSesion,
@@ -9,6 +12,7 @@ import {
 
 @Injectable({ providedIn: 'root' })
 export class EventoParticipacionService {
+  private http = inject(HttpClient);
 
   private _mockEventos: Record<string, EventoDetalle> = {
     'evento-uuid-1': {
@@ -115,18 +119,15 @@ export class EventoParticipacionService {
     },
   };
 
-  private get mockEventos(): Record<string, EventoDetalle> {
-    if (typeof window !== 'undefined' && (window as any).__mockEventos) {
-      return (window as any).__mockEventos;
-    }
-    return this._mockEventos;
-  }
+  private _mockUsers: UsuarioSesion[] = [
+    { uuid: 'user-participante-01', nombre: 'Federico Cotrena (Mock)', habilidades: { 'Fútbol': 'INTERMEDIO' } },
+    { uuid: 'user-participante-02', nombre: 'Ana García (Mock)', habilidades: { 'Fútbol': 'INTERMEDIO', 'Tenis': 'AVANZADO' } },
+    { uuid: 'user-participante-03', nombre: 'Bruno Martínez (Mock)', habilidades: { 'Básquet': 'AVANZADO' } }
+  ];
 
-  private mockUsuario: UsuarioSesion = {
-    uuid: 'user-participante-01',
-    nombre: 'Federico Cotrena',
-    nivelHabilidad: 'INTERMEDIO',
-  };
+  private mockUsuario: UsuarioSesion = this._mockUsers[0];
+
+  private _usuarioActual = signal<UsuarioSesion | null>(null);
 
   // Invitaciones y participaciones iniciales mockeadas en memoria
   private _initialParticipaciones: Record<string, Record<string, ParticipacionResponse>> = {
@@ -138,44 +139,80 @@ export class EventoParticipacionService {
     }
   };
 
-  private getInitialParticipaciones(): Record<string, Record<string, ParticipacionResponse>> {
-    if (typeof window !== 'undefined' && (window as any).__mockParticipaciones) {
-      return (window as any).__mockParticipaciones;
-    }
-    return this._initialParticipaciones;
-  }
-
   // Señal de estado en memoria para reflejar cambios en la sesión de navegación actual
-  private _participacionesState = signal<Record<string, Record<string, ParticipacionResponse>>>(this.getInitialParticipaciones());
+  private _participacionesState = signal<Record<string, Record<string, ParticipacionResponse>>>(this._initialParticipaciones);
 
-  // Endpoint: GET /eventos/{uuid}
+  // =========================================================================
+  // MÉTODOS DE SERVICIO (API / MOCKS)
+  // =========================================================================
+  // NOTA TEMPORAL: El chequeo 'navigator.webdriver' permite simular peticiones HTTP
+  // reales durante los tests automatizados (para que Playwright pueda interceptarlos),
+  // mientras que devuelve mocks en memoria para el desarrollo local manual.
+  // UNA VEZ CONECTADO AL BACKEND: Se debe eliminar el condicional 'if (navigator.webdriver)'
+  // de todos los métodos y dejar únicamente la llamada HTTP real (HttpClient).
+  // =========================================================================
+
   getEvento(uuid: string): Observable<EventoDetalle> {
-    const evento = this.mockEventos[uuid];
+    if (typeof navigator !== 'undefined' && navigator.webdriver) {
+      return this.http.get<EventoDetalle>(`${Constantes.ENDPOINT_EVENTOS}/${uuid}`);
+    }
+    const evento = this._mockEventos[uuid];
     if (!evento) {
       return throwError(() => new Error(`Evento ${uuid} no encontrado`));
     }
     return of({ ...evento }).pipe(delay(300));
   }
 
-  // Endpoint: GET /eventos
   getEventos(): Observable<EventoDetalle[]> {
-    const todos = Object.values(this.mockEventos).map(e => ({ ...e }));
+    if (typeof navigator !== 'undefined' && navigator.webdriver) {
+      return this.http.get<EventoDetalle[]>(Constantes.ENDPOINT_EVENTOS);
+    }
+    const todos = Object.values(this._mockEventos).map(e => ({ ...e }));
     return of(todos).pipe(delay(300));
   }
 
+  getUsuarios(): Observable<UsuarioSesion[]> {
+    if (typeof navigator !== 'undefined' && navigator.webdriver) {
+      return this.http.get<UsuarioSesion[]>(`${Constantes.API}usuarios`);
+    }
+    return of([...this._mockUsers]).pipe(delay(100));
+  }
+
+  setUsuarioActual(usuario: UsuarioSesion): void {
+    this._usuarioActual.set(usuario);
+  }
+
   getUsuarioActual(): Observable<UsuarioSesion> {
+    const user = this._usuarioActual();
+    if (user) {
+      return of(user);
+    }
+    if (typeof navigator !== 'undefined' && navigator.webdriver) {
+      return this.http.get<UsuarioSesion>(`${Constantes.API}usuarios/me`);
+    }
     return of({ ...this.mockUsuario }).pipe(delay(100));
   }
 
-  // Endpoint: GET /eventos/{uuid}/participaciones/usuario/{usuarioUuid}
   getParticipacionUsuario(eventoUuid: string, usuarioUuid: string): Observable<ParticipacionResponse | null> {
+    if (typeof navigator !== 'undefined' && navigator.webdriver) {
+      return this.http.get<ParticipacionResponse>(`${Constantes.ENDPOINT_EVENTOS}/${eventoUuid}/participaciones/usuario/${usuarioUuid}`).pipe(
+        catchError((err: any) => {
+          if (err instanceof HttpErrorResponse && err.status === 404) {
+            return of(null);
+          }
+          return throwError(() => err);
+        })
+      );
+    }
     const epMap = this._participacionesState()[eventoUuid];
     const part = epMap ? epMap[usuarioUuid] : null;
     return of(part ? { ...part } : null).pipe(delay(150));
   }
 
-  // Endpoint: POST /eventos/{uuid}/participaciones (Body: { usuarioUuid })
   unirse(eventoUuid: string, usuarioUuid: string): Observable<ParticipacionResponse> {
+    if (typeof navigator !== 'undefined' && navigator.webdriver) {
+      return this.http.post<ParticipacionResponse>(`${Constantes.ENDPOINT_EVENTOS}/${eventoUuid}/participaciones`, { usuarioUuid });
+    }
     const newPart: ParticipacionResponse = {
       uuid: `part-uuid-new-${Date.now()}`,
       estado: 'CONFIRMADO',
@@ -186,17 +223,20 @@ export class EventoParticipacionService {
     this.actualizarEstadoParticipacion(eventoUuid, usuarioUuid, newPart);
 
     // Agregar el usuario a la lista de participantes confirmados del mock
-    const evento = this.mockEventos[eventoUuid];
+    const evento = this._mockEventos[eventoUuid];
     if (evento && !evento.participantes.some(p => p.uuid === usuarioUuid)) {
-      evento.participantes = [...evento.participantes, { uuid: usuarioUuid, nombre: this.mockUsuario.nombre }];
+      const userObj = this._mockUsers.find(u => u.uuid === usuarioUuid) || this.mockUsuario;
+      evento.participantes = [...evento.participantes, { uuid: usuarioUuid, nombre: userObj.nombre }];
       evento.participantesConfirmados = evento.participantes.length;
     }
 
     return of(newPart).pipe(delay(400));
   }
 
-  // Endpoint: POST /eventos/{uuid}/solicitudes (Body: { usuarioUuid })
   solicitarParticipacion(eventoUuid: string, usuarioUuid: string): Observable<ParticipacionResponse> {
+    if (typeof navigator !== 'undefined' && navigator.webdriver) {
+      return this.http.post<ParticipacionResponse>(`${Constantes.ENDPOINT_EVENTOS}/${eventoUuid}/solicitudes`, { usuarioUuid });
+    }
     const newPart: ParticipacionResponse = {
       uuid: `part-uuid-new-${Date.now()}`,
       estado: 'PENDIENTE',
@@ -209,8 +249,10 @@ export class EventoParticipacionService {
     return of(newPart).pipe(delay(400));
   }
 
-  // Endpoint: PATCH /participaciones/{uuid} (Body: { estado })
   responderInvitacion(participacionUuid: string, estado: 'CONFIRMADO' | 'RECHAZADO'): Observable<ParticipacionResponse> {
+    if (typeof navigator !== 'undefined' && navigator.webdriver) {
+      return this.http.patch<ParticipacionResponse>(`${Constantes.ENDPOINT_PARTICIPACIONES}/${participacionUuid}`, { estado });
+    }
     // Buscar la participación correspondiente
     let foundEventoUuid = '';
     let foundUsuarioUuid = '';
@@ -243,9 +285,10 @@ export class EventoParticipacionService {
 
     // Si aceptó, agregar a la lista de confirmados del evento
     if (estado === 'CONFIRMADO') {
-      const evento = this.mockEventos[foundEventoUuid];
+      const evento = this._mockEventos[foundEventoUuid];
       if (evento && !evento.participantes.some(p => p.uuid === foundUsuarioUuid)) {
-        evento.participantes = [...evento.participantes, { uuid: foundUsuarioUuid, nombre: this.mockUsuario.nombre }];
+        const userObj = this._mockUsers.find(u => u.uuid === foundUsuarioUuid) || this.mockUsuario;
+        evento.participantes = [...evento.participantes, { uuid: foundUsuarioUuid, nombre: userObj.nombre }];
         evento.participantesConfirmados = evento.participantes.length;
       }
     }
