@@ -73,8 +73,8 @@
           @if (dia.turnos.length > 0) {
 
           @for (turno of dia.turnos; track turno.id) {
-          <app-turno-item [turno]="turno" [abierto]="isTurnoAbierto(turno.id)"
-            (toggleDetalle)="toggleTurno(turno.id)" />
+          <app-turno-item [turno]="turno" [abierto]="isTurnoAbierto(turno.id)" (toggleDetalle)="toggleTurno(turno.id)"
+            (reservar)="onReservar(turno)" />
           }
 
           } @else {
@@ -126,7 +126,8 @@
         @if (dia.turnos.length > 0) {
 
         @for (turno of dia.turnos; track turno.id) {
-        <app-turno-item [turno]="turno" [abierto]="isTurnoAbierto(turno.id)" (toggleDetalle)="toggleTurno(turno.id)" />
+        <app-turno-item [turno]="turno" [abierto]="isTurnoAbierto(turno.id)" (toggleDetalle)="toggleTurno(turno.id)"
+          (reservar)="onReservar(turno)" />
         }
 
         } @else {

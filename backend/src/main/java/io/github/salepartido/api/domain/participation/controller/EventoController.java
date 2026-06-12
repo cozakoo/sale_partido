@@ -1,5 +1,6 @@
 package io.github.salepartido.api.domain.participation.controller;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
@@ -11,9 +12,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import io.github.salepartido.api.domain.locales.model.Local;
+import io.github.salepartido.api.domain.locales.service.LocalService;
 import io.github.salepartido.api.domain.participation.controller.dto.EventoDetailDTO;
 import io.github.salepartido.api.domain.participation.controller.dto.ParticipacionRequestDTO;
 import io.github.salepartido.api.domain.participation.controller.dto.ParticipacionResponseDTO;
+import io.github.salepartido.api.domain.participation.model.Evento;
+import io.github.salepartido.api.domain.participation.model.Participacion;
 import io.github.salepartido.api.domain.participation.service.EventoService;
 import io.github.salepartido.api.domain.participation.service.ParticipacionService;
 import jakarta.validation.Valid;
@@ -24,15 +29,44 @@ public class EventoController {
 
     private final EventoService eventoService;
     private final ParticipacionService participacionService;
+    private final LocalService localService;
 
-    public EventoController(EventoService eventoService, ParticipacionService participacionService) {
+    public EventoController(
+            EventoService eventoService,
+            ParticipacionService participacionService,
+            LocalService localService) {
         this.eventoService = eventoService;
         this.participacionService = participacionService;
+        this.localService = localService;
+    }
+
+    @GetMapping
+    public List<EventoDetailDTO> getEventos() {
+        return eventoService.getEventos().stream()
+                .map(evento -> {
+                    Local local = null;
+                    if (evento.getTurno() != null && evento.getTurno().getCancha() != null) {
+                        local = localService.buscarLocalPorCanchaUuid(evento.getTurno().getCancha().getUuid()).orElse(null);
+                    }
+                    return EventoDetailDTO.from(evento, local);
+                })
+                .toList();
     }
 
     @GetMapping("/{uuid}")
     public EventoDetailDTO getEvento(@PathVariable UUID uuid) {
-        return EventoDetailDTO.from(eventoService.getEvento(uuid));
+        Evento evento = eventoService.getEvento(uuid);
+        Local local = null;
+        if (evento.getTurno() != null && evento.getTurno().getCancha() != null) {
+            local = localService.buscarLocalPorCanchaUuid(evento.getTurno().getCancha().getUuid()).orElse(null);
+        }
+        return EventoDetailDTO.from(evento, local);
+    }
+
+    @GetMapping("/{uuid}/participaciones/usuario/{usuarioUuid}")
+    public ParticipacionResponseDTO getParticipacionUsuario(@PathVariable UUID uuid, @PathVariable UUID usuarioUuid) {
+        Participacion p = participacionService.getParticipacionActiva(uuid, usuarioUuid);
+        return ParticipacionResponseDTO.from(p);
     }
 
     @PostMapping("/{uuid}/participaciones")

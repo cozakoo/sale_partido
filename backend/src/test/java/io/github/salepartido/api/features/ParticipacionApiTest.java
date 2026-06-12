@@ -137,6 +137,70 @@ class ParticipacionApiTest {
     }
 
     // ─────────────────────────────────────────────────────────────────────────
+    // GET /eventos — listado de eventos
+    // ─────────────────────────────────────────────────────────────────────────
+
+    @Nested
+    @DisplayName("GET /eventos — listado de eventos")
+    class GetEventos {
+
+        @Test
+        @DisplayName("Obtener listado de eventos → 200 OK")
+        void getEventos_retorna200() throws Exception {
+            java.util.List<Evento> eventos = java.util.List.of(eventoDisponible);
+            when(eventoService.getEventos()).thenReturn(eventos);
+
+            mockMvc.perform(get("/eventos"))
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON));
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // GET /eventos/{uuid}/participaciones/usuario/{usuarioUuid} — consulta de participación activa
+    // ─────────────────────────────────────────────────────────────────────────
+
+    @Nested
+    @DisplayName("GET /eventos/{uuid}/participaciones/usuario/{usuarioUuid}")
+    class GetParticipacionUsuario {
+
+        @Test
+        @DisplayName("Participación activa existente → 200 OK con body JSON")
+        void participacionActivaExiste_retorna200() throws Exception {
+            when(participacionService.getParticipacionActiva(EVENTO_UUID, USUARIO_UUID))
+                    .thenReturn(participacionConfirmada);
+
+            mockMvc.perform(get("/eventos/{uuid}/participaciones/usuario/{usuarioUuid}", EVENTO_UUID, USUARIO_UUID))
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON));
+        }
+
+        @Test
+        @DisplayName("Participación activa inexistente → 404 Not Found")
+        void participacionActivaNoExiste_retorna404() throws Exception {
+            when(participacionService.getParticipacionActiva(EVENTO_UUID, USUARIO_UUID))
+                    .thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Participación no encontrada"));
+
+            mockMvc.perform(get("/eventos/{uuid}/participaciones/usuario/{usuarioUuid}", EVENTO_UUID, USUARIO_UUID))
+                    .andExpect(status().isNotFound());
+        }
+
+        @Test
+        @DisplayName("UUID de evento inválido → 400 Bad Request")
+        void uuidEventoInvalido_retorna400() throws Exception {
+            mockMvc.perform(get("/eventos/no-es-uuid/participaciones/usuario/{usuarioUuid}", USUARIO_UUID))
+                    .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        @DisplayName("UUID de usuario inválido → 400 Bad Request")
+        void uuidUsuarioInvalido_retorna400() throws Exception {
+            mockMvc.perform(get("/eventos/{uuid}/participaciones/usuario/no-es-uuid", EVENTO_UUID))
+                    .andExpect(status().isBadRequest());
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
     // POST /eventos/{uuid}/participaciones — unirse a evento ABIERTO
     // ─────────────────────────────────────────────────────────────────────────
 

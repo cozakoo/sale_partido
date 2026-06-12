@@ -113,6 +113,20 @@ public class ParticipacionService {
         return participacionRepository.save(participacion);
     }
 
+    @Transactional(readOnly = true)
+    public Participacion getParticipacionActiva(UUID eventoId, UUID usuarioId) {
+        Evento evento = buscarEvento(eventoId);
+        return evento.getParticipaciones().stream()
+                .filter(p -> p.getParticipante().getUuid().equals(usuarioId))
+                .filter(p -> p.getEstado() == EstadoParticipacion.CONFIRMADO 
+                          || p.getEstado() == EstadoParticipacion.PENDIENTE)
+                .findFirst()
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, 
+                        "El usuario no participa ni tiene invitación activa para este evento"
+                ));
+    }
+
     /* --- Lookups --- */
 
     private Evento buscarEvento(UUID eventoId) {

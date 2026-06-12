@@ -6,6 +6,8 @@ export class Constantes {
     static readonly API = environment.apiUrl
     static readonly ENDPOINT_LOCALES = this.API + 'locales'
     static readonly ENDPOINT_CANCHAS = this.API + 'canchas'
+    static readonly ENDPOINT_EVENTOS = this.API + 'eventos'
+    static readonly ENDPOINT_PARTICIPACIONES = this.API + 'participaciones'
     static readonly SLOT_DURATIONS_MINUTES = [30, 60, 90, 120];
     static readonly DEFAULT_DAYS = [
         { diaSemana: 'MONDAY', activo: true, horaInicio: '10:00:00', horaFin: '22:00:00' },

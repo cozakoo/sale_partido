@@ -58,7 +58,14 @@
   &.ocupado    { background: #FCEBEB; color: #A32D2D; }
   &.incompleto { background: #FAEEDA; color: #854F0B; }
 }
-
+.btn-reservar {
+  min-width: 95px;
+  height: 34px;
+  border-radius: 999px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  padding: 0 16px;
+}
 .chevron {
   width: 20px;  // ancho fijo siempre
   text-align: center;
