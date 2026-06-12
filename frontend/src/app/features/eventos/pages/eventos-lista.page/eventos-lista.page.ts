@@ -36,14 +36,20 @@ export class EventosListaPage implements OnInit {
     this.service
       .getUsuarios()
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((usuarios) => {
-        this.usuarios.set(usuarios);
-        if (usuarios.length > 0) {
-          const primerUsuario = usuarios[0];
-          this.usuarioSeleccionado.set(primerUsuario);
-          this.service.setUsuarioActual(primerUsuario);
+      .subscribe({
+        next: (usuarios) => {
+          this.usuarios.set(usuarios);
+          if (usuarios.length > 0) {
+            const primerUsuario = usuarios[0];
+            this.usuarioSeleccionado.set(primerUsuario);
+            this.service.setUsuarioActual(primerUsuario);
+          }
+          this.cargarEventos();
+        },
+        error: (err) => {
+          console.error('Error al cargar la lista de usuarios:', err);
+          this.cargarEventos(); // Intentamos cargar los eventos aunque fallen los usuarios
         }
-        this.cargarEventos();
       });
   }
 
@@ -52,9 +58,15 @@ export class EventosListaPage implements OnInit {
     this.service
       .getEventos()
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((eventos) => {
-        this.eventos.set(eventos);
-        this.cargando.set(false);
+      .subscribe({
+        next: (eventos) => {
+          this.eventos.set(eventos);
+          this.cargando.set(false);
+        },
+        error: (err) => {
+          console.error('Error al cargar los eventos desde el backend:', err);
+          this.cargando.set(false);
+        }
       });
   }
 
