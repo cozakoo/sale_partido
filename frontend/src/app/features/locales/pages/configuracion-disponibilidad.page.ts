@@ -1,270 +1,346 @@
-import { Component, inject, OnInit } from '@angular/core';
-import { CommonModule, Location } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, FormArray, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
-import { NgbNavModule } from '@ng-bootstrap/ng-bootstrap';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { TurnoItemComponent } from '../components/turno-item/turno-item.component';
+import { BarraFiltrosComponent } from '../components/barra-filtros/barra-filtros.component';
 import { LocalService } from '../services/local.service';
-import { CanchaDetail } from '../models/cancha-detail';
-import { ConfiguracionDia } from '../models/configuracion-dia';
-import { Constantes } from '../../../core/Constantes';
-import { ActivatedRoute } from '@angular/router';
-import { SaveCanchaConfiguracionHorarioRequest } from '../models/cancha-configuracion-horario-request';
- 
+import { DisponibilidadCanchaBackendDTO, TurnoBackendDTO } from '../models/disponibilidad-cancha';
+import { DiaCalendario, Turno, EstadoTurno, EstadoEvento, FilterSelection } from '../models/calendario';
+import { ActivatedRoute, Router } from '@angular/router';
+import { UsuarioSesion } from '../../eventos/models/evento-detalle.model';
+import { EventoParticipacionService } from '../../eventos/services/evento-participacion.service';
 
 @Component({
-  selector: 'app-schedule-config',
+  selector: 'app-calendario-disponibilidad',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, NgbNavModule],
-  templateUrl: './configuracion-disponibilidad.page.html',
-  styleUrl: './configuracion-disponibilidad.page.scss',
+  imports: [CommonModule, TurnoItemComponent, BarraFiltrosComponent],
+  templateUrl: './calendario-disponibilidad.page.html',
+  styleUrl: './calendario-disponibilidad.page.scss',
 })
-export class ConfiguracionDisponibilidadPage implements OnInit {
-  
-  localService = inject(LocalService);
-  fb = inject(FormBuilder);
-  location = inject(Location)
-  route = inject(ActivatedRoute)
+export class CalendarioDisponibilidadPage implements OnInit {
+  private service = inject(LocalService);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private serviceUsr = inject(EventoParticipacionService);
 
-  localUuid!: string
-  localNombre!: string
-  canchasDetail: CanchaDetail[] = [];
-  duracionesTurno = Constantes.SLOT_DURATIONS_MINUTES;
- 
-  form: FormGroup = this.fb.group({
-    canchas: this.fb.group({})
+  usuarios = signal<UsuarioSesion[]>([]);
+  usuarioSeleccionado = signal<UsuarioSesion | null>(null);
+
+  localUuid!: string;
+  // ── Nombre del local cargado desde el backend ─────────────────────────────
+  localNombre = signal<string>('');
+
+  fechaInicio = signal(this.getLunes(new Date()));
+  offsetSemana = signal(0);
+
+  loading = signal(false);
+  loadError = signal(false);
+
+  diasAbiertos = signal<Record<number, boolean>>({});
+  turnosAbiertos = signal<Record<string, boolean>>({});
+
+  semana = signal<DiaCalendario[]>([]);
+  vista = signal<'dia' | 'semana'>('semana');
+  diaSeleccionado = signal(0);
+
+  seleccionFiltros = signal<FilterSelection>({
+    estados: [],
+    espacios: [],
+    deportes: [],
   });
-  activeTabId: any = null;
 
-  saving = false;
-  saveSuccess = false;
-  saveError = false;
- 
-  get canchasFormGroup(): FormGroup {
-    return this.form.get('canchas') as FormGroup;
+  private _mockUsers: UsuarioSesion[] = [
+    {
+      uuid: 'user-participante-01',
+      nombre: 'Federico Cotrena (Mock)',
+      habilidades: { Fútbol: 'INTERMEDIO' },
+    },
+    {
+      uuid: 'user-participante-02',
+      nombre: 'Ana García (Mock)',
+      habilidades: { Fútbol: 'INTERMEDIO', Tenis: 'AVANZADO' },
+    },
+    {
+      uuid: 'user-participante-03',
+      nombre: 'Bruno Martínez (Mock)',
+      habilidades: { Básquet: 'AVANZADO' },
+    },
+  ];
+
+  private _usuarioActual = signal<UsuarioSesion | null>(null);
+
+  opcionesFiltros = computed(() => {
+    const data = this.semana();
+    const estados = new Set<EstadoTurno>();
+    const espacios = new Set<string>();
+    const deportes = new Set<string>();
+
+    for (const dia of data) {
+      for (const turno of dia.turnos) {
+        estados.add(turno.estado);
+        espacios.add(turno.espacioNombre);
+        deportes.add(turno.deporte);
+      }
+    }
+
+    return {
+      estados: Array.from(estados),
+      espacios: Array.from(espacios).sort(),
+      deportes: Array.from(deportes).sort(),
+    };
+  });
+
+  semanaFiltrada = computed(() => {
+    const data = this.semana();
+    const sel = this.seleccionFiltros();
+    const tieneFiltros =
+      sel.estados.length > 0 || sel.espacios.length > 0 || sel.deportes.length > 0;
+
+    if (!tieneFiltros) return data;
+
+    return data.map((dia) => ({
+      ...dia,
+      turnos: dia.turnos.filter((turno) => {
+        const pasaEstado = sel.estados.length === 0 || sel.estados.includes(turno.estado);
+        const pasaEspacio = sel.espacios.length === 0 || sel.espacios.includes(turno.espacioNombre);
+        const pasaDeporte = sel.deportes.length === 0 || sel.deportes.includes(turno.deporte);
+        return pasaEstado && pasaEspacio && pasaDeporte;
+      }),
+    }));
+  });
+
+  ngOnInit() {
+    this.localUuid = this.route.snapshot.paramMap.get('uuid')!;
+    this.usuarios.set(this._mockUsers);
+    this.usuarioSeleccionado.set(this._mockUsers[0]);
+
+    // ── Cargar nombre del local ───────────────────────────────────────────────
+    this.service.obtenerPorUuid(this.localUuid).subscribe({
+      next: (local) => {
+        if (local) this.localNombre.set(local.nombre);
+      },
+      error: () => {
+        // no crítico — la página funciona igual sin el nombre
+      },
+    });
+
+    this.cargarSemana();
   }
 
-  getCanchaFormGroup(canchaId: any): FormGroup | null {
-    return this.canchasFormGroup.get(String(canchaId)) as FormGroup | null;
-  }
+  cargarSemana() {
+    this.loading.set(true);
+    this.loadError.set(false);
 
-  getDiasFormArray(canchaId: any): FormArray {
-    return this.getCanchaFormGroup(canchaId)?.get('configuracionesDias') as FormArray;
-  }
-
-  timeRangeValidator = (group: AbstractControl): ValidationErrors | null => {
-    const activo = group.get('activo')?.value;
-    if (!activo) return null;
-    const inicio = group.get('horaInicio')?.value;
-    const fin = group.get('horaFin')?.value;
-    if (!inicio || !fin) return { required: true };
-    if (inicio >= fin) return { invalidTimeRange: true };
-    return null;
-  }
-
-  ngOnInit(): void {
-    let uuid = this.route.snapshot.paramMap.get('uuid');
-    if (uuid != null){
-      this.localUuid = uuid
-
-      this.localService.getLocalDetail(uuid).subscribe(s => {
-        this.localNombre = 'Configuración de Horarios del Local "'+s.nombre+'"';
+    this.service
+      .getDisponibilidad(this.localUuid, this.fechaInicio(), this.fechaFin)
+      .subscribe({
+        next: (data) => {
+          this.semana.set(this.mapearASemana(data));
+          this.loading.set(false);
+        },
+        error: () => {
+          this.loadError.set(true);
+          this.loading.set(false);
+        },
       });
+  }
 
-      this.localService.getCanchasDetailFromLocal(uuid).subscribe(s => {
-        this.canchasDetail = s;
-        if (s.length > 0) {
-          this.activeTabId = this.getCanchaId(s[0]);
-          
-          s.forEach(cancha => {
-            let duracionTurno = 60;
-            // Iniciamos todos los días deshabilitados pero con sus horas por defecto
-            let configuracionesDias: ConfiguracionDia[] = Constantes.DEFAULT_DAYS.map(d => ({
-              ...d,
-              horaInicio: d.horaInicio.substring(0, 5),
-              horaFin: d.horaFin.substring(0, 5),
-              activo: false
-            }));
+  private mapearASemana(canchas: DisponibilidadCanchaBackendDTO[]): DiaCalendario[] {
+    const diasMap = new Map<string, DiaCalendario>();
 
-            if (cancha.configuracionesHorarios && cancha.configuracionesHorarios.length > 0) {
-              const config = cancha.configuracionesHorarios[0];
-              if (config.duracionTurno) {
-                duracionTurno = config.duracionTurno;
-              }
-              if (config.configuracionesDias && config.configuracionesDias.length > 0) {
-                configuracionesDias = configuracionesDias.map(defaultDay => {
-                  const backendDay = config.configuracionesDias.find(d => d.diaSemana.toUpperCase() === defaultDay.diaSemana.toUpperCase());
-                  // Si el backend trajo el día, lo habilitamos y tomamos sus horas (o el default como fallback)
-                  if (backendDay) {
-                    let hIni: any = backendDay.horaInicio || defaultDay.horaInicio;
-                    let hFin: any = backendDay.horaFin || defaultDay.horaFin;
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(this.fechaInicio());
+      d.setDate(d.getDate() + i);
+      const key = this.formatearFechaLocal(d);
+      diasMap.set(key, { fecha: d, turnos: [] });
+    }
 
-                    if (Array.isArray(hIni)) hIni = `${String(hIni[0]).padStart(2, '0')}:${String(hIni[1] || 0).padStart(2, '0')}`;
-                    else if (typeof hIni === 'string') hIni = hIni.substring(0, 5);
-
-                    if (Array.isArray(hFin)) hFin = `${String(hFin[0]).padStart(2, '0')}:${String(hFin[1] || 0).padStart(2, '0')}`;
-                    else if (typeof hFin === 'string') hFin = hFin.substring(0, 5);
-
-                    return { 
-                      ...defaultDay,
-                      horaInicio: hIni,
-                      horaFin: hFin,
-                      activo: true 
-                    };
-                  }
-                  // Si no viene o no está activo, queda como lo inicializamos (deshabilitado y horas por defecto)
-                  return defaultDay;
-                });
-              }
-            }
-
-            const configuracionesDiasArray = configuracionesDias.map(defaultDay => {
-              const diaGroup = this.fb.group({
-                diaSemana: [defaultDay.diaSemana],
-                activo: [defaultDay.activo],
-                horaInicio: [{ value: defaultDay.horaInicio, disabled: !defaultDay.activo }],
-                horaFin: [{ value: defaultDay.horaFin, disabled: !defaultDay.activo }]
-              }, { validators: this.timeRangeValidator });
-
-              diaGroup.get('activo')?.valueChanges.subscribe(activo => {
-                if (activo) {
-                  diaGroup.get('horaInicio')?.enable();
-                  diaGroup.get('horaFin')?.enable();
-                } else {
-                  diaGroup.get('horaInicio')?.disable();
-                  diaGroup.get('horaFin')?.disable();
-                }
-              });
-
-              return diaGroup;
-            });
-
-            const canchaGroup = this.fb.group({
-              duracionTurno: [duracionTurno, Validators.required],
-              configuracionesDias: this.fb.array(configuracionesDiasArray)
-            });
-
-            this.canchasFormGroup.addControl(String(this.getCanchaId(cancha)), canchaGroup);
-          });
+    canchas.forEach((cancha) => {
+      cancha.turnos.forEach((turnoDTO) => {
+        const dia = diasMap.get(turnoDTO.fecha);
+        if (dia) {
+          dia.turnos.push(this.mapearTurno(turnoDTO, cancha));
         }
       });
+    });
+
+    diasMap.forEach((dia) => {
+      dia.turnos.sort((a, b) => a.horaInicio.localeCompare(b.horaInicio));
+    });
+
+    return Array.from(diasMap.values());
+  }
+
+  // ── Ahora recibe también la cancha para tener uuid y nombre ───────────────
+  private mapearTurno(dto: TurnoBackendDTO, cancha: DisponibilidadCanchaBackendDTO): Turno {
+    return {
+      id: `${dto.fecha}-${dto.espacioNombre}-${dto.horaInicio}`,
+      turnoUuid: dto.uuid,
+      fecha: dto.fecha,
+      horaInicio: dto.horaInicio.substring(0, 5),
+      horaFin: dto.horaFin.substring(0, 5),
+      espacioNombre: dto.espacioNombre,
+      canchaNombre: cancha.canchaNombre,
+      canchaUuid: cancha.canchaUuid,
+      deporte: dto.deporte ?? '',
+      estado: this.mapearEstado(dto),
+      capacidad: dto.turno?.capacidad ?? 0,
+      turno: dto.turno
+        ? {
+            organizadorNombre: dto.turno.nombreOrganizador,
+            cantidadConfirmados: dto.turno.cantidadParticipantesConfirmados,
+            capacidad: dto.turno.capacidad,
+            estadoEvento: dto.turno.estadoEvento.toLowerCase() as EstadoEvento,
+          }
+        : undefined,
+    };
+  }
+
+  private mapearEstado(dto: TurnoBackendDTO): EstadoTurno {
+    if (dto.estado === 'LIBRE') return 'libre';
+
+    const ahora = new Date();
+    const fechaFinTurno = this.crearFechaHora(dto.fecha, dto.horaFin);
+
+    if (fechaFinTurno < ahora) return 'finalizado';
+
+    switch (dto.turno?.estadoEvento) {
+      case 'PENDIENTE':
+        return 'incompleto';
+      case 'CONFIRMADO':
+      case 'FINALIZADO':
+      default:
+        return 'ocupado';
     }
   }
- 
-  getCanchaId(cancha: CanchaDetail | any): any {
-    return cancha.uuid || cancha.id || cancha.nombre;
-  }
- 
-  getCanchaNombre(cancha: CanchaDetail | any): string {
-    return cancha.nombre || 'Cancha sin nombre';
+
+  // ── Navegación al formulario de creación ─────────────────────────────────
+  onReservar(turno: Turno): void {
+    this.router.navigate(['/eventos/new'], {
+      state: {
+        reserva: {
+          turnoUuid: turno.turnoUuid,
+          localUuid: this.localUuid,
+          localNombre: this.localNombre(),
+          canchaUuid: turno.canchaUuid,
+          canchaNombre: turno.canchaNombre,
+          capacidad: turno.capacidad,
+          fecha: turno.fecha,
+          horaInicio: turno.horaInicio,
+          horaFin: turno.horaFin,
+        },
+      },
+    });
   }
 
-  translateDay(day: string): string {
-    const map: Record<string, string> = {
-      'MONDAY': 'Lunes',
-      'TUESDAY': 'Martes',
-      'WEDNESDAY': 'Miércoles',
-      'THURSDAY': 'Jueves',
-      'FRIDAY': 'Viernes',
-      'SATURDAY': 'Sábado',
-      'SUNDAY': 'Domingo'
-    };
-    return map[day.toUpperCase()] || day;
+  // ── Resto de métodos sin cambios ──────────────────────────────────────────
+
+  cambiarVista(vista: 'dia' | 'semana') {
+    this.vista.set(vista);
   }
 
-  aplicarATodas(sourceId: any): void {
-    if (!window.confirm('¿Estás seguro de que quieres aplicar este horario a todas las canchas?')) {
+  navegar(delta: number) {
+    if (this.vista() === 'semana') {
+      const d = new Date(this.fechaInicio());
+      d.setDate(d.getDate() + delta * 7);
+      this.fechaInicio.set(d);
+      this.cargarSemana();
       return;
     }
 
-    const sourceGroup = this.getCanchaFormGroup(sourceId);
-    if (!sourceGroup) return;
+    const nuevoIndex = this.diaSeleccionado() + delta;
 
-    const sourceValue = sourceGroup.getRawValue();
-
-    this.canchasDetail.forEach(cancha => {
-      const targetId = this.getCanchaId(cancha);
-      if (targetId !== sourceId) {
-        const targetGroup = this.getCanchaFormGroup(targetId);
-        if (targetGroup) {
-          targetGroup.patchValue(sourceValue);
-          const sourceDias = sourceGroup.get('configuracionesDias') as FormArray;
-          const targetDias = targetGroup.get('configuracionesDias') as FormArray;
-          // Forzamos disparar los valueChanges de los 'activo' en las otras canchas para que se habiliten/deshabiliten los inputs
-          for (let i = 0; i < sourceDias.length; i++) {
-            const activo = sourceDias.at(i).get('activo')?.value;
-            targetDias.at(i).get('activo')?.setValue(activo);
-          }
-        }
-      }
-    });
-  }
-
-  hasInconsistentSchedule(canchaId: any): boolean {
-    const canchaGroup = this.getCanchaFormGroup(canchaId);
-    if (!canchaGroup) return false;
-    
-    const duracionTurno = canchaGroup.get('duracionTurno')?.value;
-    if (!duracionTurno) return false;
-
-    const dias = canchaGroup.get('configuracionesDias') as FormArray;
-    for (let control of dias.controls) {
-      if (control.get('activo')?.value) {
-        const hIni = control.get('horaInicio')?.value;
-        const hFin = control.get('horaFin')?.value;
-        if (hIni && hFin) {
-          const mIni = this.timeToMinutes(hIni);
-          const mFin = this.timeToMinutes(hFin);
-          if (mIni < mFin) {
-            const diff = mFin - mIni;
-            if (diff % duracionTurno !== 0) {
-              return true;
-            }
-          }
-        }
-      }
+    if (nuevoIndex >= 0 && nuevoIndex <= 6) {
+      this.diaSeleccionado.set(nuevoIndex);
+      return;
     }
-    return false;
+
+    const d = new Date(this.fechaInicio());
+    d.setDate(d.getDate() + delta * 7);
+    this.fechaInicio.set(d);
+    this.diaSeleccionado.set(nuevoIndex < 0 ? 6 : 0);
+    this.cargarSemana();
   }
 
-  timeToMinutes(time: string): number {
-    const [h, m] = time.split(':').map(Number);
-    return h * 60 + m;
-  }
- 
-  onSubmit(): void {
-    if (this.form.invalid || this.canchasDetail.length === 0) return;
+  irHoy() {
+    this.offsetSemana.set(0);
+    this.fechaInicio.set(this.getLunes(new Date()));
 
-    // getRawValue() extrae todos los valores, incluso de los FormControls que están disabled programáticamente
-    const canchasVal = this.canchasFormGroup.getRawValue();
-    
-    // Formar el arreglo con todas las configuraciones para enviarlas al backend
-    const canchasConfig = Object.keys(canchasVal).map(canchaId => ({
-      canchaUuid: canchaId,
-      duracionTurno: canchasVal[canchaId].duracionTurno,
-      configuracionesDias: canchasVal[canchaId].configuracionesDias
-        .filter((d: any) => d.activo)
-        .map((d: any) => ({
-          diaSemana: d.diaSemana,
-          horaInicio: d.horaInicio,
-          horaFin: d.horaFin
-        }))
-    }));
+    if (this.vista() === 'dia') {
+      const hoy = this.formatearFechaLocal(new Date());
+      const semana = this.semanaFiltrada();
+      const index = semana.findIndex(
+        (dia) => this.formatearFechaLocal(dia.fecha) === hoy
+      );
+      this.diaSeleccionado.set(index >= 0 ? index : 0);
+    }
 
-    const request = {
-      canchas: canchasConfig
-    } as unknown as SaveCanchaConfiguracionHorarioRequest;
- 
-    this.saving = true;
-    this.saveSuccess = false;
-    this.saveError = false;
- 
-    this.localService.saveLocalConfiguracionesHorarios(this.localUuid, request).subscribe({
-      next: () => { this.saving = false; this.saveSuccess = true; },
-      error: () => { this.saving = false; this.saveError = true; },
-    });
+    this.cargarSemana();
   }
 
-  onCancel(): void {
-    this.location.back();
+  toggleDia(i: number) {
+    this.diasAbiertos.update((v) => ({ ...v, [i]: !v[i] }));
   }
 
+  isDiaAbierto(i: number): boolean {
+    return this.diasAbiertos()[i] !== false;
+  }
+
+  toggleTurno(id: string) {
+    this.turnosAbiertos.update((v) => ({ ...v, [id]: !v[id] }));
+  }
+
+  isTurnoAbierto(id: string): boolean {
+    return !!this.turnosAbiertos()[id];
+  }
+
+  onFiltrosCambiar(seleccion: FilterSelection) {
+    this.seleccionFiltros.set(seleccion);
+  }
+
+  limpiarFiltros() {
+    this.seleccionFiltros.set({ estados: [], espacios: [], deportes: [] });
+  }
+
+  onUsuarioCambiado(event: Event): void {
+    const selectEl = event.target as HTMLSelectElement;
+    const selectedUuid = selectEl.value;
+    const usuario = this.usuarios().find((u) => u.uuid === selectedUuid);
+    if (usuario) {
+      this.usuarioSeleccionado.set(usuario);
+      this.serviceUsr.setUsuarioActual(usuario);
+      this.cargarSemana();
+    }
+  }
+
+  setUsuarioActual(usuario: UsuarioSesion): void {
+    this._usuarioActual.set(usuario);
+  }
+
+  get fechaFin(): Date {
+    const f = this.fechaInicio();
+    const d = new Date(f.getFullYear(), f.getMonth(), f.getDate());
+    d.setDate(d.getDate() + 6);
+    return d;
+  }
+
+  private getLunes(fecha: Date): Date {
+    const d = new Date(fecha.getFullYear(), fecha.getMonth(), fecha.getDate());
+    const diaSemana = d.getDay();
+    const diff = diaSemana === 0 ? -6 : 1 - diaSemana;
+    d.setDate(d.getDate() + diff);
+    return d;
+  }
+
+  private crearFechaHora(fecha: string, hora: string): Date {
+    const [year, month, day] = fecha.split('-').map(Number);
+    const [hours, minutes] = hora.split(':').map(Number);
+    return new Date(year, month - 1, day, hours, minutes);
+  }
+
+  private formatearFechaLocal(d: Date): string {
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
 }

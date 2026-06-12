@@ -1,42 +1,63 @@
-export type TipoIngreso = 'Abierto' | 'Con Confirmación' | 'Cerrado';
-export type NivelHabilidad = 'Principiante' | 'Intermedio' | 'Avanzado' | 'Sin especificar';
-export type EstadoEvento = 'En espera de participantes' | 'Confirmado' | 'Cancelado' | 'Finalizado';
+// ── Enums de la API ───────────────────────────────────────────────────────────
+export type TipoEvento = 'ABIERTO' | 'CON_CONFIRMACION' | 'CERRADO';
+export type EstadoEvento = 'DISPONIBLE' | 'COMPLETO' | 'CANCELADO' | 'FINALIZADO';
 
+// ── Labels del formulario (UI solamente, no van al backend) ───────────────────
+export type TipoIngresoLabel = 'Abierto' | 'Con Confirmación' | 'Cerrado';
+export type NivelHabilidadLabel = 'Principiante' | 'Intermedio' | 'Avanzado' | 'Sin especificar';
+
+// ── Request hacia POST /eventos ───────────────────────────────────────────────
 export interface CrearEventoRequest {
-  localId: number;
-  espacioId: number;
-  reservaId: number;
-  fecha: string;         // 'YYYY-MM-DD'
-  hora: string;          // 'HH:mm'
+  turnoUuid: string;
+  organizadorUuid: string;
+  nombre: string;
+  tipo?: TipoEvento;                       // opcional — default CERRADO en backend
   cupoMinimo: number;
   cupoMaximo: number;
-  tipoIngreso: TipoIngreso;
-  tiempoCancelacionHoras: number;
-  nivelHabilidad: NivelHabilidad;
+  limiteCancelacionParticipacion?: number; // minutos, rango 60–1440
+  nivelRequeridoUuid?: string | null;      // opcional
 }
 
-export interface EventoCreado {
-  id: number;
-  localId: number;
-  espacioId: number;
-  reservaId: number;
-  fecha: string;
-  hora: string;
-  cupoMinimo: number;
-  cupoMaximo: number;
-  tipoIngreso: TipoIngreso;
-  tiempoCancelacionHoras: number;
-  nivelHabilidad: NivelHabilidad;
+// ── Respuesta del 201 ─────────────────────────────────────────────────────────
+export interface NivelRequeridoResponse {
+  uuid: string;
+  nombre: string;
+  orden: number;
+  deporte: string;
+}
+
+export interface TurnoEventoResponse {
+  uuid: string;
+  fecha: string;        // 'YYYY-MM-DD'
+  horaInicio: string;   // 'HH:mm:ss'
+  horaFin: string;      // 'HH:mm:ss'
+  cancha: { uuid: string; nombre: string };
+  local: { uuid: string; nombre: string; direccion: string };
+}
+
+export interface EventoResponse {
+  uuid: string;
+  nombre: string;
+  tipo: TipoEvento;
   estado: EstadoEvento;
+  cupoMinimo: number;
+  cupoMaximo: number;
+  participantesConfirmados: number;
+  limiteCancelacionParticipacion: number;
+  nivelRequerido: NivelRequeridoResponse | null;
+  turno: TurnoEventoResponse;
+  organizador: { uuid: string; nombre: string };
 }
 
+// ── Datos de la reserva que vienen del calendario ─────────────────────────────
 export interface EspacioReservado {
-  reservaId: number;
-  localId: number;
+  turnoUuid: string;
+  localUuid: string;
   localNombre: string;
-  espacioId: number;
-  espacioNombre: string;
+  canchaUuid: string;
+  canchaNombre: string;
   capacidad: number;
-  fecha: string;
-  hora: string;
+  fecha: string;        // 'YYYY-MM-DD'
+  horaInicio: string;   // 'HH:mm'
+  horaFin: string;      // 'HH:mm'
 }
