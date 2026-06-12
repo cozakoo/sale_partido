@@ -6,6 +6,8 @@ import { LocalService } from '../services/local.service';
 import { DisponibilidadCanchaBackendDTO, TurnoBackendDTO } from '../models/disponibilidad-cancha';
 import { DiaCalendario, Turno, EstadoTurno, EstadoEvento, FilterSelection } from '../models/calendario';
 import { ActivatedRoute, Router } from '@angular/router';
+import { UsuarioSesion } from '../../eventos/models/evento-detalle.model';
+import { EventoParticipacionService } from '../../eventos/services/evento-participacion.service';
 
 @Component({
   selector: 'app-calendario-disponibilidad',
@@ -18,13 +20,15 @@ export class CalendarioDisponibilidadPage implements OnInit {
   private service = inject(LocalService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
-
+  usuarios = signal<UsuarioSesion[]>([]);
+  usuarioSeleccionado = signal<UsuarioSesion | null>(null);
   localUuid!: string;
   fechaInicio = signal(this.getLunes(new Date()));
   offsetSemana = signal(0);
 
   loading = signal(false);
   loadError = signal(false);
+  private serviceUsr = inject(EventoParticipacionService);
 
   diasAbiertos = signal<Record<number, boolean>>({});
   turnosAbiertos = signal<Record<string, boolean>>({});
@@ -42,7 +46,15 @@ export class CalendarioDisponibilidadPage implements OnInit {
     espacios: [],
     deportes: [],
   });
+  private _mockUsers: UsuarioSesion[] = [
+    { uuid: 'user-participante-01', nombre: 'Federico Cotrena (Mock)', habilidades: { 'Fútbol': 'INTERMEDIO' } },
+    { uuid: 'user-participante-02', nombre: 'Ana García (Mock)', habilidades: { 'Fútbol': 'INTERMEDIO', 'Tenis': 'AVANZADO' } },
+    { uuid: 'user-participante-03', nombre: 'Bruno Martínez (Mock)', habilidades: { 'Básquet': 'AVANZADO' } }
+  ];
 
+  private mockUsuario: UsuarioSesion = this._mockUsers[0];
+
+  private _usuarioActual = signal<UsuarioSesion | null>(null);
   opcionesFiltros = computed(() => {
     const data = this.semana();
     const estados = new Set<EstadoTurno>();
@@ -84,6 +96,8 @@ export class CalendarioDisponibilidadPage implements OnInit {
 
   ngOnInit() {
     this.localUuid = this.route.snapshot.paramMap.get('uuid')!;
+    this.usuarios.set(this._mockUsers);
+    this.usuarioSeleccionado.set(this._mockUsers[0]);
     this.cargarSemana();
   }
 
@@ -290,5 +304,20 @@ export class CalendarioDisponibilidadPage implements OnInit {
         }
       }
     });
+  }
+
+  onUsuarioCambiado(event: Event): void {
+    const selectEl = event.target as HTMLSelectElement;
+    const selectedUuid = selectEl.value;
+    const usuario = this.usuarios().find(u => u.uuid === selectedUuid);
+    if (usuario) {
+      this.usuarioSeleccionado.set(usuario);
+      this.serviceUsr.setUsuarioActual(usuario);
+      this.cargarSemana();
+    }
+  }
+
+  setUsuarioActual(usuario: UsuarioSesion): void {
+    this._usuarioActual.set(usuario);
   }
 }

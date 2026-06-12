@@ -28,6 +28,8 @@ import {
   TipoIngreso,
 } from '../../models/evento.mode';
 import { Location } from '@angular/common';
+import { EventoParticipacionService } from '../../services/evento-participacion.service';
+import { UsuarioSesion } from '../../models/evento-detalle.model';
 // ── Validadores ──────────────────────────────────────────────────────────────
 
 function cupoMinimoMenorQueMaximo(): ValidatorFn {
@@ -90,14 +92,17 @@ export class CreacionEventoPage implements OnInit {
     'Avanzado',
   ];
   readonly hoy = new Date().toISOString().split('T')[0];
+  usuarioActual = signal<UsuarioSesion | null>(null);
 
+private serviceUsr = inject(EventoParticipacionService);
   // ── Formulario (inicializado vacío para evitar errores de binding) ───────────
   form: FormGroup = this.fb.group({});
 
   ngOnInit(): void {
-    this._cargarEspacioReservado();
+  this.serviceUsr.getUsuarioActual().subscribe(usuario => {
+    this.usuarioActual.set(usuario);
+  });    this._cargarEspacioReservado();
   }
-
 
   private _cargarEspacioReservado(): void {
     this.cargandoEspacio.set(true);
