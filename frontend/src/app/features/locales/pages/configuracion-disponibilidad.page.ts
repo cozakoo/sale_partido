@@ -2,7 +2,7 @@ import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, FormArray, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { NgbNavModule } from '@ng-bootstrap/ng-bootstrap';
-import { LocalService } from '../services/configuracion-disponibilidad.service';
+import { LocalService } from '../services/local.service';
 import { CanchaDetail } from '../models/cancha-detail';
 import { ConfiguracionDia } from '../models/configuracion-dia';
 import { Constantes } from '../../../core/Constantes';
@@ -234,5 +234,30 @@ export class ConfiguracionDisponibilidadPage implements OnInit {
   onCancel(): void {
     this.location.back();
   }
+
+  hasInconsistentSchedule(canchaId: any): boolean {
+  const canchaGroup = this.getCanchaFormGroup(canchaId);
+  if (!canchaGroup) return false;
+
+  const duracion: number = canchaGroup.get('duracionTurno')?.value;
+  const dias = this.getDiasFormArray(canchaId);
+
+  for (let i = 0; i < dias.length; i++) {
+    const dia = dias.at(i);
+    if (!dia.get('activo')?.value) continue;
+
+    const inicio: string = dia.get('horaInicio')?.value;
+    const fin: string = dia.get('horaFin')?.value;
+    if (!inicio || !fin) continue;
+
+    const [hIni, mIni] = inicio.split(':').map(Number);
+    const [hFin, mFin] = fin.split(':').map(Number);
+    const minutos = (hFin * 60 + mFin) - (hIni * 60 + mIni);
+
+    if (minutos > 0 && minutos % duracion !== 0) return true;
+  }
+
+  return false;
+}
 
 }

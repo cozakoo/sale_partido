@@ -23,14 +23,9 @@ import { Router } from '@angular/router';
 import { Location } from '@angular/common';
 import { EventoService } from '../../services/evento.service';
 import { EventoParticipacionService } from '../../services/evento-participacion.service';
-import {
-  CrearEventoRequest,
-  EspacioReservado,
-  TipoEvento,
-  TipoIngresoLabel,
-  NivelHabilidadLabel,
-} from '../../models/evento.model';
+
 import { UsuarioSesion } from '../../models/evento-detalle.model';
+import { CrearEventoRequest, EspacioReservado, NivelHabilidadLabel, TipoEvento, TipoIngresoLabel } from '../../models/evento.model';
 
 // ── Mapas de conversión label UI → enum API ───────────────────────────────────
 // Los tests E2E usan los labels en español; la conversión ocurre en confirmar()
@@ -110,7 +105,6 @@ export class CreacionEventoPage implements OnInit {
 
   private _cargarEspacioReservado(): void {
     this.cargandoEspacio.set(true);
-
     // Prioridad: router state → sessionStorage (compatibilidad tests E2E)
     const navState = this.router.getCurrentNavigation()?.extras?.state;
     const storedState = sessionStorage.getItem('__reserva_state__');
@@ -119,6 +113,7 @@ export class CreacionEventoPage implements OnInit {
       navState?.['reserva'] ??
       (storedState ? JSON.parse(storedState) : null) ??
       history.state?.reserva;
+    console.log('Cargando espacio reservado...', reserva);
 
     if (storedState) sessionStorage.removeItem('__reserva_state__');
 
@@ -156,7 +151,7 @@ export class CreacionEventoPage implements OnInit {
         fecha: [{ value: espacio.fecha, disabled: true }],
         hora: [{ value: espacio.horaInicio, disabled: true }],
         cupoMinimo: [
-          espacio.capacidad,
+          1,                    // ← valor inicial 1 en vez de espacio.capacidad
           [Validators.required, Validators.min(1), Validators.max(espacio.capacidad)],
         ],
         cupoMaximo: [

@@ -39,7 +39,8 @@ public class DisponibilidadService {
     }
 
     @Transactional(readOnly = true)
-    public List<DisponibilidadCanchaDTO> obtenerDisponibilidadLocal(UUID localUuid, LocalDate fechaInicio, LocalDate fechaFin) {
+    public List<DisponibilidadCanchaDTO> obtenerDisponibilidadLocal(UUID localUuid, LocalDate fechaInicio,
+            LocalDate fechaFin) {
         Local local = localRepository.findById(localUuid)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Local no encontrado"));
 
@@ -58,12 +59,13 @@ public class DisponibilidadService {
                 .map(cancha -> new DisponibilidadCanchaDTO(
                         cancha.getUuid(),
                         cancha.getNombre(),
-                        buildTurnoSlotsForCancha(cancha, fechaInicio, fechaFin, turnos)
-                ))
+                        cancha.getCapacidad(), // ← nuevo
+                        buildTurnoSlotsForCancha(cancha, fechaInicio, fechaFin, turnos)))
                 .collect(Collectors.toList());
     }
 
-    private List<TurnoSlotDTO> buildTurnoSlotsForCancha(Cancha cancha, LocalDate fechaInicio, LocalDate fechaFin, List<Turno> turnos) {
+    private List<TurnoSlotDTO> buildTurnoSlotsForCancha(Cancha cancha, LocalDate fechaInicio, LocalDate fechaFin,
+            List<Turno> turnos) {
         ConfiguracionHorario configHorario = findActiveConfiguracionHorario(cancha);
         if (configHorario == null) {
             return new ArrayList<>();
@@ -97,11 +99,13 @@ public class DisponibilidadService {
                 .collect(Collectors.toMap(ConfiguracionDia::getDiaSemana, d -> d));
     }
 
-    private List<TurnoSlotDTO> buildSlotList(Cancha cancha, LocalDate fechaInicio, LocalDate fechaFin, Duration duration,
+    private List<TurnoSlotDTO> buildSlotList(Cancha cancha, LocalDate fechaInicio, LocalDate fechaFin,
+            Duration duration,
             Map<DayOfWeek, ConfiguracionDia> configDias, List<Turno> turnos) {
         List<TurnoSlotDTO> slotList = new ArrayList<>();
 
-        for (LocalDate currentFecha = fechaInicio; !currentFecha.isAfter(fechaFin); currentFecha = currentFecha.plusDays(1)) {
+        for (LocalDate currentFecha = fechaInicio; !currentFecha.isAfter(fechaFin); currentFecha = currentFecha
+                .plusDays(1)) {
             ConfiguracionDia configDia = configDias.get(currentFecha.getDayOfWeek());
             if (configDia == null) {
                 continue;
@@ -125,7 +129,8 @@ public class DisponibilidadService {
                 break;
             }
 
-            Optional<Turno> overlappingTurno = findOverlappingTurno(cancha.getUuid(), fecha, currentSlotStart, currentSlotEnd, turnos);
+            Optional<Turno> overlappingTurno = findOverlappingTurno(cancha.getUuid(), fecha, currentSlotStart,
+                    currentSlotEnd, turnos);
             slots.add(buildTurnoSlotDTO(cancha, fecha, currentSlotStart, currentSlotEnd, overlappingTurno));
             currentSlotStart = currentSlotEnd;
         }
@@ -152,8 +157,7 @@ public class DisponibilidadService {
                     t.getDeporte(),
                     cancha.getCapacidad(),
                     t.getCantidadParticipantesConfirmados(),
-                    t.getEstadoEvento()
-            );
+                    t.getEstadoEvento());
             return new TurnoSlotDTO(fecha, slotStart, slotEnd, cancha.getNombre(), t.getDeporte(), "OCUPADO", turnoDTO);
         }
 
