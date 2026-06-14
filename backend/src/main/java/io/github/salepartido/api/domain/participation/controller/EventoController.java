@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import io.github.salepartido.api.domain.locales.model.Local;
 import io.github.salepartido.api.domain.locales.service.LocalService;
 import io.github.salepartido.api.domain.participation.controller.dto.EventoDetailDTO;
+import io.github.salepartido.api.domain.participation.controller.dto.CrearEventoRequestDTO;
 import io.github.salepartido.api.domain.participation.controller.dto.ParticipacionRequestDTO;
 import io.github.salepartido.api.domain.participation.controller.dto.ParticipacionResponseDTO;
 import io.github.salepartido.api.domain.participation.model.Evento;
@@ -39,6 +40,31 @@ public class EventoController {
         this.participacionService = participacionService;
         this.localService = localService;
     }
+
+        @PostMapping
+        @ResponseStatus(HttpStatus.CREATED)
+        public EventoDetailDTO crearEvento(@jakarta.validation.Valid @org.springframework.web.bind.annotation.RequestBody CrearEventoRequestDTO request) {
+        java.time.Duration limite = request.limiteCancelacionParticipacion() != null
+            ? java.time.Duration.ofMinutes(request.limiteCancelacionParticipacion())
+            : null;
+
+        io.github.salepartido.api.domain.participation.service.CrearEventoCommand cmd =
+            new io.github.salepartido.api.domain.participation.service.CrearEventoCommand(
+                request.turnoUuid(),
+                request.organizadorUuid(),
+                request.nombre(),
+                request.cupoMinimo(),
+                request.cupoMaximo(),
+                request.tipo() != null ? io.github.salepartido.api.domain.participation.model.TipoEvento.valueOf(request.tipo()) : null,
+                limite,
+                request.nivelRequeridoUuid());
+
+        var evento = eventoService.crearEvento(cmd);
+        var local = evento.getTurno() != null && evento.getTurno().getCancha() != null
+            ? localService.buscarLocalPorCanchaUuid(evento.getTurno().getCancha().getUuid()).orElse(null)
+            : null;
+        return EventoDetailDTO.from(evento, local);
+        }
 
     @GetMapping
     public List<EventoDetailDTO> getEventos() {
