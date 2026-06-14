@@ -197,38 +197,6 @@ export class ConfiguracionDisponibilidadPage implements OnInit {
       }
     });
   }
-
-  hasInconsistentSchedule(canchaId: any): boolean {
-    const canchaGroup = this.getCanchaFormGroup(canchaId);
-    if (!canchaGroup) return false;
-    
-    const duracionTurno = canchaGroup.get('duracionTurno')?.value;
-    if (!duracionTurno) return false;
-
-    const dias = canchaGroup.get('configuracionesDias') as FormArray;
-    for (let control of dias.controls) {
-      if (control.get('activo')?.value) {
-        const hIni = control.get('horaInicio')?.value;
-        const hFin = control.get('horaFin')?.value;
-        if (hIni && hFin) {
-          const mIni = this.timeToMinutes(hIni);
-          const mFin = this.timeToMinutes(hFin);
-          if (mIni < mFin) {
-            const diff = mFin - mIni;
-            if (diff % duracionTurno !== 0) {
-              return true;
-            }
-          }
-        }
-      }
-    }
-    return false;
-  }
-
-  timeToMinutes(time: string): number {
-    const [h, m] = time.split(':').map(Number);
-    return h * 60 + m;
-  }
  
   onSubmit(): void {
     if (this.form.invalid || this.canchasDetail.length === 0) return;
@@ -266,5 +234,30 @@ export class ConfiguracionDisponibilidadPage implements OnInit {
   onCancel(): void {
     this.location.back();
   }
+
+  hasInconsistentSchedule(canchaId: any): boolean {
+  const canchaGroup = this.getCanchaFormGroup(canchaId);
+  if (!canchaGroup) return false;
+
+  const duracion: number = canchaGroup.get('duracionTurno')?.value;
+  const dias = this.getDiasFormArray(canchaId);
+
+  for (let i = 0; i < dias.length; i++) {
+    const dia = dias.at(i);
+    if (!dia.get('activo')?.value) continue;
+
+    const inicio: string = dia.get('horaInicio')?.value;
+    const fin: string = dia.get('horaFin')?.value;
+    if (!inicio || !fin) continue;
+
+    const [hIni, mIni] = inicio.split(':').map(Number);
+    const [hFin, mFin] = fin.split(':').map(Number);
+    const minutos = (hFin * 60 + mFin) - (hIni * 60 + mIni);
+
+    if (minutos > 0 && minutos % duracion !== 0) return true;
+  }
+
+  return false;
+}
 
 }

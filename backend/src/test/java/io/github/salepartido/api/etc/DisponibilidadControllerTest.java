@@ -1,6 +1,7 @@
 package io.github.salepartido.api.etc;
 
 import static org.hamcrest.Matchers.hasSize;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -29,200 +30,200 @@ import io.github.salepartido.api.domain.locales.service.DisponibilidadService;
 @ExtendWith(MockitoExtension.class)
 class DisponibilidadControllerTest {
 
-    private MockMvc mockMvc;
+        private MockMvc mockMvc;
 
-    @Mock
-    private java.time.LocalDate dummyLocalDate; // just to make imports clean, unused
+        @Mock
+        private java.time.LocalDate dummyLocalDate; // just to make imports clean, unused
 
-    @Mock
-    private DisponibilidadService disponibilidadService;
+        @Mock
+        private DisponibilidadService disponibilidadService;
 
-    @InjectMocks
-    private DisponibilidadController controller;
+        @InjectMocks
+        private DisponibilidadController controller;
 
-    private UUID localUuid;
-    private LocalDate fechaInicio;
-    private LocalDate fechaFin;
+        private UUID localUuid;
+        private LocalDate fechaInicio;
+        private LocalDate fechaFin;
 
-    @BeforeEach
-    void setup() {
-        mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
-        localUuid = UUID.randomUUID();
-        fechaInicio = LocalDate.of(2026, 6, 1);
-        fechaFin = LocalDate.of(2026, 6, 7);
-    }
+        @BeforeEach
+        void setup() {
+                mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
+                localUuid = UUID.randomUUID();
+                fechaInicio = LocalDate.of(2026, 6, 1);
+                fechaFin = LocalDate.of(2026, 6, 7);
+        }
 
-    @Test
-    void getDisponibilidad_ConParametrosValidos_RetornaListaDeDisponibilidad() throws Exception {
-        // Arrange
-        List<DisponibilidadCanchaDTO> disponibilidad = new ArrayList<>();
-        disponibilidad.add(new DisponibilidadCanchaDTO(
-                UUID.randomUUID(),
-                "Cancha 1",
-                new ArrayList<>()
-        ));
+        @Test
+        void getDisponibilidad_ConParametrosValidos_RetornaListaDeDisponibilidad() throws Exception {
+                // Arrange
+                List<DisponibilidadCanchaDTO> disponibilidad = new ArrayList<>();
+                disponibilidad.add(new DisponibilidadCanchaDTO(
+                                UUID.randomUUID(),
+                                "Cancha 1",
+                                null,
+                                new ArrayList<>()));
 
-        when(disponibilidadService.obtenerDisponibilidadLocal(localUuid, fechaInicio, fechaFin))
-                .thenReturn(disponibilidad);
+                when(disponibilidadService.obtenerDisponibilidadLocal(localUuid, fechaInicio, fechaFin))
+                                .thenReturn(disponibilidad);
 
-        // Act & Assert
-        mockMvc.perform(get("/locales/{uuid}/disponibilidad", localUuid)
-                        .param("fechaInicio", "2026-06-01")
-                        .param("fechaFin", "2026-06-07")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$", hasSize(1)));
+                // Act & Assert
+                mockMvc.perform(get("/locales/{uuid}/disponibilidad", localUuid)
+                                .param("fechaInicio", "2026-06-01")
+                                .param("fechaFin", "2026-06-07")
+                                .contentType(MediaType.APPLICATION_JSON))
+                                .andExpect(status().isOk())
+                                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                                .andExpect(jsonPath("$", hasSize(1)));
 
-        verify(disponibilidadService, times(1)).obtenerDisponibilidadLocal(localUuid, fechaInicio, fechaFin);
-    }
+                verify(disponibilidadService, times(1)).obtenerDisponibilidadLocal(localUuid, fechaInicio, fechaFin);
+        }
 
-    @Test
-    void getDisponibilidad_ConCanchasSinTurnos_RetornaListaVacia() throws Exception {
-        // Arrange
-        List<DisponibilidadCanchaDTO> disponibilidad = new ArrayList<>();
+        @Test
+        void getDisponibilidad_ConCanchasSinTurnos_RetornaListaVacia() throws Exception {
+                // Arrange
+                List<DisponibilidadCanchaDTO> disponibilidad = new ArrayList<>();
 
-        when(disponibilidadService.obtenerDisponibilidadLocal(localUuid, fechaInicio, fechaFin))
-                .thenReturn(disponibilidad);
+                when(disponibilidadService.obtenerDisponibilidadLocal(localUuid, fechaInicio, fechaFin))
+                                .thenReturn(disponibilidad);
 
-        // Act & Assert
-        mockMvc.perform(get("/locales/{uuid}/disponibilidad", localUuid)
-                        .param("fechaInicio", "2026-06-01")
-                        .param("fechaFin", "2026-06-07")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$", hasSize(0)));
+                // Act & Assert
+                mockMvc.perform(get("/locales/{uuid}/disponibilidad", localUuid)
+                                .param("fechaInicio", "2026-06-01")
+                                .param("fechaFin", "2026-06-07")
+                                .contentType(MediaType.APPLICATION_JSON))
+                                .andExpect(status().isOk())
+                                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                                .andExpect(jsonPath("$", hasSize(0)));
 
-        verify(disponibilidadService, times(1)).obtenerDisponibilidadLocal(localUuid, fechaInicio, fechaFin);
-    }
+                verify(disponibilidadService, times(1)).obtenerDisponibilidadLocal(localUuid, fechaInicio, fechaFin);
+        }
 
-    @Test
-    void getDisponibilidad_SinFechaInicio_RetornaBadRequest() throws Exception {
-        // Act & Assert
-        mockMvc.perform(get("/locales/{uuid}/disponibilidad", localUuid)
-                        .param("fechaFin", "2026-06-07")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
+        @Test
+        void getDisponibilidad_SinFechaInicio_RetornaBadRequest() throws Exception {
+                // Act & Assert
+                mockMvc.perform(get("/locales/{uuid}/disponibilidad", localUuid)
+                                .param("fechaFin", "2026-06-07")
+                                .contentType(MediaType.APPLICATION_JSON))
+                                .andExpect(status().isBadRequest());
 
-        verify(disponibilidadService, never()).obtenerDisponibilidadLocal(any(), any(), any());
-    }
+                verify(disponibilidadService, never()).obtenerDisponibilidadLocal(any(), any(), any());
+        }
 
-    @Test
-    void getDisponibilidad_SinFechaFin_RetornaBadRequest() throws Exception {
-        // Act & Assert
-        mockMvc.perform(get("/locales/{uuid}/disponibilidad", localUuid)
-                        .param("fechaInicio", "2026-06-01")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
+        @Test
+        void getDisponibilidad_SinFechaFin_RetornaBadRequest() throws Exception {
+                // Act & Assert
+                mockMvc.perform(get("/locales/{uuid}/disponibilidad", localUuid)
+                                .param("fechaInicio", "2026-06-01")
+                                .contentType(MediaType.APPLICATION_JSON))
+                                .andExpect(status().isBadRequest());
 
-        verify(disponibilidadService, never()).obtenerDisponibilidadLocal(any(), any(), any());
-    }
+                verify(disponibilidadService, never()).obtenerDisponibilidadLocal(any(), any(), any());
+        }
 
-    @Test
-    void getDisponibilidad_ConFechaInicioMayorQueFechaFin_RetornaBadRequest() throws Exception {
-        // Act & Assert
-        mockMvc.perform(get("/locales/{uuid}/disponibilidad", localUuid)
-                        .param("fechaInicio", "2026-06-07")
-                        .param("fechaFin", "2026-06-01")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
+        @Test
+        void getDisponibilidad_ConFechaInicioMayorQueFechaFin_RetornaBadRequest() throws Exception {
+                // Act & Assert
+                mockMvc.perform(get("/locales/{uuid}/disponibilidad", localUuid)
+                                .param("fechaInicio", "2026-06-07")
+                                .param("fechaFin", "2026-06-01")
+                                .contentType(MediaType.APPLICATION_JSON))
+                                .andExpect(status().isBadRequest());
 
-        verify(disponibilidadService, never()).obtenerDisponibilidadLocal(any(), any(), any());
-    }
+                verify(disponibilidadService, never()).obtenerDisponibilidadLocal(any(), any(), any());
+        }
 
-    @Test
-    void getDisponibilidad_ConRangoMayorA31Dias_RetornaBadRequest() throws Exception {
-        // Act & Assert
-        mockMvc.perform(get("/locales/{uuid}/disponibilidad", localUuid)
-                        .param("fechaInicio", "2026-06-01")
-                        .param("fechaFin", "2026-07-05")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
+        @Test
+        void getDisponibilidad_ConRangoMayorA31Dias_RetornaBadRequest() throws Exception {
+                // Act & Assert
+                mockMvc.perform(get("/locales/{uuid}/disponibilidad", localUuid)
+                                .param("fechaInicio", "2026-06-01")
+                                .param("fechaFin", "2026-07-05")
+                                .contentType(MediaType.APPLICATION_JSON))
+                                .andExpect(status().isBadRequest());
 
-        verify(disponibilidadService, never()).obtenerDisponibilidadLocal(any(), any(), any());
-    }
+                verify(disponibilidadService, never()).obtenerDisponibilidadLocal(any(), any(), any());
+        }
 
-    @Test
-    void getDisponibilidad_ConLocalNoExistente_RetornaNotFound() throws Exception {
-        // Arrange
-        when(disponibilidadService.obtenerDisponibilidadLocal(localUuid, fechaInicio, fechaFin))
-                .thenThrow(new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
-                        "Local no encontrado"));
+        @Test
+        void getDisponibilidad_ConLocalNoExistente_RetornaNotFound() throws Exception {
+                // Arrange
+                when(disponibilidadService.obtenerDisponibilidadLocal(localUuid, fechaInicio, fechaFin))
+                                .thenThrow(new ResponseStatusException(
+                                                HttpStatus.NOT_FOUND,
+                                                "Local no encontrado"));
 
-        // Act & Assert
-        mockMvc.perform(get("/locales/{uuid}/disponibilidad", localUuid)
-                        .param("fechaInicio", "2026-06-01")
-                        .param("fechaFin", "2026-06-07")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound());
+                // Act & Assert
+                mockMvc.perform(get("/locales/{uuid}/disponibilidad", localUuid)
+                                .param("fechaInicio", "2026-06-01")
+                                .param("fechaFin", "2026-06-07")
+                                .contentType(MediaType.APPLICATION_JSON))
+                                .andExpect(status().isNotFound());
 
-        verify(disponibilidadService, times(1)).obtenerDisponibilidadLocal(localUuid, fechaInicio, fechaFin);
-    }
+                verify(disponibilidadService, times(1)).obtenerDisponibilidadLocal(localUuid, fechaInicio, fechaFin);
+        }
 
-    @Test
-    void getDisponibilidad_ConFechasEnFormatoInvalido_RetornaBadRequest() throws Exception {
-        // Act & Assert
-        mockMvc.perform(get("/locales/{uuid}/disponibilidad", localUuid)
-                        .param("fechaInicio", "01-06-2026")
-                        .param("fechaFin", "07-06-2026")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
+        @Test
+        void getDisponibilidad_ConFechasEnFormatoInvalido_RetornaBadRequest() throws Exception {
+                // Act & Assert
+                mockMvc.perform(get("/locales/{uuid}/disponibilidad", localUuid)
+                                .param("fechaInicio", "01-06-2026")
+                                .param("fechaFin", "07-06-2026")
+                                .contentType(MediaType.APPLICATION_JSON))
+                                .andExpect(status().isBadRequest());
 
-        verify(disponibilidadService, never()).obtenerDisponibilidadLocal(any(), any(), any());
-    }
-    
-    @Test
-    void getDisponibilidad_ConRangoExactamente31Dias_RetornaOk() throws Exception {
-        // Arrange
-        LocalDate inicio31 = LocalDate.of(2026, 6, 1);
-        LocalDate fin31 = LocalDate.of(2026, 7, 2); // Exactamente 31 días
-        List<DisponibilidadCanchaDTO> disponibilidad = new ArrayList<>();
+                verify(disponibilidadService, never()).obtenerDisponibilidadLocal(any(), any(), any());
+        }
 
-        when(disponibilidadService.obtenerDisponibilidadLocal(localUuid, inicio31, fin31))
-                .thenReturn(disponibilidad);
+        @Test
+        void getDisponibilidad_ConRangoExactamente31Dias_RetornaOk() throws Exception {
+                // Arrange
+                LocalDate inicio31 = LocalDate.of(2026, 6, 1);
+                LocalDate fin31 = LocalDate.of(2026, 7, 2); // Exactamente 31 días
+                List<DisponibilidadCanchaDTO> disponibilidad = new ArrayList<>();
 
-        // Act & Assert
-        mockMvc.perform(get("/locales/{uuid}/disponibilidad", localUuid)
-                        .param("fechaInicio", "2026-06-01")
-                        .param("fechaFin", "2026-07-02")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk());
-    }
+                when(disponibilidadService.obtenerDisponibilidadLocal(localUuid, inicio31, fin31))
+                                .thenReturn(disponibilidad);
 
-    @Test
-    void getDisponibilidad_ConUUIDInvalido_RetornaBadRequest() throws Exception {
-        // Act & Assert
-        mockMvc.perform(get("/locales/uuid-invalido/disponibilidad")
-                        .param("fechaInicio", "2026-06-01")
-                        .param("fechaFin", "2026-06-07")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
+                // Act & Assert
+                mockMvc.perform(get("/locales/{uuid}/disponibilidad", localUuid)
+                                .param("fechaInicio", "2026-06-01")
+                                .param("fechaFin", "2026-07-02")
+                                .contentType(MediaType.APPLICATION_JSON))
+                                .andExpect(status().isOk());
+        }
 
-        verify(disponibilidadService, never()).obtenerDisponibilidadLocal(any(), any(), any());
-    }
+        @Test
+        void getDisponibilidad_ConUUIDInvalido_RetornaBadRequest() throws Exception {
+                // Act & Assert
+                mockMvc.perform(get("/locales/uuid-invalido/disponibilidad")
+                                .param("fechaInicio", "2026-06-01")
+                                .param("fechaFin", "2026-06-07")
+                                .contentType(MediaType.APPLICATION_JSON))
+                                .andExpect(status().isBadRequest());
 
-    @Test
-    void getDisponibilidad_ConMultiplesCanchas_RetornaTodasEnLaRespuesta() throws Exception {
-        // Arrange
-        List<DisponibilidadCanchaDTO> disponibilidad = new ArrayList<>();
-        disponibilidad.add(new DisponibilidadCanchaDTO(UUID.randomUUID(), "Cancha 1", new ArrayList<>()));
-        disponibilidad.add(new DisponibilidadCanchaDTO(UUID.randomUUID(), "Cancha 2", new ArrayList<>()));
-        disponibilidad.add(new DisponibilidadCanchaDTO(UUID.randomUUID(), "Cancha 3", new ArrayList<>()));
+                verify(disponibilidadService, never()).obtenerDisponibilidadLocal(any(), any(), any());
+        }
 
-        when(disponibilidadService.obtenerDisponibilidadLocal(localUuid, fechaInicio, fechaFin))
-                .thenReturn(disponibilidad);
+        @Test
+        void getDisponibilidad_ConMultiplesCanchas_RetornaTodasEnLaRespuesta() throws Exception {
+                // Arrange
+                List<DisponibilidadCanchaDTO> disponibilidad = new ArrayList<>();
+                disponibilidad.add(new DisponibilidadCanchaDTO(UUID.randomUUID(), "Cancha 1", null, new ArrayList<>()));
+                disponibilidad.add(new DisponibilidadCanchaDTO(UUID.randomUUID(), "Cancha 2", null, new ArrayList<>()));
+                disponibilidad.add(new DisponibilidadCanchaDTO(UUID.randomUUID(), "Cancha 3", null, new ArrayList<>()));
 
-        // Act & Assert
-        mockMvc.perform(get("/locales/{uuid}/disponibilidad", localUuid)
-                        .param("fechaInicio", "2026-06-01")
-                        .param("fechaFin", "2026-06-07")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$", hasSize(3)));
+                when(disponibilidadService.obtenerDisponibilidadLocal(localUuid, fechaInicio, fechaFin))
+                                .thenReturn(disponibilidad);
 
-        verify(disponibilidadService, times(1)).obtenerDisponibilidadLocal(localUuid, fechaInicio, fechaFin);
-    }
+                // Act & Assert
+                mockMvc.perform(get("/locales/{uuid}/disponibilidad", localUuid)
+                                .param("fechaInicio", "2026-06-01")
+                                .param("fechaFin", "2026-06-07")
+                                .contentType(MediaType.APPLICATION_JSON))
+                                .andExpect(status().isOk())
+                                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                                .andExpect(jsonPath("$", hasSize(3)));
+
+                verify(disponibilidadService, times(1)).obtenerDisponibilidadLocal(localUuid, fechaInicio, fechaFin);
+        }
 }

@@ -6,23 +6,25 @@ export const LOCALES_ROUTES: Routes = [
     loadComponent: () =>
       import('./pages/locales-list.page').then(m => m.LocalesListPage)
   },
-  {
-    path: ':uuid',
-    loadComponent: () =>
-      import('./pages/local-detail.page').then(m => m.LocalDetailPage)
-  },
+  // específicas ANTES de :uuid
   {
     path: ':uuid/configuraciones-horarios',
     loadComponent: () =>
       import('./pages/configuracion-disponibilidad.page').then(
-        m => m.ConfiguracionDisponibilidadPage
+        m => m.ConfiguracionDisponibilidadPage  // 
       ),
   },
   {
-    path: ':uuid/calendario',  
+    path: ':uuid/calendario',
     loadComponent: () =>
       import('./pages/calendario-disponibilidad.page').then(
         m => m.CalendarioDisponibilidadPage
       ),
+  },
+  // :uuid al final
+  {
+    path: ':uuid',
+    loadComponent: () =>
+      import('./pages/local-detail.page').then(m => m.LocalDetailPage)
   },
 ];

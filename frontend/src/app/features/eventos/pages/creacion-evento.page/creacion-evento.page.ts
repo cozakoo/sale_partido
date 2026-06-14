@@ -20,17 +20,30 @@ import {
 } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { EventoService } from '../../services/evento.service';
-import {
-  CrearEventoRequest,
-  EspacioReservado,
-  NivelHabilidad,
-  TipoIngreso,
-} from '../../models/evento.mode';
 import { Location } from '@angular/common';
+import { EventoService } from '../../services/evento.service';
 import { EventoParticipacionService } from '../../services/evento-participacion.service';
+
 import { UsuarioSesion } from '../../models/evento-detalle.model';
-// ── Validadores ──────────────────────────────────────────────────────────────
+import { CrearEventoRequest, EspacioReservado, NivelHabilidadLabel, TipoEvento, TipoIngresoLabel } from '../../models/evento.model';
+
+// ── Mapas de conversión label UI → enum API ───────────────────────────────────
+// Los tests E2E usan los labels en español; la conversión ocurre en confirmar()
+const TIPO_INGRESO_MAP: Record<TipoIngresoLabel, TipoEvento> = {
+  'Abierto': 'ABIERTO',
+  'Con Confirmación': 'CON_CONFIRMACION',
+  'Cerrado': 'CERRADO',
+};
+
+// null = sin restricción de nivel (backend acepta cualquier participante)
+const NIVEL_UUID_MAP: Record<NivelHabilidadLabel, string | null> = {
+  'Sin especificar': null,
+  'Principiante': 'nivel-principiante-mock',
+  'Intermedio': 'nivel-intermedio-mock',
+  'Avanzado': 'nivel-avanzado-mock',
+};
+
+// ── Validadores ───────────────────────────────────────────────────────────────
 
 function cupoMinimoMenorQueMaximo(): ValidatorFn {
   return (group: AbstractControl): ValidationErrors | null => {
@@ -43,20 +56,7 @@ function cupoMinimoMenorQueMaximo(): ValidatorFn {
   };
 }
 
-function fechaHoraCombinada(): ValidatorFn {
-  return (group: AbstractControl): ValidationErrors | null => {
-    const fecha = group.get('fecha')?.value;
-    const hora = group.get('hora')?.value;
-    if (!fecha || !hora) return null;
-    const seleccionado = new Date(`${fecha}T${hora}`);
-    if (seleccionado <= new Date()) {
-      return { fechaHoraPasada: true };
-    }
-    return null;
-  };
-}
-
-// ── Componente ───────────────────────────────────────────────────────────────
+// ── Componente ────────────────────────────────────────────────────────────────
 
 @Component({
   selector: 'app-creacion-evento-page',
@@ -69,53 +69,52 @@ function fechaHoraCombinada(): ValidatorFn {
 export class CreacionEventoPage implements OnInit {
   private fb = inject(FormBuilder);
   private eventoService = inject(EventoService);
+  private serviceUsr = inject(EventoParticipacionService);
   private destroyRef = inject(DestroyRef);
   private cdr = inject(ChangeDetectorRef);
-  private router = inject(Router); // reemplazá el inject existente
+  private router = inject(Router);
+  private location = inject(Location);
 
-  // ── Estado ──────────────────────────────────────────────────────────────────
+  // ── Estado ───────────────────────────────────────────────────────────────────
   espacioReservado = signal<EspacioReservado | null>(null);
   cargandoEspacio = signal(false);
   enviando = signal(false);
   errorMensaje = signal<string | null>(null);
   exitoso = signal(false);
-  private location = inject(Location);
+  usuarioActual = signal<UsuarioSesion | null>(null);
 
   sinEspacio = computed(() => !this.espacioReservado());
 
-  // ── Opciones de formulario ───────────────────────────────────────────────────
-  readonly tiposIngreso: TipoIngreso[] = ['Abierto', 'Con Confirmación', 'Cerrado'];
-  readonly nivelesHabilidad: NivelHabilidad[] = [
+  // ── Opciones del formulario ───────────────────────────────────────────────────
+  readonly tiposIngreso: TipoIngresoLabel[] = ['Abierto', 'Con Confirmación', 'Cerrado'];
+  readonly nivelesHabilidad: NivelHabilidadLabel[] = [
     'Sin especificar',
     'Principiante',
     'Intermedio',
     'Avanzado',
   ];
-  readonly hoy = new Date().toISOString().split('T')[0];
-  usuarioActual = signal<UsuarioSesion | null>(null);
 
-private serviceUsr = inject(EventoParticipacionService);
-  // ── Formulario (inicializado vacío para evitar errores de binding) ───────────
   form: FormGroup = this.fb.group({});
 
   ngOnInit(): void {
-  this.serviceUsr.getUsuarioActual().subscribe(usuario => {
-    this.usuarioActual.set(usuario);
-  });    this._cargarEspacioReservado();
+    this.serviceUsr.getUsuarioActual().subscribe((usuario) => {
+      this.usuarioActual.set(usuario);
+    });
+    this._cargarEspacioReservado();
   }
 
   private _cargarEspacioReservado(): void {
     this.cargandoEspacio.set(true);
-
-    // Intentar router state primero, luego sessionStorage (para tests)
+    // Prioridad: router state → sessionStorage (compatibilidad tests E2E)
     const navState = this.router.getCurrentNavigation()?.extras?.state;
     const storedState = sessionStorage.getItem('__reserva_state__');
 
-    const reserva = navState?.['reserva']
-      ?? (storedState ? JSON.parse(storedState) : null)
-      ?? history.state?.reserva;
+    const reserva =
+      navState?.['reserva'] ??
+      (storedState ? JSON.parse(storedState) : null) ??
+      history.state?.reserva;
+    console.log('Cargando espacio reservado...', reserva);
 
-    // Limpiar después de leer
     if (storedState) sessionStorage.removeItem('__reserva_state__');
 
     if (!reserva) {
@@ -126,15 +125,17 @@ private serviceUsr = inject(EventoParticipacionService);
       return;
     }
 
+    // Fallback para tests E2E que aún mandan turnoId en lugar de turnoUuid
     const espacio: EspacioReservado = {
-      reservaId: reserva.turnoId,
-      localId: reserva.localUuid,
-      localNombre: reserva.localNombre ?? reserva.localUuid,
-      espacioId: 1,
-      espacioNombre: reserva.espacioNombre,
+      turnoUuid: reserva.turnoUuid ?? reserva.turnoId ?? '',
+      localUuid: reserva.localUuid ?? '',
+      localNombre: reserva.localNombre ?? reserva.localUuid ?? '',
+      canchaUuid: reserva.canchaUuid ?? '',
+      canchaNombre: reserva.canchaNombre ?? reserva.espacioNombre ?? '',
       capacidad: reserva.capacidad ?? 10,
-      fecha: reserva.fecha,
-      hora: reserva.horaInicio,
+      fecha: reserva.fecha ?? '',
+      horaInicio: reserva.horaInicio ?? '',
+      horaFin: reserva.horaFin ?? '',
     };
 
     this.espacioReservado.set(espacio);
@@ -144,44 +145,41 @@ private serviceUsr = inject(EventoParticipacionService);
   }
 
   private _buildForm(espacio: EspacioReservado): void {
-  const manana = new Date();
-  manana.setDate(manana.getDate() + 1);
-  const year = manana.getFullYear();
-  const month = String(manana.getMonth() + 1).padStart(2, '0');
-  const day = String(manana.getDate()).padStart(2, '0');
-  const fechaManana = `${year}-${month}-${day}`;
+    this.form = this.fb.group(
+      {
+        // fecha y hora son readonly — se muestran pero no se editan
+        fecha: [{ value: espacio.fecha, disabled: true }],
+        hora: [{ value: espacio.horaInicio, disabled: true }],
+        cupoMinimo: [
+          1,                    // ← valor inicial 1 en vez de espacio.capacidad
+          [Validators.required, Validators.min(1), Validators.max(espacio.capacidad)],
+        ],
+        cupoMaximo: [
+          espacio.capacidad,
+          [Validators.required, Validators.min(1), Validators.max(espacio.capacidad)],
+        ],
+        tipoIngreso: ['Cerrado' as TipoIngresoLabel, Validators.required],
+        // El form trabaja en horas (1–24) para que los tests E2E no cambien
+        // La conversión a minutos (×60) ocurre en confirmar()
+        tiempoCancelacionHoras: [
+          1,
+          [Validators.required, Validators.min(1), Validators.max(24)],
+        ],
+        nivelHabilidad: ['Sin especificar' as NivelHabilidadLabel, Validators.required],
+      },
+      {
+        validators: [cupoMinimoMenorQueMaximo()],
+      }
+    );
 
-  this.form = this.fb.group(
-    {
-      fecha: [fechaManana, Validators.required],  // 👈 mañana
-      hora: ['18:00', Validators.required],        // 👈 hora fija futura
-      cupoMinimo: [
-        espacio.capacidad,
-        [Validators.required, Validators.min(1), Validators.max(espacio.capacidad)],
-      ],
-      cupoMaximo: [
-        espacio.capacidad,
-        [Validators.required, Validators.min(1), Validators.max(espacio.capacidad)],
-      ],
-      tipoIngreso: ['Cerrado' as TipoIngreso, Validators.required],
-      tiempoCancelacionHoras: [
-        1,
-        [Validators.required, Validators.min(1), Validators.max(24)],
-      ],
-      nivelHabilidad: ['Sin especificar' as NivelHabilidad, Validators.required],
-    },
-    {
-      validators: [cupoMinimoMenorQueMaximo(), fechaHoraCombinada()],
-    }
-  );
-
-  this.form.updateValueAndValidity();
-  this.cdr.detectChanges();
-}
+    this.form.updateValueAndValidity();
+    this.cdr.detectChanges();
+  }
 
   private _buildFormSinEspacio(): void {
     this.form = this.fb.group({});
   }
+
   confirmar(): void {
     if (this.sinEspacio()) {
       this.errorMensaje.set('Debe seleccionar y reservar un espacio para el evento');
@@ -191,12 +189,12 @@ private serviceUsr = inject(EventoParticipacionService);
     this.form.markAllAsTouched();
 
     const espacio = this.espacioReservado()!;
-    const val = this.form.value;
+    const val = this.form.getRawValue(); // getRawValue incluye campos disabled
     const cupoMinimo: number = val.cupoMinimo;
     const cupoMaximo: number = val.cupoMaximo;
-    const tiempoCancelacion: number = val.tiempoCancelacionHoras;
+    const tiempoCancelacionHoras: number = val.tiempoCancelacionHoras;
 
-    // ── Validaciones de negocio primero ─────────────────────────────────────
+    // ── Validaciones de negocio ───────────────────────────────────────────────
     if (cupoMinimo <= 0) {
       this.errorMensaje.set('El cupo mínimo de jugadores debe ser mayor a cero');
       return;
@@ -209,31 +207,29 @@ private serviceUsr = inject(EventoParticipacionService);
       this.errorMensaje.set('El cupo mínimo no puede ser mayor al cupo máximo');
       return;
     }
-    if (tiempoCancelacion < 1 || tiempoCancelacion > 24) {
-      this.errorMensaje.set('El tiempo límite de cancelación de participación debe estar entre 1 y 24 horas');
+    if (tiempoCancelacionHoras < 1 || tiempoCancelacionHoras > 24) {
+      this.errorMensaje.set(
+        'El tiempo límite de cancelación de participación debe estar entre 1 y 24 horas'
+      );
       return;
     }
 
-    // ── Fecha/hora al final (no bloquea los tests de cupos/cancelación) ─────
-    if (val.fecha && val.hora) {
-      const seleccionado = new Date(`${val.fecha}T${val.hora}`);
-      if (seleccionado <= new Date()) {
-        this.errorMensaje.set('La fecha y hora del evento no pueden ser anteriores al momento actual');
-        return;
-      }
-    }
+    if (!this.form.valid) return;
+
+    // ── Conversiones label → enum y horas → minutos ───────────────────────────
+    const tipoEvento: TipoEvento = TIPO_INGRESO_MAP[val.tipoIngreso as TipoIngresoLabel] ?? 'CERRADO';
+    const nivelUuid = NIVEL_UUID_MAP[val.nivelHabilidad as NivelHabilidadLabel] ?? null;
+    const limiteCancelacionMinutos = tiempoCancelacionHoras * 60; // 60–1440 minutos
 
     const request: CrearEventoRequest = {
-      localId: espacio.localId,
-      espacioId: espacio.espacioId,
-      reservaId: espacio.reservaId,
-      fecha: val.fecha,
-      hora: val.hora,
+      turnoUuid: espacio.turnoUuid,
+      organizadorUuid: this.usuarioActual()?.uuid ?? '',
+      nombre: `Evento en ${espacio.canchaNombre || espacio.localNombre}`,
+      tipo: tipoEvento,
       cupoMinimo,
       cupoMaximo,
-      tipoIngreso: val.tipoIngreso,
-      tiempoCancelacionHoras: tiempoCancelacion,
-      nivelHabilidad: val.nivelHabilidad,
+      limiteCancelacionParticipacion: limiteCancelacionMinutos,
+      nivelRequeridoUuid: nivelUuid,
     };
 
     this.enviando.set(true);
@@ -246,16 +242,17 @@ private serviceUsr = inject(EventoParticipacionService);
         next: () => {
           this.enviando.set(false);
           this.exitoso.set(true);
+          this.cdr.detectChanges();
         },
         error: (err: Error) => {
           this.errorMensaje.set(err.message);
           this.enviando.set(false);
+          this.cdr.detectChanges();
         },
       });
   }
 
-
-  // ── Helpers de template ──────────────────────────────────────────────────────
+  // ── Helpers de template ───────────────────────────────────────────────────────
   campoInvalido(campo: string): boolean {
     const c = this.form?.get(campo);
     return !!(c?.invalid && c?.touched);
@@ -264,18 +261,7 @@ private serviceUsr = inject(EventoParticipacionService);
   get errorCupos(): boolean {
     return (
       this.form?.hasError('cupoMinimoMayorQueMaximo') &&
-      (this.form.get('cupoMinimo')?.touched ||
-        this.form.get('cupoMaximo')?.touched ||
-        false)
-    );
-  }
-
-  get errorFechaHora(): boolean {
-    return (
-      this.form?.hasError('fechaHoraPasada') &&
-      (this.form.get('fecha')?.touched ||
-        this.form.get('hora')?.touched ||
-        false)
+      (this.form.get('cupoMinimo')?.touched || this.form.get('cupoMaximo')?.touched || false)
     );
   }
 

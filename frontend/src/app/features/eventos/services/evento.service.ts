@@ -1,37 +1,44 @@
 import { Injectable, signal } from '@angular/core';
-import { Observable, of, throwError } from 'rxjs';
-import { CrearEventoRequest, EspacioReservado, EventoCreado } from '../models/evento.mode';
-
-let mockEventoIdCounter = 1000;
-
+import { Observable, of } from 'rxjs';
+import { CrearEventoRequest, EventoResponse } from '../models/evento.model';
 @Injectable({ providedIn: 'root' })
 export class EventoService {
-  readonly ultimoEventoCreado = signal<EventoCreado | null>(null);
+  readonly ultimoEventoCreado = signal<EventoResponse | null>(null);
 
-  obtenerEspacioReservado(state: any): Observable<EspacioReservado> {
-    const reserva = state?.reserva;
-    if (!reserva) {
-      return throwError(() => new Error('Sin espacio seleccionado'));
-    }
-    return of({
-      reservaId: reserva.turnoId,
-      localId: reserva.localUuid,
-      localNombre: reserva.localUuid,
-      espacioId: 1,
-      espacioNombre: reserva.espacioNombre,
-      capacidad: 10, // hasta que el backend lo mande
-      fecha: reserva.fecha,
-      hora: reserva.horaInicio,
-    });
-  }
-
-  crearEvento(request: CrearEventoRequest): Observable<EventoCreado> {
-    const eventoCreado: EventoCreado = {
-      id: ++mockEventoIdCounter,
-      ...request,
-      estado: 'En espera de participantes',
+  crearEvento(request: CrearEventoRequest): Observable<EventoResponse> {
+    const mock: EventoResponse = {
+      uuid: crypto.randomUUID(),
+      nombre: request.nombre,
+      tipo: request.tipo ?? 'CERRADO',
+      estado: 'DISPONIBLE',
+      cupoMinimo: request.cupoMinimo,
+      cupoMaximo: request.cupoMaximo,
+      participantesConfirmados: 0,
+      limiteCancelacionParticipacion: request.limiteCancelacionParticipacion ?? 60,
+      nivelRequerido: request.nivelRequeridoUuid
+        ? {
+            uuid: request.nivelRequeridoUuid,
+            nombre: 'Intermedio',
+            orden: 2,
+            deporte: 'Fútbol',
+          }
+        : null,
+      turno: {
+        uuid: request.turnoUuid,
+        fecha: '2026-06-15',
+        horaInicio: '18:00:00',
+        horaFin: '19:00:00',
+        cancha: { uuid: 'cancha-mock', nombre: 'Cancha A' },
+        local: {
+          uuid: 'local-mock',
+          nombre: 'Complejo Mock',
+          direccion: 'Av. Roca 123, Puerto Madryn',
+        },
+      },
+      organizador: { uuid: request.organizadorUuid, nombre: 'Usuario Mock' },
     };
-    this.ultimoEventoCreado.set(eventoCreado);
-    return of(eventoCreado);
+
+    this.ultimoEventoCreado.set(mock);
+    return of(mock);
   }
 }
