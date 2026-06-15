@@ -175,8 +175,8 @@
             <label for="nombre" class="form-label">
               Nombre <span class="text-danger">*</span>
             </label>
-            <input type="text" id="nombre" class="form-control" data-testid="input-nombre"
-              formControlName="nombre" [class.is-invalid]="campoInvalido('nombre')" placeholder="Ej: Partido de fútbol 5" />
+            <input type="text" id="nombre" class="form-control" data-testid="input-nombre" formControlName="nombre"
+              [class.is-invalid]="campoInvalido('nombre')" placeholder="Ej: Partido de fútbol 5" />
             @if (campoInvalido('nombre')) {
             <div class="invalid-feedback">El nombre del evento es requerido y no puede estar vacío.</div>
             }

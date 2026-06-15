@@ -46,6 +46,7 @@ test.describe('E3-H01 | Flujos Principales y Alternativos', () => {
   });
 
   test('Creación exitosa: Ejemplo 1 (Cerrado)', async ({ page }) => {
+    await page.fill('[data-testid="input-nombre"]', 'Partido de fútbol de prueba');
     await page.fill('[data-testid="input-cupo-maximo"]', '10');
     await page.fill('[data-testid="input-cupo-minimo"]', '10');
     await page.selectOption('[data-testid="select-tipo-ingreso"]', 'Cerrado');
@@ -61,6 +62,7 @@ test.describe('E3-H01 | Flujos Principales y Alternativos', () => {
   });
 
   test('Creación exitosa: Ejemplo 2 (Abierto con Nivel Intermedio)', async ({ page }) => {
+    await page.fill('[data-testid="input-nombre"]', 'Torneo de los Miércoles');
     await page.fill('[data-testid="input-cupo-maximo"]', '10');
     await page.fill('[data-testid="input-cupo-minimo"]', '8');
     await page.selectOption('[data-testid="select-tipo-ingreso"]', 'Abierto');

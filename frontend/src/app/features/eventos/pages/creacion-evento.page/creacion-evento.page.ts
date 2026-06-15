@@ -199,7 +199,7 @@ export class CreacionEventoPage implements OnInit {
           1,
           [Validators.required, Validators.min(1), Validators.max(24)],
         ],
-        nivelHabilidad: ['', Validators.required],
+        nivelHabilidad: [''],
       },
       {
         validators: [cupoMinimoMenorQueMaximo()],
