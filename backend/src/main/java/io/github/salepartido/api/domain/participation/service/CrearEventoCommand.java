@@ -6,7 +6,7 @@ import java.util.UUID;
 import io.github.salepartido.api.domain.participation.model.TipoEvento;
 
 public record CrearEventoCommand(
-        UUID turnoId,
+        TurnoCommand turno,
         UUID organizadorId,
         String nombre,
         Integer cupoMinimo,

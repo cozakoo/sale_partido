@@ -10,7 +10,7 @@
 | Modelos de API | |
 | :---- | :---- |
 | `EventoResponse` | `{ "uuid": "...", "nombre": "Partido de futbol 5", "tipo": "ABIERTO", "estado": "DISPONIBLE", "cupoMinimo": 6, "cupoMaximo": 10, "participantesConfirmados": 0, "limiteCancelacionParticipacion": 60, "nivelRequerido": { "uuid": "...", "nombre": "Intermedio", "orden": 2, "deporte": "Futbol" }, "turno": { "uuid": "...", "fecha": "2026-06-15", "horaInicio": "18:00:00", "horaFin": "19:00:00", "cancha": { "uuid": "...", "nombre": "Cancha A" }, "local": { "uuid": "...", "nombre": "Complejo Olimpico", "direccion": "Av. Roca 123, Puerto Madryn" } }, "organizador": { "uuid": "...", "nombre": "Juan Perez" } }` |
-| `CrearEventoRequest` | `{ "turnoUuid": "...", "organizadorUuid": "...", "nombre": "Partido de futbol 5", "tipo": "ABIERTO", "cupoMinimo": 6, "cupoMaximo": 10, "limiteCancelacionParticipacion": 60, "nivelRequeridoUuid": "..." }` |
+| `CrearEventoRequest` | `{ "turno": { "fecha": "2026-06-15", "horaInicio": "18:00:00", "horaFin": "19:00:00", "canchaUuid": "..." }, "organizadorUuid": "...", "nombre": "Partido de futbol 5", "tipo": "ABIERTO", "cupoMinimo": 6, "cupoMaximo": 10, "limiteCancelacionParticipacion": 60, "nivelRequeridoUuid": "..." }` |
 
 **Enums:**
 - `tipo`: `ABIERTO` \| `CON_CONFIRMACION` \| `CERRADO` (default: `CERRADO`)
@@ -34,7 +34,7 @@
 | **Parametros de ruta** | - |
 | **Peticion** | `CrearEventoRequest` |
 | **Respuesta exitosa** | `201 Created  EventoResponse` |
-| **Validacion: el turno debe existir** | `404 Not Found { "error": "TURNO_NO_ENCONTRADO", "message": "El turno no existe" }` |
+| **Validacion: la cancha debe existir** | `404 Not Found { "error": "CANCHA_NO_ENCONTRADA", "message": "Cancha no encontrada" }` |
 | **Validacion: el organizador debe existir** | `404 Not Found { "error": "USUARIO_NO_ENCONTRADO", "message": "El usuario no existe" }` |
 | **Validacion: el nivel requerido debe existir (si se proporciona)** | `404 Not Found { "error": "NIVEL_NO_ENCONTRADO", "message": "El nivel de deporte no existe" }` |
 | **Validacion: el cupo minimo debe ser mayor a cero** | `400 Bad Request { "error": "CUPO_MINIMO_INVALIDO", "message": "El cupo minimo debe ser mayor a cero" }` |

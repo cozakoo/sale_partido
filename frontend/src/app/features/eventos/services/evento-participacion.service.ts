@@ -1,7 +1,7 @@
 import { Injectable, signal, inject } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, of, throwError } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { catchError, map } from 'rxjs/operators';
 import { Constantes } from '../../../core/Constantes';
 import {
   EventoDetalle,
@@ -40,7 +40,16 @@ export class EventoParticipacionService {
     if (user) {
       return of(user);
     }
-    return this.http.get<UsuarioSesion>(`${Constantes.API}usuarios/me`);
+    return this.getUsuarios().pipe(
+      map((usuarios) => {
+        if (usuarios && usuarios.length > 0) {
+          const fallbackUser = usuarios[0];
+          this._usuarioActual.set(fallbackUser);
+          return fallbackUser;
+        }
+        throw new Error('No users available to simulate session');
+      })
+    );
   }
 
   getParticipacionUsuario(eventoUuid: string, usuarioUuid: string): Observable<ParticipacionResponse | null> {

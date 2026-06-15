@@ -8,7 +8,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import io.github.salepartido.api.domain.locales.model.Cancha;
 import io.github.salepartido.api.domain.locales.model.Turno;
+import io.github.salepartido.api.domain.locales.repository.CanchaRepository;
 import io.github.salepartido.api.domain.locales.repository.TurnoRepository;
 import io.github.salepartido.api.domain.participation.exception.CupoMaximoSuperaCapacidadException;
 import io.github.salepartido.api.domain.participation.exception.CupoMinimoInvalidoException;
@@ -33,16 +35,19 @@ public class EventoService {
 
     private final EventoRepository eventoRepository;
     private final TurnoRepository turnoRepository;
+    private final CanchaRepository canchaRepository;
     private final UsuarioRepository usuarioRepository;
     private final NivelDeporteRepository nivelDeporteRepository;
 
     public EventoService(
             EventoRepository eventoRepository,
             TurnoRepository turnoRepository,
+            CanchaRepository canchaRepository,
             UsuarioRepository usuarioRepository,
             NivelDeporteRepository nivelDeporteRepository) {
         this.eventoRepository = eventoRepository;
         this.turnoRepository = turnoRepository;
+        this.canchaRepository = canchaRepository;
         this.usuarioRepository = usuarioRepository;
         this.nivelDeporteRepository = nivelDeporteRepository;
     }
@@ -54,7 +59,20 @@ public class EventoService {
      */
     @Transactional
     public Evento crearEvento(CrearEventoCommand command) {
-        Turno turno = buscarTurno(command.turnoId());
+        if (command.turno() == null) {
+            throw new TurnoRequeridoException();
+        }
+
+        Cancha cancha = canchaRepository.findById(command.turno().canchaUuid())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cancha no encontrada"));
+
+        Turno turno = new Turno();
+        turno.setCancha(cancha);
+        turno.setFecha(command.turno().fecha());
+        turno.setHoraInicio(command.turno().horaInicio());
+        turno.setHoraFin(command.turno().horaFin());
+        turno = turnoRepository.save(turno);
+
         Usuario organizador = buscarOrganizador(command.organizadorId());
         NivelDeporte nivelRequerido = resolverNivelRequerido(command.nivelRequeridoId());
 
@@ -63,7 +81,7 @@ public class EventoService {
 
         validarCupoMinimo(command.cupoMinimo());
         validarCuposRelacion(command.cupoMinimo(), command.cupoMaximo());
-        validarCupoMaximoCapacidad(command.cupoMaximo(), turno.getCancha().getCapacidad());
+        validarCupoMaximoCapacidad(command.cupoMaximo(), cancha.getCapacidad());
         validarLimiteCancelacion(limiteCancelacion);
 
         Evento evento = new Evento();
@@ -91,13 +109,7 @@ public class EventoService {
 
     /* --- Lookups --- */
 
-    private Turno buscarTurno(UUID turnoId) {
-        if (turnoId == null) {
-            throw new TurnoRequeridoException();
-        }
-        return turnoRepository.findById(turnoId)
-                .orElseThrow(TurnoRequeridoException::new);
-    }
+
 
     private Usuario buscarOrganizador(UUID organizadorId) {
         return usuarioRepository.findById(organizadorId)

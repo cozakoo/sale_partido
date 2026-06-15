@@ -25,7 +25,7 @@ import { EventoService } from '../../services/evento.service';
 import { EventoParticipacionService } from '../../services/evento-participacion.service';
 
 import { UsuarioSesion } from '../../models/evento-detalle.model';
-import { CrearEventoRequest, EspacioReservado, NivelHabilidadLabel, TipoEvento, TipoIngresoLabel } from '../../models/evento.model';
+import { CrearEventoRequest, EspacioReservado, NivelHabilidadDTO, TipoEvento, TipoIngresoLabel } from '../../models/evento.model';
 
 // ── Mapas de conversión label UI → enum API ───────────────────────────────────
 // Los tests E2E usan los labels en español; la conversión ocurre en confirmar()
@@ -33,14 +33,6 @@ const TIPO_INGRESO_MAP: Record<TipoIngresoLabel, TipoEvento> = {
   'Abierto': 'ABIERTO',
   'Con Confirmación': 'CON_CONFIRMACION',
   'Cerrado': 'CERRADO',
-};
-
-// null = sin restricción de nivel (backend acepta cualquier participante)
-const NIVEL_UUID_MAP: Record<NivelHabilidadLabel, string | null> = {
-  'Sin especificar': null,
-  'Principiante': 'nivel-principiante-mock',
-  'Intermedio': 'nivel-intermedio-mock',
-  'Avanzado': 'nivel-avanzado-mock',
 };
 
 // ── Validadores ───────────────────────────────────────────────────────────────
@@ -82,25 +74,47 @@ export class CreacionEventoPage implements OnInit {
   errorMensaje = signal<string | null>(null);
   exitoso = signal(false);
   usuarioActual = signal<UsuarioSesion | null>(null);
+  usuarios = signal<UsuarioSesion[]>([]);
 
   sinEspacio = computed(() => !this.espacioReservado());
 
   // ── Opciones del formulario ───────────────────────────────────────────────────
   readonly tiposIngreso: TipoIngresoLabel[] = ['Abierto', 'Con Confirmación', 'Cerrado'];
-  readonly nivelesHabilidad: NivelHabilidadLabel[] = [
-    'Sin especificar',
-    'Principiante',
-    'Intermedio',
-    'Avanzado',
-  ];
+  deporteNombre = signal<string>('');
+  niveles = signal<NivelHabilidadDTO[]>([]);
+  nivelHabilidadSeleccionado = signal<NivelHabilidadDTO | null>(null);
+
+  nivelHabilidadLabel = computed(() => {
+    return this.nivelHabilidadSeleccionado()?.nombre ?? 'Sin especificar';
+  });
 
   form: FormGroup = this.fb.group({});
 
   ngOnInit(): void {
+    this.serviceUsr.getUsuarios().subscribe((usuarios) => {
+      this.usuarios.set(usuarios);
+    });
     this.serviceUsr.getUsuarioActual().subscribe((usuario) => {
       this.usuarioActual.set(usuario);
     });
     this._cargarEspacioReservado();
+  }
+
+  onUsuarioCambiado(event: Event): void {
+    const selectEl = event.target as HTMLSelectElement;
+    const selectedUuid = selectEl.value;
+    const usuario = this.usuarios().find(u => u.uuid === selectedUuid);
+    if (usuario) {
+      this.usuarioActual.set(usuario);
+      this.serviceUsr.setUsuarioActual(usuario);
+    }
+  }
+
+  onNivelCambiado(event: Event): void {
+    const selectEl = event.target as HTMLSelectElement;
+    const selectedUuid = selectEl.value;
+    const nivel = this.niveles().find(n => n.uuid === selectedUuid);
+    this.nivelHabilidadSeleccionado.set(nivel || null);
   }
 
   private _cargarEspacioReservado(): void {
@@ -140,6 +154,22 @@ export class CreacionEventoPage implements OnInit {
 
     this.espacioReservado.set(espacio);
     this._buildForm(espacio);
+
+    if (espacio.canchaUuid) {
+      this.eventoService.getCanchaDeporte(espacio.canchaUuid)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: (res) => {
+            this.deporteNombre.set(res.deporteNombre);
+            this.niveles.set(res.niveles);
+            this.cdr.detectChanges();
+          },
+          error: (err) => {
+            console.error('Error fetching cancha deporte and levels:', err);
+          }
+        });
+    }
+
     this.cargandoEspacio.set(false);
     this.cdr.detectChanges();
   }
@@ -150,6 +180,10 @@ export class CreacionEventoPage implements OnInit {
         // fecha y hora son readonly — se muestran pero no se editan
         fecha: [{ value: espacio.fecha, disabled: true }],
         hora: [{ value: espacio.horaInicio, disabled: true }],
+        nombre: [
+          `Evento en ${espacio.canchaNombre || espacio.localNombre}`,
+          [Validators.required, Validators.pattern(/.*\S.*/)],
+        ],
         cupoMinimo: [
           1,                    // ← valor inicial 1 en vez de espacio.capacidad
           [Validators.required, Validators.min(1), Validators.max(espacio.capacidad)],
@@ -165,7 +199,7 @@ export class CreacionEventoPage implements OnInit {
           1,
           [Validators.required, Validators.min(1), Validators.max(24)],
         ],
-        nivelHabilidad: ['Sin especificar' as NivelHabilidadLabel, Validators.required],
+        nivelHabilidad: [''],
       },
       {
         validators: [cupoMinimoMenorQueMaximo()],
@@ -193,8 +227,13 @@ export class CreacionEventoPage implements OnInit {
     const cupoMinimo: number = val.cupoMinimo;
     const cupoMaximo: number = val.cupoMaximo;
     const tiempoCancelacionHoras: number = val.tiempoCancelacionHoras;
+    const nombre: string = val.nombre ? val.nombre.trim() : '';
 
     // ── Validaciones de negocio ───────────────────────────────────────────────
+    if (!nombre) {
+      this.errorMensaje.set('El nombre del evento es requerido y no puede estar vacío');
+      return;
+    }
     if (cupoMinimo <= 0) {
       this.errorMensaje.set('El cupo mínimo de jugadores debe ser mayor a cero');
       return;
@@ -218,13 +257,25 @@ export class CreacionEventoPage implements OnInit {
 
     // ── Conversiones label → enum y horas → minutos ───────────────────────────
     const tipoEvento: TipoEvento = TIPO_INGRESO_MAP[val.tipoIngreso as TipoIngresoLabel] ?? 'CERRADO';
-    const nivelUuid = NIVEL_UUID_MAP[val.nivelHabilidad as NivelHabilidadLabel] ?? null;
+    const nivelUuid = val.nivelHabilidad || null;
     const limiteCancelacionMinutos = tiempoCancelacionHoras * 60; // 60–1440 minutos
 
+    const formatTime = (time: string): string => {
+      if (!time) return '00:00:00';
+      const parts = time.split(':');
+      if (parts.length === 2) return `${time}:00`;
+      return time;
+    };
+
     const request: CrearEventoRequest = {
-      turnoUuid: espacio.turnoUuid,
+      turno: {
+        fecha: espacio.fecha,
+        horaInicio: formatTime(espacio.horaInicio),
+        horaFin: formatTime(espacio.horaFin),
+        canchaUuid: espacio.canchaUuid,
+      },
       organizadorUuid: this.usuarioActual()?.uuid ?? '',
-      nombre: `Evento en ${espacio.canchaNombre || espacio.localNombre}`,
+      nombre: nombre,
       tipo: tipoEvento,
       cupoMinimo,
       cupoMaximo,

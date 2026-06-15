@@ -77,14 +77,11 @@ public class SeedService {
     public void generate() {
         List<Local> localesGuardados = guardarLocales(generarLocales(20, 5));
 
-        List<Turno> turnosGenerados = generarTurnos(localesGuardados);
-        List<Turno> turnosGuardados = guardarTurnos(turnosGenerados);
+        List<NivelDeporte> niveles = poblarNivelesDeporte();
+        List<Usuario> usuarios = poblarUsuarios(10);
 
-        generarParticipacion(turnosGuardados);
+        generarTurnosYEventos(localesGuardados, usuarios, niveles);
     }
-
-    /* ALMACENAMIENTO =============================== */
-
     private List<Local> guardarLocales(List<Local> locales) {
         List<Local> localesGuardados = new ArrayList<>();
         for (Local local : locales) {
@@ -92,11 +89,6 @@ public class SeedService {
         }
         return localesGuardados;
     }
-
-    private List<Turno> guardarTurnos(List<Turno> turnos) {
-        return turnoService.guardarTodos(turnos);
-    }
-
 
     /* VALORES POSIBLES =============================== */
 
@@ -226,15 +218,14 @@ public class SeedService {
         return configuracionesDias;
     }
 
-    private List<Turno> generarTurnos(List<Local> locales) {
-        List<Turno> turnos = new ArrayList<>();
+    private void generarTurnosYEventos(List<Local> locales, List<Usuario> usuarios, List<NivelDeporte> niveles) {
+        List<Usuario> deportistas = usuarios.stream()
+                .filter(u -> u.getRol() == Rol.DEPORTISTA)
+                .toList();
+        if (deportistas.isEmpty()) return;
+
         LocalDate hoy = LocalDate.now();
         List<LocalDate> fechas = List.of(hoy.minusDays(1), hoy, hoy.plusDays(1), hoy.plusDays(2));
-
-        String[] deportes = { "Fútbol", "Básquet", "Tenis", "Pádel" };
-        String[] organizadores = { "Juan Pérez", "Carlos Gómez", "Martín Rodríguez", "Diego Silva", "María Becerra",
-                "Lionel Messi" };
-        String[] estados = { "CONFIRMADO", "PENDIENTE", "FINALIZADO" };
 
         for (Local local : locales) {
             for (Cancha cancha : local.getCanchas()) {
@@ -266,25 +257,37 @@ public class SeedService {
                                 turno.setFecha(fecha);
                                 turno.setHoraInicio(startReserva);
                                 turno.setHoraFin(endReserva);
-                                turno.setNombreOrganizador(faker.options().option(organizadores));
-                                turno.setDeporte(cancha.getDeporte().getNombre()); // ← el deporte real de la cancha
-                                turno.setCantidadParticipantesConfirmados(
-                                        faker.number().numberBetween(1, cancha.getCapacidad() + 1));
+                                turno = turnoService.guardarTurno(turno);
+
+                                Usuario organizador = deportistas.get(faker.random().nextInt(deportistas.size()));
+                                NivelDeporte nivelRequerido = niveles.isEmpty() ? null
+                                        : niveles.get(faker.random().nextInt(niveles.size()));
+
+                                Evento evento = new Evento();
+                                String deporteName = cancha.getDeporte() != null ? cancha.getDeporte().getNombre() : "Fútbol";
+                                evento.setNombre("Partido de " + deporteName);
+                                evento.setTipo(faker.options().option(TipoEvento.values()));
+                                evento.setCupoMinimo(2);
+                                evento.setCupoMaximo(cancha.getCapacidad());
 
                                 if (fecha.isBefore(hoy)) {
-                                    turno.setEstadoEvento("FINALIZADO");
+                                    evento.setEstado(EstadoEvento.FINALIZADO);
                                 } else {
-                                    turno.setEstadoEvento(faker.options().option(estados));
+                                    evento.setEstado(faker.options().option(EstadoEvento.values()));
                                 }
 
-                                turnos.add(turno);
+                                evento.setNivelRequerido(nivelRequerido);
+                                evento.setTurno(turno);
+                                evento.setOrganizador(organizador);
+                                evento.setParticipaciones(generarParticipaciones(deportistas, organizador));
+
+                                eventoRepository.save(evento);
                             }
                         }
                     }
                 }
             }
         }
-        return turnos;
     }
 
     private List<HorarioAtencion> generarHorariosAtencionSemanal() {
@@ -342,11 +345,7 @@ public class SeedService {
 
     /* PARTICIPATION (E2-H01) =============================== */
 
-    private void generarParticipacion(List<Turno> turnos) {
-        List<NivelDeporte> niveles = poblarNivelesDeporte();
-        List<Usuario> usuarios = poblarUsuarios(10);
-        generarEventos(turnos, usuarios, niveles);
-    }
+
 
     private static final Map<String, String[][]> NIVELES_POR_DEPORTE = Map.of(
         "Paddle", new String[][]{
@@ -431,41 +430,7 @@ public class SeedService {
         return usuarios;
     }
 
-    private void generarEventos(List<Turno> turnos, List<Usuario> usuarios, List<NivelDeporte> niveles) {
-        List<Usuario> deportistas = usuarios.stream()
-                .filter(u -> u.getRol() == Rol.DEPORTISTA)
-                .toList();
 
-        if (deportistas.isEmpty() || turnos.isEmpty()) return;
-
-        // Crear un evento en aproximadamente 1 de cada 4 turnos futuros
-        LocalDate hoy = LocalDate.now();
-        List<Turno> turnosFuturos = turnos.stream()
-                .filter(t -> !t.getFecha().isBefore(hoy))
-                .toList();
-
-        int step = 4;
-        for (int i = 0; i < turnosFuturos.size(); i += step) {
-            Turno turno = turnosFuturos.get(i);
-            Usuario organizador = deportistas.get(faker.random().nextInt(deportistas.size()));
-
-            NivelDeporte nivelRequerido = niveles.isEmpty() ? null
-                    : niveles.get(faker.random().nextInt(niveles.size()));
-
-            Evento evento = new Evento();
-            evento.setNombre("Partido de " + turno.getDeporte());
-            evento.setTipo(faker.options().option(TipoEvento.values()));
-            evento.setCupoMinimo(2);
-            evento.setCupoMaximo(turno.getCancha().getCapacidad());
-            evento.setEstado(EstadoEvento.DISPONIBLE);
-            evento.setNivelRequerido(nivelRequerido);
-            evento.setTurno(turno);
-            evento.setOrganizador(organizador);
-            evento.setParticipaciones(generarParticipaciones(deportistas, organizador));
-
-            eventoRepository.save(evento);
-        }
-    }
 
     private List<Participacion> generarParticipaciones(List<Usuario> deportistas, Usuario organizador) {
         List<Participacion> participaciones = new ArrayList<>();

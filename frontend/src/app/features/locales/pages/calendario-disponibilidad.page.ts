@@ -174,7 +174,7 @@ export class CalendarioDisponibilidadPage implements OnInit {
   private mapearTurno(dto: TurnoBackendDTO, cancha: DisponibilidadCanchaBackendDTO): Turno {
     return {
       id: `${dto.fecha}-${dto.espacioNombre}-${dto.horaInicio}`,
-      turnoUuid: dto.uuid,
+      turnoUuid: dto.turno?.uuid || dto.uuid,
       fecha: dto.fecha,
       horaInicio: dto.horaInicio.substring(0, 5),
       horaFin: dto.horaFin.substring(0, 5),
