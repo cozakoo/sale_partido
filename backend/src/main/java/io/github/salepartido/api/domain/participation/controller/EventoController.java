@@ -23,6 +23,8 @@ import io.github.salepartido.api.domain.participation.model.Participacion;
 import io.github.salepartido.api.domain.participation.service.EventoService;
 import io.github.salepartido.api.domain.participation.service.ParticipacionService;
 import jakarta.validation.Valid;
+import io.github.salepartido.api.domain.participation.service.CrearEventoCommand;
+import io.github.salepartido.api.domain.participation.service.TurnoCommand;
 
 @RestController
 @RequestMapping("/eventos")
@@ -41,30 +43,40 @@ public class EventoController {
         this.localService = localService;
     }
 
-        @PostMapping
-        @ResponseStatus(HttpStatus.CREATED)
-        public EventoDetailDTO crearEvento(@jakarta.validation.Valid @org.springframework.web.bind.annotation.RequestBody CrearEventoRequestDTO request) {
-        java.time.Duration limite = request.limiteCancelacionParticipacion() != null
-            ? java.time.Duration.ofMinutes(request.limiteCancelacionParticipacion())
-            : null;
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public EventoDetailDTO crearEvento(@Valid @RequestBody CrearEventoRequestDTO request) {
+    java.time.Duration limite = request.limiteCancelacionParticipacion() != null
+        ? java.time.Duration.ofMinutes(request.limiteCancelacionParticipacion())
+        : null;
 
-        io.github.salepartido.api.domain.participation.service.CrearEventoCommand cmd =
-            new io.github.salepartido.api.domain.participation.service.CrearEventoCommand(
-                request.turnoUuid(),
-                request.organizadorUuid(),
-                request.nombre(),
-                request.cupoMinimo(),
-                request.cupoMaximo(),
-                request.tipo() != null ? io.github.salepartido.api.domain.participation.model.TipoEvento.valueOf(request.tipo()) : null,
-                limite,
-                request.nivelRequeridoUuid());
+    TurnoCommand turnoCmd = null;
+    if (request.turno() != null) {
+        turnoCmd = new TurnoCommand(
+            request.turno().fecha(),
+            request.turno().horaInicio(),
+            request.turno().horaFin(),
+            request.turno().canchaUuid()
+        );
+    }
 
-        var evento = eventoService.crearEvento(cmd);
-        var local = evento.getTurno() != null && evento.getTurno().getCancha() != null
-            ? localService.buscarLocalPorCanchaUuid(evento.getTurno().getCancha().getUuid()).orElse(null)
-            : null;
-        return EventoDetailDTO.from(evento, local);
-        }
+    CrearEventoCommand cmd =
+        new CrearEventoCommand(
+            turnoCmd,
+            request.organizadorUuid(),
+            request.nombre(),
+            request.cupoMinimo(),
+            request.cupoMaximo(),
+            request.tipo() != null ? io.github.salepartido.api.domain.participation.model.TipoEvento.valueOf(request.tipo()) : null,
+            limite,
+            request.nivelRequeridoUuid());
+
+    var evento = eventoService.crearEvento(cmd);
+    var local = evento.getTurno() != null && evento.getTurno().getCancha() != null
+        ? localService.buscarLocalPorCanchaUuid(evento.getTurno().getCancha().getUuid()).orElse(null)
+        : null;
+    return EventoDetailDTO.from(evento, local);
+    }
 
     @GetMapping
     public List<EventoDetailDTO> getEventos() {

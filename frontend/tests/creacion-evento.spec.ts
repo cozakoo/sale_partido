@@ -19,7 +19,9 @@ async function cargarEscenario(page: Page, cfg: {
         localUuid: 'local-mock-uuid',
         localNombre: 'Complejo Deportivo Patagonia',
         espacioNombre: 'Cancha de Fútbol 5 — Sintético',
+        canchaUuid: 'ed0509fd-c032-4d88-8efa-ee931bcbae8d',
         deporte: 'Fútbol',
+        fecha: '2026-06-15',
         horaInicio: '18:00',
         horaFin: '19:00',
         capacidad: capacidad ?? 10,
@@ -32,7 +34,7 @@ async function cargarEscenario(page: Page, cfg: {
 
   } else {
     await page.goto(`${BASE}/eventos/new`);
-    await page.waitForSelector('[data-testid="btn-confirmar"]', { timeout: 10000 });
+    await page.waitForSelector('.alert-warning', { timeout: 10000 });
   }
 }
 
@@ -115,12 +117,16 @@ test.describe('E3-H01 | Caso de Borde: Error sin espacio', () => {
   test('Intento de creación de evento sin haber seleccionado espacio', async ({ page }) => {
     await cargarEscenario(page, { localPreseleccionado: false });
 
-    const btn = page.locator('[data-testid="btn-confirmar"]');
-    if (await btn.isVisible()) {
-      await btn.click();
-    }
+    // Assert warning is visible
+    await expect(page.locator('.alert-warning')).toBeVisible();
+    await expect(page.locator('.alert-warning')).toContainText('No hay un espacio reservado seleccionado');
 
-    await expect(page.locator('[data-testid="mensaje-error"]'))
-      .toHaveText('Debe seleccionar y reservar un espacio para el evento');
+    // Confirm that confirm button is NOT visible
+    const btnConfirmar = page.locator('[data-testid="btn-confirmar"]');
+    await expect(btnConfirmar).not.toBeVisible();
+
+    // Confirm that cancel button is visible
+    const btnCancelar = page.locator('button:has-text("Cancelar")');
+    await expect(btnCancelar).toBeVisible();
   });
 });

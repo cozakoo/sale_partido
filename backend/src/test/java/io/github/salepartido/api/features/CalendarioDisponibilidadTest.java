@@ -33,6 +33,16 @@ import io.github.salepartido.api.domain.locales.model.Ubicacion;
 import io.github.salepartido.api.domain.locales.model.Turno;
 import io.github.salepartido.api.domain.locales.repository.LocalRepository;
 import io.github.salepartido.api.domain.locales.repository.TurnoRepository;
+import io.github.salepartido.api.domain.participation.model.Evento;
+import io.github.salepartido.api.domain.participation.model.Usuario;
+import io.github.salepartido.api.domain.participation.model.EstadoEvento;
+import io.github.salepartido.api.domain.participation.model.Participacion;
+import io.github.salepartido.api.domain.participation.model.EstadoParticipacion;
+import io.github.salepartido.api.domain.participation.model.Rol;
+import io.github.salepartido.api.domain.participation.repository.EventoRepository;
+import io.github.salepartido.api.domain.participation.repository.UsuarioRepository;
+import java.util.ArrayList;
+import java.time.LocalDateTime;
 
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
@@ -50,6 +60,12 @@ public class CalendarioDisponibilidadTest {
 
     @Autowired
     private TurnoRepository turnoRepository;
+
+    @Autowired
+    private EventoRepository eventoRepository;
+
+    @Autowired
+    private UsuarioRepository usuarioRepository;
 
     @Test
     @DisplayName("Obtener disponibilidad con base de datos real - Genera turnos correctamente")
@@ -90,12 +106,34 @@ public class CalendarioDisponibilidadTest {
         turno.setFecha(fechaTest);
         turno.setHoraInicio(LocalTime.of(9, 0));
         turno.setHoraFin(LocalTime.of(10, 0));
-        turno.setNombreOrganizador("Martín");
-        turno.setDeporte("Fútbol");
-        turno.setCantidadParticipantesConfirmados(10);
-        turno.setEstadoEvento("CONFIRMADO");
+        turno = turnoRepository.save(turno);
 
-        turnoRepository.save(turno);
+        Usuario organizador = new Usuario();
+        organizador.setNombre("Martín");
+        organizador.setRol(Rol.DEPORTISTA);
+        organizador = usuarioRepository.save(organizador);
+
+        Evento evento = new Evento();
+        evento.setNombre("Partido de Fútbol");
+        evento.setTipo(io.github.salepartido.api.domain.participation.model.TipoEvento.CERRADO);
+        evento.setCupoMinimo(2);
+        evento.setCupoMaximo(10);
+        evento.setEstado(EstadoEvento.DISPONIBLE);
+        evento.setTurno(turno);
+        evento.setOrganizador(organizador);
+
+        List<Participacion> participaciones = new ArrayList<>();
+        for (int i = 0; i < 10; i++) {
+            Participacion p = new Participacion();
+            p.setEstado(EstadoParticipacion.CONFIRMADO);
+            p.setEsInvitacion(false);
+            p.setAsistio(false);
+            p.setFechaEstado(LocalDateTime.now());
+            p.setParticipante(organizador);
+            participaciones.add(p);
+        }
+        evento.setParticipaciones(participaciones);
+        eventoRepository.save(evento);
 
         mockMvc.perform(get("/locales/{uuid}/disponibilidad", savedLocal.getUuid())
                 .param("fechaInicio", "2026-06-01")
@@ -122,7 +160,7 @@ public class CalendarioDisponibilidadTest {
         .andExpect(jsonPath("$[0].turnos[1].turno.nombreOrganizador").value("Martín"))
         .andExpect(jsonPath("$[0].turnos[1].turno.deporte").value("Fútbol"))
         .andExpect(jsonPath("$[0].turnos[1].turno.cantidadParticipantesConfirmados").value(10))
-        .andExpect(jsonPath("$[0].turnos[1].turno.estadoEvento").value("CONFIRMADO"));
+        .andExpect(jsonPath("$[0].turnos[1].turno.estadoEvento").value("DISPONIBLE"));
     }
 
     @Test

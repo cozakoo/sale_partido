@@ -93,18 +93,24 @@ async function cargarEscenario(page: Page, cfg: EventoConfig): Promise<void> {
     }
   });
 
-  // Intercept GET /usuarios/me
-  await page.route('**/usuarios/me', async (route) => {
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      headers: corsHeaders,
-      body: JSON.stringify({
-        uuid: PARTICIPANTE.uuid,
-        nombre: PARTICIPANTE.nombre,
-        habilidades: { 'Fútbol': PARTICIPANTE.nivel }
-      }),
-    });
+  // Intercept GET /usuarios (simular lista de usuarios para la sesión de pruebas)
+  await page.route('**/usuarios', async (route) => {
+    if (route.request().url().endsWith('/usuarios')) {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        headers: corsHeaders,
+        body: JSON.stringify([
+          {
+            uuid: PARTICIPANTE.uuid,
+            nombre: PARTICIPANTE.nombre,
+            habilidades: { 'Fútbol': PARTICIPANTE.nivel }
+          }
+        ]),
+      });
+    } else {
+      await route.fallback();
+    }
   });
 
   // Intercept GET /eventos/test-evento-uuid

@@ -11,15 +11,12 @@
 
   <!-- ── Éxito ─────────────────────────────────────────────────────────────── -->
   @if (exitoso()) {
-  <div class="creacion-evento__success" data-testid="resultado-evento"
-    [attr.data-estado]="'En espera de participantes'"
-    [attr.data-tipo-ingreso]="form.getRawValue().tipoIngreso"
-    [attr.data-tiempo-cancelacion]="
+  <div class="creacion-evento__success" data-testid="resultado-evento" [attr.data-estado]="'En espera de participantes'"
+    [attr.data-tipo-ingreso]="form.getRawValue().tipoIngreso" [attr.data-tiempo-cancelacion]="
       form.getRawValue().tiempoCancelacionHoras === 1
         ? '1 hora antes del inicio'
         : form.getRawValue().tiempoCancelacionHoras + ' horas antes'
-    "
-    [attr.data-nivel-habilidad]="form.getRawValue().nivelHabilidad">
+    " [attr.data-nivel-habilidad]="nivelHabilidadLabel()">
 
     <div class="alert alert-success d-flex align-items-center gap-2" role="alert">
       <i class="bi bi-check-circle-fill fs-4"></i>
@@ -38,13 +35,13 @@
       <p class="mb-1">
         <strong>Cancelación hasta:</strong>
         {{
-          form.getRawValue().tiempoCancelacionHoras === 1
-            ? '1 hora antes del inicio'
-            : form.getRawValue().tiempoCancelacionHoras + ' horas antes'
+        form.getRawValue().tiempoCancelacionHoras === 1
+        ? '1 hora antes del inicio'
+        : form.getRawValue().tiempoCancelacionHoras + ' horas antes'
         }}
       </p>
       <p class="mb-0">
-        <strong>Nivel:</strong> {{ form.getRawValue().nivelHabilidad }}
+        <strong>Nivel:</strong> {{ nivelHabilidadLabel() }}
       </p>
     </div>
 
@@ -71,12 +68,22 @@
   @if (usuarioActual(); as usuario) {
   <div class="card mb-3">
     <div class="card-body py-2">
-      <div class="d-flex justify-content-between align-items-center">
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
         <div>
-          <span class="text-muted small">Organizador</span>
+          <span class="text-muted small d-block">Organizador (Simular Usuario)</span>
+          @if (usuarios().length > 0) {
+          <select class="form-select form-select-sm border-secondary-subtle mt-1" style="width: auto;"
+            (change)="onUsuarioCambiado($event)">
+            @for (u of usuarios(); track u.uuid) {
+            <option [value]="u.uuid" [selected]="u.uuid === usuario.uuid">
+              {{ u.nombre }}
+            </option>
+            }
+          </select>
+          } @else {
           <div class="fw-semibold">{{ usuario.nombre }}</div>
+          }
         </div>
-        <span class="badge bg-secondary">Usuario de prueba</span>
       </div>
     </div>
   </div>
@@ -87,6 +94,11 @@
   <div class="alert alert-warning" role="alert">
     <i class="bi bi-exclamation-triangle me-2"></i>
     No hay un espacio reservado seleccionado. Volvé a la búsqueda y reservá un turno primero.
+  </div>
+  <div class="d-flex justify-content-end mt-3">
+    <button type="button" class="btn btn-outline-secondary" (click)="volver()">
+      Cancelar
+    </button>
   </div>
   }
 
@@ -154,6 +166,25 @@
     </div>
     }
 
+    <!-- ── Nombre del evento ──────────────────────────────────────────────── -->
+    <div class="creacion-evento__section card mb-3">
+      <div class="card-body">
+        <h2 class="card-title h6 text-uppercase text-muted mb-3">Nombre del evento</h2>
+        <div class="row g-3">
+          <div class="col-12">
+            <label for="nombre" class="form-label">
+              Nombre <span class="text-danger">*</span>
+            </label>
+            <input type="text" id="nombre" class="form-control" data-testid="input-nombre"
+              formControlName="nombre" [class.is-invalid]="campoInvalido('nombre')" placeholder="Ej: Partido de fútbol 5" />
+            @if (campoInvalido('nombre')) {
+            <div class="invalid-feedback">El nombre del evento es requerido y no puede estar vacío.</div>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- ── Cupos ──────────────────────────────────────────────────────────── -->
     <div class="creacion-evento__section card mb-3">
       <div class="card-body">
@@ -164,10 +195,8 @@
             <label for="cupoMinimo" class="form-label">
               Cupo mínimo <span class="text-danger">*</span>
             </label>
-            <input type="number" id="cupoMinimo" class="form-control"
-              data-testid="input-cupo-minimo"
-              formControlName="cupoMinimo" min="1"
-              [class.is-invalid]="campoInvalido('cupoMinimo') || errorCupos" />
+            <input type="number" id="cupoMinimo" class="form-control" data-testid="input-cupo-minimo"
+              formControlName="cupoMinimo" min="1" [class.is-invalid]="campoInvalido('cupoMinimo') || errorCupos" />
             @if (campoInvalido('cupoMinimo')) {
             <div class="invalid-feedback">El cupo mínimo debe ser mayor a cero.</div>
             }
@@ -177,10 +206,8 @@
             <label for="cupoMaximo" class="form-label">
               Cupo máximo <span class="text-danger">*</span>
             </label>
-            <input type="number" id="cupoMaximo" class="form-control"
-              data-testid="input-cupo-maximo"
-              formControlName="cupoMaximo" min="1"
-              [class.is-invalid]="campoInvalido('cupoMaximo') || errorCupos" />
+            <input type="number" id="cupoMaximo" class="form-control" data-testid="input-cupo-maximo"
+              formControlName="cupoMaximo" min="1" [class.is-invalid]="campoInvalido('cupoMaximo') || errorCupos" />
             @if (campoInvalido('cupoMaximo')) {
             <div class="invalid-feedback">Revisá el cupo máximo.</div>
             }
@@ -209,8 +236,7 @@
             <label for="tipoIngreso" class="form-label">
               Tipo de ingreso <span class="text-danger">*</span>
             </label>
-            <select id="tipoIngreso" class="form-select"
-              data-testid="select-tipo-ingreso"
+            <select id="tipoIngreso" class="form-select" data-testid="select-tipo-ingreso"
               formControlName="tipoIngreso">
               @for (tipo of tiposIngreso; track tipo) {
               <option [value]="tipo">{{ tipo }}</option>
@@ -222,8 +248,7 @@
             <label for="tiempoCancelacion" class="form-label">
               Tiempo límite de cancelación (horas)
             </label>
-            <input type="number" id="tiempoCancelacion" class="form-control"
-              data-testid="input-tiempo-cancelacion"
+            <input type="number" id="tiempoCancelacion" class="form-control" data-testid="input-tiempo-cancelacion"
               formControlName="tiempoCancelacionHoras" min="1" max="24"
               [class.is-invalid]="campoInvalido('tiempoCancelacionHoras')" />
             <div class="form-text">Entre 1 y 24 horas antes del inicio. Por defecto: 1 hora.</div>
@@ -241,14 +266,21 @@
       <div class="card-body">
         <h2 class="card-title h6 text-uppercase text-muted mb-3">Nivel de habilidad</h2>
         <div class="col-12 col-sm-6">
-          <label for="nivelHabilidad" class="form-label">Nivel requerido</label>
-          <select id="nivelHabilidad" class="form-select"
-            data-testid="select-nivel-habilidad"
-            formControlName="nivelHabilidad">
-            @for (nivel of nivelesHabilidad; track nivel) {
-            <option [value]="nivel">{{ nivel }}</option>
+          <label for="nivelHabilidad" class="form-label">
+            Nivel requerido @if (deporteNombre()) { (Deporte: {{ deporteNombre() }}) }
+          </label>
+          <select id="nivelHabilidad" class="form-select" data-testid="select-nivel-habilidad"
+            formControlName="nivelHabilidad" (change)="onNivelCambiado($event)">
+            <option value="">Sin especificar</option>
+            @for (nivel of niveles(); track nivel.uuid) {
+            <option [value]="nivel.uuid">{{ nivel.nombre }}</option>
             }
           </select>
+          @if (nivelHabilidadSeleccionado(); as selectedNivel) {
+          <div class="form-text text-muted mt-2" data-testid="descripcion-nivel-habilidad">
+            {{ selectedNivel.descripcion }}
+          </div>
+          }
         </div>
       </div>
     </div>
@@ -258,9 +290,7 @@
       <button type="button" class="btn btn-outline-secondary" (click)="volver()">
         Cancelar
       </button>
-      <button type="submit" class="btn btn-primary"
-        data-testid="btn-confirmar"
-        [disabled]="enviando()">
+      <button type="submit" class="btn btn-primary" data-testid="btn-confirmar" [disabled]="enviando()">
         @if (enviando()) {
         <span class="spinner-border spinner-border-sm me-2" role="status"></span>
         Creando...
@@ -272,14 +302,6 @@
 
   </form>
 
-  } @else {
-  <div class="mt-3">
-    <button type="button" class="btn btn-primary"
-      data-testid="btn-confirmar"
-      (click)="confirmar()">
-      Confirmar Creación
-    </button>
-  </div>
   }
 
   }

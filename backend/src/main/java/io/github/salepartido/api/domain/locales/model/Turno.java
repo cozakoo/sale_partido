@@ -38,17 +38,4 @@ public class Turno {
 
     @Column(name = "hora_fin", nullable = false)
     private java.time.LocalTime horaFin;
-
-    @Column(name = "nombre_organizador", nullable = false)
-    private String nombreOrganizador;
-
-    @Column(name = "deporte", nullable = false)
-    private String deporte;
-
-    @Column(name = "cantidad_participantes_confirmados", nullable = false)
-    private Integer cantidadParticipantesConfirmados;
-
-    @Column(name = "estado_evento", nullable = false)
-    private String estadoEvento;
-
 }

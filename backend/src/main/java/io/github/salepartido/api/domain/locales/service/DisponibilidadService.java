@@ -26,16 +26,21 @@ import io.github.salepartido.api.domain.locales.repository.TurnoRepository;
 import io.github.salepartido.api.domain.locales.controller.dto.DisponibilidadCanchaDTO;
 import io.github.salepartido.api.domain.locales.controller.dto.TurnoDTO;
 import io.github.salepartido.api.domain.locales.controller.dto.TurnoSlotDTO;
+import io.github.salepartido.api.domain.participation.repository.EventoRepository;
+import io.github.salepartido.api.domain.participation.model.Evento;
+import io.github.salepartido.api.domain.participation.model.EstadoParticipacion;
 
 @Service
 public class DisponibilidadService {
 
     private final LocalRepository localRepository;
     private final TurnoRepository turnoRepository;
+    private final EventoRepository eventoRepository;
 
-    public DisponibilidadService(LocalRepository localRepository, TurnoRepository turnoRepository) {
+    public DisponibilidadService(LocalRepository localRepository, TurnoRepository turnoRepository, EventoRepository eventoRepository) {
         this.localRepository = localRepository;
         this.turnoRepository = turnoRepository;
+        this.eventoRepository = eventoRepository;
     }
 
     @Transactional(readOnly = true)
@@ -151,14 +156,39 @@ public class DisponibilidadService {
             LocalTime slotEnd, Optional<Turno> turnoOpt) {
         if (turnoOpt.isPresent()) {
             Turno t = turnoOpt.get();
+            Optional<Evento> eventoOpt = eventoRepository.findByTurnoUuid(t.getUuid());
+
+            String nombreOrganizador = "";
+            String deporte = cancha.getDeporte() != null ? cancha.getDeporte().getNombre() : "";
+            int cantidadParticipantesConfirmados = 0;
+            String estadoEvento = "";
+
+            if (eventoOpt.isPresent()) {
+                Evento e = eventoOpt.get();
+                if (e.getOrganizador() != null) {
+                    nombreOrganizador = e.getOrganizador().getNombre();
+                }
+                if (e.getNivelRequerido() != null && e.getNivelRequerido().getDeporte() != null) {
+                    deporte = e.getNivelRequerido().getDeporte().getNombre();
+                } else if (cancha.getDeporte() != null) {
+                    deporte = cancha.getDeporte().getNombre();
+                }
+                cantidadParticipantesConfirmados = (int) e.getParticipaciones().stream()
+                        .filter(p -> p.getEstado() == EstadoParticipacion.CONFIRMADO)
+                        .count();
+                if (e.getEstado() != null) {
+                    estadoEvento = e.getEstado().name();
+                }
+            }
+
             TurnoDTO turnoDTO = new TurnoDTO(
                     t.getUuid(),
-                    t.getNombreOrganizador(),
-                    t.getDeporte(),
+                    nombreOrganizador,
+                    deporte,
                     cancha.getCapacidad(),
-                    t.getCantidadParticipantesConfirmados(),
-                    t.getEstadoEvento());
-            return new TurnoSlotDTO(fecha, slotStart, slotEnd, cancha.getNombre(), t.getDeporte(), "OCUPADO", turnoDTO);
+                    cantidadParticipantesConfirmados,
+                    estadoEvento);
+            return new TurnoSlotDTO(fecha, slotStart, slotEnd, cancha.getNombre(), deporte, "OCUPADO", turnoDTO);
         }
 
         String deporteCancha = cancha.getDeporte() != null ? cancha.getDeporte().getNombre() : null;

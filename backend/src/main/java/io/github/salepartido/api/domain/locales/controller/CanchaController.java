@@ -16,12 +16,15 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
+import io.github.salepartido.api.domain.locales.controller.dto.CanchaDeporteResponseDTO;
 import io.github.salepartido.api.domain.locales.controller.dto.CanchaDetail;
 import io.github.salepartido.api.domain.locales.controller.dto.CanchaRequestDTO;
 import io.github.salepartido.api.domain.locales.controller.dto.CanchaSummary;
+import io.github.salepartido.api.domain.locales.controller.dto.NivelHabilidadDTO;
 import io.github.salepartido.api.domain.locales.controller.mapper.CanchaMapper;
 import io.github.salepartido.api.domain.locales.model.Cancha;
 import io.github.salepartido.api.domain.locales.service.CanchaService;
+import io.github.salepartido.api.domain.participation.repository.NivelDeporteRepository;
 import jakarta.validation.Valid;
 
 @RestController
@@ -30,10 +33,12 @@ public class CanchaController {
 
     private final CanchaService canchaService;
     private final CanchaMapper canchaMapper;
+    private final NivelDeporteRepository nivelDeporteRepository;
 
-    public CanchaController(CanchaService canchaService, CanchaMapper canchaMapper) {
+    public CanchaController(CanchaService canchaService, CanchaMapper canchaMapper, NivelDeporteRepository nivelDeporteRepository) {
         this.canchaService = canchaService;
         this.canchaMapper = canchaMapper;
+        this.nivelDeporteRepository = nivelDeporteRepository;
     }
 
     @GetMapping
@@ -48,6 +53,26 @@ public class CanchaController {
         Cancha cancha = canchaService.buscarCanchaPorId(uuid)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cancha no encontrada"));
         return canchaMapper.toDetail(cancha);
+    }
+
+    @GetMapping("/{uuid}/deporte")
+    public CanchaDeporteResponseDTO getCanchaDeporte(@PathVariable UUID uuid) {
+        Cancha cancha = canchaService.buscarCanchaPorId(uuid)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cancha no encontrada"));
+        var deporte = cancha.getDeporte();
+        if (deporte == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Deporte no encontrado para la cancha");
+        }
+        List<NivelHabilidadDTO> niveles = nivelDeporteRepository.findByDeporteUuidOrderByOrdenAsc(deporte.getUuid())
+                .stream()
+                .map(nivel -> new NivelHabilidadDTO(
+                        nivel.getUuid(),
+                        nivel.getNombre(),
+                        nivel.getOrden(),
+                        nivel.getDescripcion()
+                ))
+                .toList();
+        return new CanchaDeporteResponseDTO(deporte.getUuid(), deporte.getNombre(), niveles);
     }
 
     @PostMapping

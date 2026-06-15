@@ -89,7 +89,7 @@ class EventoApiTest {
             when(localService.buscarLocalPorCanchaUuid(org.mockito.ArgumentMatchers.any()))
                     .thenReturn(Optional.of(new Local()));
 
-            String body = "{\"turnoUuid\":\"" + TURNO_UUID + "\",\"organizadorUuid\":\"" + ORGANIZADOR_UUID + "\",\"nombre\":\"Partido de futbol 5\",\"tipo\":\"ABIERTO\",\"cupoMinimo\":6,\"cupoMaximo\":10,\"limiteCancelacionParticipacion\":60,\"nivelRequeridoUuid\":null}";
+            String body = "{\"turno\":{\"fecha\":\"2026-06-02\",\"horaInicio\":\"18:00:00\",\"horaFin\":\"19:00:00\",\"canchaUuid\":\"" + TURNO_UUID + "\"},\"organizadorUuid\":\"" + ORGANIZADOR_UUID + "\",\"nombre\":\"Partido de futbol 5\",\"tipo\":\"ABIERTO\",\"cupoMinimo\":6,\"cupoMaximo\":10,\"limiteCancelacionParticipacion\":60,\"nivelRequeridoUuid\":null}";
 
             mockMvc.perform(post("/eventos")
                             .contentType(MediaType.APPLICATION_JSON)
@@ -104,7 +104,7 @@ class EventoApiTest {
             when(eventoService.crearEvento(org.mockito.ArgumentMatchers.any()))
                     .thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "El turno no existe"));
 
-            String body = "{\"turnoUuid\":\"" + TURNO_UUID + "\",\"organizadorUuid\":\"" + ORGANIZADOR_UUID + "\",\"nombre\":\"Partido\",\"cupoMinimo\":6,\"cupoMaximo\":10}";
+            String body = "{\"turno\":{\"fecha\":\"2026-06-02\",\"horaInicio\":\"18:00:00\",\"horaFin\":\"19:00:00\",\"canchaUuid\":\"" + TURNO_UUID + "\"},\"organizadorUuid\":\"" + ORGANIZADOR_UUID + "\",\"nombre\":\"Partido\",\"cupoMinimo\":6,\"cupoMaximo\":10}";
 
             mockMvc.perform(post("/eventos")
                             .contentType(MediaType.APPLICATION_JSON)
@@ -118,7 +118,7 @@ class EventoApiTest {
             when(eventoService.crearEvento(org.mockito.ArgumentMatchers.any()))
                     .thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "El usuario no existe"));
 
-            String body = "{\"turnoUuid\":\"" + TURNO_UUID + "\",\"organizadorUuid\":\"" + ORGANIZADOR_UUID + "\",\"nombre\":\"Partido\",\"cupoMinimo\":6,\"cupoMaximo\":10}";
+            String body = "{\"turno\":{\"fecha\":\"2026-06-02\",\"horaInicio\":\"18:00:00\",\"horaFin\":\"19:00:00\",\"canchaUuid\":\"" + TURNO_UUID + "\"},\"organizadorUuid\":\"" + ORGANIZADOR_UUID + "\",\"nombre\":\"Partido\",\"cupoMinimo\":6,\"cupoMaximo\":10}";
 
             mockMvc.perform(post("/eventos")
                             .contentType(MediaType.APPLICATION_JSON)
@@ -132,7 +132,7 @@ class EventoApiTest {
             when(eventoService.crearEvento(org.mockito.ArgumentMatchers.any()))
                     .thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Nivel de deporte no encontrado"));
 
-            String body = "{\"turnoUuid\":\"" + TURNO_UUID + "\",\"organizadorUuid\":\"" + ORGANIZADOR_UUID + "\",\"nombre\":\"Partido\",\"cupoMinimo\":6,\"cupoMaximo\":10,\"nivelRequeridoUuid\":\"" + NIVEL_UUID + "\"}";
+            String body = "{\"turno\":{\"fecha\":\"2026-06-02\",\"horaInicio\":\"18:00:00\",\"horaFin\":\"19:00:00\",\"canchaUuid\":\"" + TURNO_UUID + "\"},\"organizadorUuid\":\"" + ORGANIZADOR_UUID + "\",\"nombre\":\"Partido\",\"cupoMinimo\":6,\"cupoMaximo\":10,\"nivelRequeridoUuid\":\"" + NIVEL_UUID + "\"}";
 
             mockMvc.perform(post("/eventos")
                             .contentType(MediaType.APPLICATION_JSON)
@@ -146,7 +146,7 @@ class EventoApiTest {
             when(eventoService.crearEvento(org.mockito.ArgumentMatchers.any()))
                     .thenThrow(new CupoMinimoInvalidoException());
 
-            String body = "{\"turnoUuid\":\"" + TURNO_UUID + "\",\"organizadorUuid\":\"" + ORGANIZADOR_UUID + "\",\"nombre\":\"Partido\",\"cupoMinimo\":0,\"cupoMaximo\":10}";
+            String body = "{\"turno\":{\"fecha\":\"2026-06-02\",\"horaInicio\":\"18:00:00\",\"horaFin\":\"19:00:00\",\"canchaUuid\":\"" + TURNO_UUID + "\"},\"organizadorUuid\":\"" + ORGANIZADOR_UUID + "\",\"nombre\":\"Partido\",\"cupoMinimo\":0,\"cupoMaximo\":10}";
 
             mockMvc.perform(post("/eventos")
                             .contentType(MediaType.APPLICATION_JSON)
@@ -160,7 +160,7 @@ class EventoApiTest {
             when(eventoService.crearEvento(org.mockito.ArgumentMatchers.any()))
                     .thenThrow(new CupoMinimoMayorMaximoException());
 
-            String body = "{\"turnoUuid\":\"" + TURNO_UUID + "\",\"organizadorUuid\":\"" + ORGANIZADOR_UUID + "\",\"nombre\":\"Partido\",\"cupoMinimo\":12,\"cupoMaximo\":10}";
+            String body = "{\"turno\":{\"fecha\":\"2026-06-02\",\"horaInicio\":\"18:00:00\",\"horaFin\":\"19:00:00\",\"canchaUuid\":\"" + TURNO_UUID + "\"},\"organizadorUuid\":\"" + ORGANIZADOR_UUID + "\",\"nombre\":\"Partido\",\"cupoMinimo\":12,\"cupoMaximo\":10}";
 
             mockMvc.perform(post("/eventos")
                             .contentType(MediaType.APPLICATION_JSON)
@@ -174,7 +174,7 @@ class EventoApiTest {
             when(eventoService.crearEvento(org.mockito.ArgumentMatchers.any()))
                     .thenThrow(new CupoMaximoSuperaCapacidadException());
 
-            String body = "{\"turnoUuid\":\"" + TURNO_UUID + "\",\"organizadorUuid\":\"" + ORGANIZADOR_UUID + "\",\"nombre\":\"Partido\",\"cupoMinimo\":6,\"cupoMaximo\":20}";
+            String body = "{\"turno\":{\"fecha\":\"2026-06-02\",\"horaInicio\":\"18:00:00\",\"horaFin\":\"19:00:00\",\"canchaUuid\":\"" + TURNO_UUID + "\"},\"organizadorUuid\":\"" + ORGANIZADOR_UUID + "\",\"nombre\":\"Partido\",\"cupoMinimo\":6,\"cupoMaximo\":20}";
 
             mockMvc.perform(post("/eventos")
                             .contentType(MediaType.APPLICATION_JSON)
@@ -188,7 +188,7 @@ class EventoApiTest {
             when(eventoService.crearEvento(org.mockito.ArgumentMatchers.any()))
                     .thenThrow(new TiempoCancelacionInvalidoException());
 
-            String body = "{\"turnoUuid\":\"" + TURNO_UUID + "\",\"organizadorUuid\":\"" + ORGANIZADOR_UUID + "\",\"nombre\":\"Partido\",\"cupoMinimo\":6,\"cupoMaximo\":10,\"limiteCancelacionParticipacion\":30}";
+            String body = "{\"turno\":{\"fecha\":\"2026-06-02\",\"horaInicio\":\"18:00:00\",\"horaFin\":\"19:00:00\",\"canchaUuid\":\"" + TURNO_UUID + "\"},\"organizadorUuid\":\"" + ORGANIZADOR_UUID + "\",\"nombre\":\"Partido\",\"cupoMinimo\":6,\"cupoMaximo\":10,\"limiteCancelacionParticipacion\":30}";
 
             mockMvc.perform(post("/eventos")
                             .contentType(MediaType.APPLICATION_JSON)
@@ -199,7 +199,7 @@ class EventoApiTest {
         @Test
         @DisplayName("Content-Type ausente → 415 Unsupported Media Type")
         void sinContentType_retorna415() throws Exception {
-            String body = "{\"turnoUuid\":\"" + TURNO_UUID + "\",\"organizadorUuid\":\"" + ORGANIZADOR_UUID + "\",\"nombre\":\"Partido\",\"cupoMinimo\":6,\"cupoMaximo\":10}";
+            String body = "{\"turno\":{\"fecha\":\"2026-06-02\",\"horaInicio\":\"18:00:00\",\"horaFin\":\"19:00:00\",\"canchaUuid\":\"" + TURNO_UUID + "\"},\"organizadorUuid\":\"" + ORGANIZADOR_UUID + "\",\"nombre\":\"Partido\",\"cupoMinimo\":6,\"cupoMaximo\":10}";
 
             mockMvc.perform(post("/eventos")
                             .content(body))

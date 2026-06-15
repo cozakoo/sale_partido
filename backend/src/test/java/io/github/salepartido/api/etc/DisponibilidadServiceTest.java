@@ -23,6 +23,7 @@ import org.springframework.web.server.ResponseStatusException;
 import io.github.salepartido.api.domain.locales.model.Cancha;
 import io.github.salepartido.api.domain.locales.model.ConfiguracionDia;
 import io.github.salepartido.api.domain.locales.model.ConfiguracionHorario;
+import io.github.salepartido.api.domain.locales.model.Deporte;
 import io.github.salepartido.api.domain.locales.model.Local;
 import io.github.salepartido.api.domain.locales.model.Turno;
 import io.github.salepartido.api.domain.locales.repository.LocalRepository;
@@ -30,6 +31,13 @@ import io.github.salepartido.api.domain.locales.repository.TurnoRepository;
 import io.github.salepartido.api.domain.locales.service.DisponibilidadService;
 import io.github.salepartido.api.domain.locales.controller.dto.DisponibilidadCanchaDTO;
 import io.github.salepartido.api.domain.locales.controller.dto.TurnoSlotDTO;
+
+import io.github.salepartido.api.domain.participation.repository.EventoRepository;
+import io.github.salepartido.api.domain.participation.model.Evento;
+import io.github.salepartido.api.domain.participation.model.EstadoEvento;
+import io.github.salepartido.api.domain.participation.model.EstadoParticipacion;
+import io.github.salepartido.api.domain.participation.model.Participacion;
+import io.github.salepartido.api.domain.participation.model.Usuario;
 
 @ExtendWith(MockitoExtension.class)
 class DisponibilidadServiceTest {
@@ -39,6 +47,9 @@ class DisponibilidadServiceTest {
 
     @Mock
     private TurnoRepository turnoRepository;
+
+    @Mock
+    private EventoRepository eventoRepository;
 
     @InjectMocks
     private DisponibilidadService disponibilidadService;
@@ -87,9 +98,13 @@ class DisponibilidadServiceTest {
         local.setUuid(localUuid);
         local.setNombre("Complejo Test");
 
+        Deporte deporte = new Deporte();
+        deporte.setNombre("Fútbol");
+
         Cancha cancha = new Cancha();
         cancha.setUuid(UUID.randomUUID());
         cancha.setNombre("Cancha 1");
+        cancha.setDeporte(deporte);
 
         // Configuración horaria: Lunes de 08:00 a 10:00, duración de turno 60 mins
         ConfiguracionHorario configHorario = new ConfiguracionHorario();
@@ -113,14 +128,25 @@ class DisponibilidadServiceTest {
         turno.setFecha(fechaTest);
         turno.setHoraInicio(LocalTime.of(9, 0));
         turno.setHoraFin(LocalTime.of(10, 0));
-        turno.setNombreOrganizador("Martín");
-        turno.setDeporte("Fútbol");
-        turno.setCantidadParticipantesConfirmados(10);
-        turno.setEstadoEvento("CONFIRMADO");
+
+        Usuario organizador = new Usuario();
+        organizador.setNombre("Martín");
+
+        Evento e = new Evento();
+        e.setOrganizador(organizador);
+        e.setEstado(EstadoEvento.DISPONIBLE);
+        List<Participacion> participaciones = new ArrayList<>();
+        for (int i = 0; i < 10; i++) {
+            Participacion p = new Participacion();
+            p.setEstado(EstadoParticipacion.CONFIRMADO);
+            participaciones.add(p);
+        }
+        e.setParticipaciones(participaciones);
 
         when(localRepository.findById(localUuid)).thenReturn(Optional.of(local));
         when(turnoRepository.findByCanchasAndDateRange(List.of(cancha.getUuid()), fechaTest, fechaTest))
                 .thenReturn(List.of(turno));
+        when(eventoRepository.findByTurnoUuid(turno.getUuid())).thenReturn(Optional.of(e));
 
         List<DisponibilidadCanchaDTO> resultado = disponibilidadService.obtenerDisponibilidadLocal(localUuid, fechaTest, fechaTest);
 
@@ -141,7 +167,7 @@ class DisponibilidadServiceTest {
         assertEquals(LocalTime.of(8, 0), t1.horaInicio());
         assertEquals(LocalTime.of(9, 0), t1.horaFin());
         assertEquals("Cancha 1", t1.espacioNombre());
-        assertNull(t1.deporte());
+        assertEquals("Fútbol", t1.deporte());
         assertEquals("LIBRE", t1.estado());
         assertNull(t1.turno());
 
@@ -157,6 +183,6 @@ class DisponibilidadServiceTest {
         assertEquals("Martín", t2.turno().nombreOrganizador());
         assertEquals("Fútbol", t2.turno().deporte());
         assertEquals(10, t2.turno().cantidadParticipantesConfirmados());
-        assertEquals("CONFIRMADO", t2.turno().estadoEvento());
+        assertEquals("DISPONIBLE", t2.turno().estadoEvento());
     }
 }

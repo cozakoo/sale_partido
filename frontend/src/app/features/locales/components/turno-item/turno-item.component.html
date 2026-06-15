@@ -12,7 +12,7 @@
   </div>
   <span class="badge" [class]="turno().estado">{{ turno().estado }}</span>
 
-  @if (turno().estado === 'libre') {
+  @if (turno().estado === 'libre' || turno().estado === 'incompleto') {
 <button
   class="btn btn-primary btn-reservar"
   data-testid="btn-reservar"

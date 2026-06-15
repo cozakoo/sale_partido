@@ -6,9 +6,16 @@ export type EstadoEvento = 'DISPONIBLE' | 'COMPLETO' | 'CANCELADO' | 'FINALIZADO
 export type TipoIngresoLabel = 'Abierto' | 'Con Confirmación' | 'Cerrado';
 export type NivelHabilidadLabel = 'Principiante' | 'Intermedio' | 'Avanzado' | 'Sin especificar';
 
+export interface CrearTurnoRequest {
+  fecha: string;        // 'YYYY-MM-DD'
+  horaInicio: string;   // 'HH:mm:ss'
+  horaFin: string;      // 'HH:mm:ss'
+  canchaUuid: string;
+}
+
 // ── Request hacia POST /eventos ───────────────────────────────────────────────
 export interface CrearEventoRequest {
-  turnoUuid: string;
+  turno: CrearTurnoRequest;
   organizadorUuid: string;
   nombre: string;
   tipo?: TipoEvento;                       // opcional — default CERRADO en backend
@@ -43,10 +50,10 @@ export interface EventoResponse {
   cupoMinimo: number;
   cupoMaximo: number;
   participantesConfirmados: number;
-  limiteCancelacionParticipacion: number;
+  limiteCancelacionParticipacion?: number;
   nivelRequerido: NivelRequeridoResponse | null;
   turno: TurnoEventoResponse;
-  organizador: { uuid: string; nombre: string };
+  organizador?: { uuid: string; nombre: string };
 }
 
 // ── Datos de la reserva que vienen del calendario ─────────────────────────────
@@ -60,4 +67,17 @@ export interface EspacioReservado {
   fecha: string;        // 'YYYY-MM-DD'
   horaInicio: string;   // 'HH:mm'
   horaFin: string;      // 'HH:mm'
+}
+
+export interface NivelHabilidadDTO {
+  uuid: string;
+  nombre: string;
+  orden: number;
+  descripcion: string;
+}
+
+export interface CanchaDeporteResponse {
+  deporteUuid: string;
+  deporteNombre: string;
+  niveles: NivelHabilidadDTO[];
 }
