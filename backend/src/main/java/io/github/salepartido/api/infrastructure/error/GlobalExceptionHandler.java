@@ -21,6 +21,11 @@ import io.github.salepartido.api.domain.participation.exception.InvitacionYaResp
 import io.github.salepartido.api.domain.participation.exception.NivelInsuficienteException;
 import io.github.salepartido.api.domain.participation.exception.ParticipanteYaRegistradoException;
 import io.github.salepartido.api.domain.participation.exception.TipoEventoInvalidoException;
+import io.github.salepartido.api.domain.participation.exception.CupoMaximoSuperaCapacidadException;
+import io.github.salepartido.api.domain.participation.exception.CupoMinimoInvalidoException;
+import io.github.salepartido.api.domain.participation.exception.CupoMinimoMayorMaximoException;
+import io.github.salepartido.api.domain.participation.exception.TiempoCancelacionInvalidoException;
+import io.github.salepartido.api.domain.participation.exception.TurnoRequeridoException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -51,6 +56,16 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler({
+        CupoMaximoSuperaCapacidadException.class
+    })
+    public ProblemDetail handleCupoConflict(RuntimeException exception) {
+        ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.CONFLICT);
+        problem.setTitle(ERROR_TITLE);
+        problem.setDetail(exception.getMessage());
+        return problem;
+    }
+
+    @ExceptionHandler({
         HttpMessageNotReadableException.class,
         MethodArgumentTypeMismatchException.class
     })
@@ -58,6 +73,28 @@ public class GlobalExceptionHandler {
         ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
         problem.setTitle(ERROR_TITLE);
         problem.setDetail("Su petición contiene datos inválidos.");
+        return problem;
+    }
+
+    @ExceptionHandler({
+        CupoMinimoInvalidoException.class,
+        CupoMinimoMayorMaximoException.class,
+        TiempoCancelacionInvalidoException.class
+    })
+    public ProblemDetail handleDomainBadRequest(RuntimeException exception) {
+        ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
+        problem.setTitle(ERROR_TITLE);
+        problem.setDetail(exception.getMessage());
+        return problem;
+    }
+
+    @ExceptionHandler({
+        TurnoRequeridoException.class
+    })
+    public ProblemDetail handleNotFoundRuntime(RuntimeException exception) {
+        ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.NOT_FOUND);
+        problem.setTitle(ERROR_TITLE);
+        problem.setDetail(exception.getMessage());
         return problem;
     }
 
@@ -84,6 +121,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ProblemDetail handleAnything(Exception exception) {
+        exception.printStackTrace();
         ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.INTERNAL_SERVER_ERROR);
         problem.setTitle(ERROR_TITLE);
         problem.setDetail("Algo salió mal, por favor reintente más tarde.");
