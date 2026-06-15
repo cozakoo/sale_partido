@@ -2,6 +2,31 @@ import { test, expect, Page } from '@playwright/test';
 
 const BASE = 'http://localhost:4200';
 
+const mockDeporte = {
+  "deporteUuid": "7a2a4736-b894-4ef7-a2a2-0a88ddc97c8a",
+  "deporteNombre": "Fútbol",
+  "niveles": [
+    {
+      "uuid": "3eb9da46-311a-4f98-b586-8fef6a0f3858",
+      "nombre": "Principiante",
+      "orden": 1,
+      "descripcion": "Aprendiendo los conceptos básicos del fútbol"
+    },
+    {
+      "uuid": "99dd79c3-c608-483f-88e8-b5735d67b7ae",
+      "nombre": "Intermedio",
+      "orden": 2,
+      "descripcion": "Maneja bien la pelota y conoce las posiciones"
+    },
+    {
+      "uuid": "ccfbff34-7277-4e4f-9e68-f8f8554c1c22",
+      "nombre": "Avanzado",
+      "orden": 3,
+      "descripcion": "Nivel competitivo con buena técnica y táctica"
+    }
+  ]
+}
+
 // ── Helper: navegar a /eventos/new con state de reserva ───────────────────────
 async function cargarEscenario(page: Page, cfg: {
   localPreseleccionado?: boolean;
@@ -15,16 +40,16 @@ async function cargarEscenario(page: Page, cfg: {
     // Guardar el state en sessionStorage
     await page.evaluate((capacidad) => {
       sessionStorage.setItem('__reserva_state__', JSON.stringify({
-        turnoId: 'turno-mock-123',
+        turnoUuid: 'turno-mock-123',
         localUuid: 'local-mock-uuid',
         localNombre: 'Complejo Deportivo Patagonia',
-        espacioNombre: 'Cancha de Fútbol 5 — Sintético',
+        canchaNombre: 'Cancha de Fútbol 5 — Sintético',
         canchaUuid: 'ed0509fd-c032-4d88-8efa-ee931bcbae8d',
         deporte: 'Fútbol',
         fecha: '2026-06-15',
         horaInicio: '18:00',
         horaFin: '19:00',
-        capacidad: capacidad ?? 10,
+        capacidad: capacidad ?? 10
       }));
     }, cfg.capacidadCancha ?? 10);
 
@@ -42,6 +67,18 @@ async function cargarEscenario(page: Page, cfg: {
 
 test.describe('E3-H01 | Flujos Principales y Alternativos', () => {
   test.beforeEach(async ({ page }) => {
+    await page.route('http://localhost:8080/canchas/ed0509fd-c032-4d88-8efa-ee931bcbae8d/deporte', async route => {
+      await route.fulfill({ json: mockDeporte });
+    });
+
+    await page.route('**/eventos', async route => {
+      if (route.request().method() === 'POST') {
+        await route.fulfill({ status: 201, json: { id: 'evento-creado-mock-id' } });
+      } else {
+        await route.continue();
+      }
+    });
+
     await cargarEscenario(page, { localPreseleccionado: true, capacidadCancha: 10 });
   });
 
