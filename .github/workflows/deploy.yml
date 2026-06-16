@@ -113,10 +113,17 @@ jobs:
           kubectl apply -f /tmp/k8s-preprod/ingress.yaml
           echo "✅ All manifests applied"
 
-      - name: Restart deployments
+      - name: Update deployment images to built tag
         run: |
-          kubectl rollout restart deployment/salepartido-backend -n salepartido-preprod
-          kubectl rollout restart deployment/salepartido-frontend -n salepartido-preprod
+          # Los manifests referencian :latest; apuntamos al tag recién
+          # construido (SHA) para forzar un rollout real con el código nuevo.
+          kubectl set image deployment/salepartido-backend \
+            backend=salepartido-backend:${{ needs.build.outputs.image-tag }} \
+            -n salepartido-preprod
+          kubectl set image deployment/salepartido-frontend \
+            frontend=salepartido-frontend:${{ needs.build.outputs.image-tag }} \
+            -n salepartido-preprod
+          echo "✅ Imágenes actualizadas al tag ${{ needs.build.outputs.image-tag }}"
 
       - name: Wait for deployments
         run: |
@@ -169,11 +176,17 @@ jobs:
           kubectl apply -f k8s/ingress.yaml
           echo "✅ All manifests applied"
 
-      - name: Restart deployments
+      - name: Update deployment images to built tag
         run: |
-          kubectl rollout restart deployment/salepartido-backend -n salepartido
-          kubectl rollout restart deployment/salepartido-frontend -n salepartido
-          echo "✅ Deployments restarted"
+          # Los manifests referencian :latest; apuntamos al tag recién
+          # construido (SHA) para forzar un rollout real con el código nuevo.
+          kubectl set image deployment/salepartido-backend \
+            backend=salepartido-backend:${{ needs.build.outputs.image-tag }} \
+            -n salepartido
+          kubectl set image deployment/salepartido-frontend \
+            frontend=salepartido-frontend:${{ needs.build.outputs.image-tag }} \
+            -n salepartido
+          echo "✅ Imágenes actualizadas al tag ${{ needs.build.outputs.image-tag }}"
 
       - name: Wait for deployments
         run: |
