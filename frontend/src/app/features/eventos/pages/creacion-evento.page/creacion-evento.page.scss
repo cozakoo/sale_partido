@@ -1,0 +1,68 @@
+.creacion-evento {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+
+  &__loading {
+    display: flex;
+    justify-content: center;
+    padding: 3rem 0;
+  }
+
+  &__header {
+    margin-bottom: 1.5rem;
+  }
+
+  &__title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+  }
+
+  &__subtitle {
+    font-size: 0.9rem;
+  }
+
+  &__espacio {
+    background-color: #f8f9fa;
+    border-left: 4px solid var(--bs-primary, #0d6efd);
+  }
+
+  &__label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #6c757d;
+    margin-bottom: 0.2rem;
+  }
+
+  &__value {
+    font-size: 0.95rem;
+    font-weight: 500;
+    margin-bottom: 0;
+  }
+
+  &__section {
+    border: 1px solid #dee2e6;
+
+    .card-title {
+      font-size: 0.7rem;
+      letter-spacing: 0.06em;
+    }
+  }
+
+  &__actions {
+    padding-top: 0.5rem;
+  }
+
+  &__success {
+    animation: fadeIn 0.3s ease-in;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}

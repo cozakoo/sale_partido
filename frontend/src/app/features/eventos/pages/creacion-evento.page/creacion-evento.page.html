@@ -1,0 +1,309 @@
+<div class="creacion-evento" data-testid="creacion-evento-form">
+
+  <!-- ── Cargando ─────────────────────────────────────────────────────────── -->
+  @if (cargandoEspacio()) {
+  <div class="creacion-evento__loading">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Cargando espacio reservado...</span>
+    </div>
+  </div>
+  }
+
+  <!-- ── Éxito ─────────────────────────────────────────────────────────────── -->
+  @if (exitoso()) {
+  <div class="creacion-evento__success" data-testid="resultado-evento" [attr.data-estado]="'En espera de participantes'"
+    [attr.data-tipo-ingreso]="form.getRawValue().tipoIngreso" [attr.data-tiempo-cancelacion]="
+      form.getRawValue().tiempoCancelacionHoras === 1
+        ? '1 hora antes del inicio'
+        : form.getRawValue().tiempoCancelacionHoras + ' horas antes'
+    " [attr.data-nivel-habilidad]="nivelHabilidadLabel()">
+
+    <div class="alert alert-success d-flex align-items-center gap-2" role="alert">
+      <i class="bi bi-check-circle-fill fs-4"></i>
+      <p class="mb-0" data-testid="mensaje-exito">
+        Evento registrado exitosamente
+      </p>
+    </div>
+
+    <div class="creacion-evento__success-detail card mt-3 p-3">
+      <p class="mb-1">
+        <strong>Estado:</strong> En espera de participantes
+      </p>
+      <p class="mb-1">
+        <strong>Tipo de ingreso:</strong> {{ form.getRawValue().tipoIngreso }}
+      </p>
+      <p class="mb-1">
+        <strong>Cancelación hasta:</strong>
+        {{
+        form.getRawValue().tiempoCancelacionHoras === 1
+        ? '1 hora antes del inicio'
+        : form.getRawValue().tiempoCancelacionHoras + ' horas antes'
+        }}
+      </p>
+      <p class="mb-0">
+        <strong>Nivel:</strong> {{ nivelHabilidadLabel() }}
+      </p>
+    </div>
+
+    <div class="mt-4 d-flex justify-content-center">
+      <button type="button" class="btn btn-primary" (click)="volver()">
+        Volver a eventos
+      </button>
+    </div>
+
+  </div>
+  }
+
+  <!-- ── Formulario ────────────────────────────────────────────────────────── -->
+  @if (!exitoso() && !cargandoEspacio()) {
+
+  <div class="creacion-evento__header">
+    <h1 class="creacion-evento__title">Crear evento deportivo</h1>
+    <p class="creacion-evento__subtitle text-muted">
+      Completá los detalles para publicar tu evento en la plataforma.
+    </p>
+  </div>
+
+  <!-- Organizador -->
+  @if (usuarioActual(); as usuario) {
+  <div class="card mb-3">
+    <div class="card-body py-2">
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div>
+          <span class="text-muted small d-block">Organizador (Simular Usuario)</span>
+          @if (usuarios().length > 0) {
+          <select class="form-select form-select-sm border-secondary-subtle mt-1" style="width: auto;"
+            (change)="onUsuarioCambiado($event)">
+            @for (u of usuarios(); track u.uuid) {
+            <option [value]="u.uuid" [selected]="u.uuid === usuario.uuid">
+              {{ u.nombre }}
+            </option>
+            }
+          </select>
+          } @else {
+          <div class="fw-semibold">{{ usuario.nombre }}</div>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+  }
+
+  <!-- Sin espacio: advertencia -->
+  @if (sinEspacio()) {
+  <div class="alert alert-warning" role="alert">
+    <i class="bi bi-exclamation-triangle me-2"></i>
+    No hay un espacio reservado seleccionado. Volvé a la búsqueda y reservá un turno primero.
+  </div>
+  <div class="d-flex justify-content-end mt-3">
+    <button type="button" class="btn btn-outline-secondary" (click)="volver()">
+      Cancelar
+    </button>
+  </div>
+  }
+
+  <!-- Feedback de error -->
+  <div data-testid="feedback">
+    @if (errorMensaje()) {
+    <div class="alert alert-danger" role="alert">
+      <p class="mb-0" data-testid="mensaje-error">{{ errorMensaje() }}</p>
+    </div>
+    }
+  </div>
+
+  @if (!sinEspacio()) {
+
+  <form [formGroup]="form" (ngSubmit)="confirmar()" novalidate>
+
+    <!-- ── Espacio reservado ──────────────────────────────────────────────── -->
+    @if (espacioReservado(); as espacio) {
+    <div class="creacion-evento__espacio card mb-4">
+      <div class="card-body">
+        <h2 class="card-title h6 text-uppercase text-muted mb-3">Espacio reservado</h2>
+        <div class="row g-2">
+
+          <!-- Local -->
+          <div class="col-12 col-sm-6">
+            <span class="creacion-evento__label">Local</span>
+            <p class="creacion-evento__value fw-semibold mb-0">{{ espacio.localNombre }}</p>
+          </div>
+
+          <!-- Cancha / espacio -->
+          <div class="col-12 col-sm-6">
+            <span class="creacion-evento__label">Cancha</span>
+            <p class="creacion-evento__value mb-0">{{ espacio.canchaNombre }}</p>
+          </div>
+
+          <!-- Fecha — solo lectura, viene del turno reservado -->
+          <div class="col-6 col-sm-3">
+            <span class="creacion-evento__label">Fecha</span>
+            <p class="creacion-evento__value mb-0">
+              <i class="bi bi-calendar3 me-1 text-muted"></i>
+              {{ espacio.fecha | date:'dd/MM/yyyy' }}
+            </p>
+            <!-- Campo oculto para que formControlName exista en el form -->
+            <input type="hidden" formControlName="fecha" data-testid="input-fecha" />
+          </div>
+
+          <!-- Hora inicio — solo lectura -->
+          <div class="col-6 col-sm-3">
+            <span class="creacion-evento__label">Horario</span>
+            <p class="creacion-evento__value mb-0">
+              <i class="bi bi-clock me-1 text-muted"></i>
+              {{ espacio.horaInicio }} – {{ espacio.horaFin }}
+            </p>
+            <input type="hidden" formControlName="hora" data-testid="input-hora" />
+          </div>
+
+          <!-- Capacidad -->
+          <div class="col-6 col-sm-3">
+            <span class="creacion-evento__label">Capacidad máxima</span>
+            <p class="creacion-evento__value mb-0">{{ espacio.capacidad }} jugadores</p>
+          </div>
+
+        </div>
+      </div>
+    </div>
+    }
+
+    <!-- ── Nombre del evento ──────────────────────────────────────────────── -->
+    <div class="creacion-evento__section card mb-3">
+      <div class="card-body">
+        <h2 class="card-title h6 text-uppercase text-muted mb-3">Nombre del evento</h2>
+        <div class="row g-3">
+          <div class="col-12">
+            <label for="nombre" class="form-label">
+              Nombre <span class="text-danger">*</span>
+            </label>
+            <input type="text" id="nombre" class="form-control" data-testid="input-nombre" formControlName="nombre"
+              [class.is-invalid]="campoInvalido('nombre')" placeholder="Ej: Partido de fútbol 5" />
+            @if (campoInvalido('nombre')) {
+            <div class="invalid-feedback">El nombre del evento es requerido y no puede estar vacío.</div>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Cupos ──────────────────────────────────────────────────────────── -->
+    <div class="creacion-evento__section card mb-3">
+      <div class="card-body">
+        <h2 class="card-title h6 text-uppercase text-muted mb-3">Cupos</h2>
+        <div class="row g-3">
+
+          <div class="col-12 col-sm-6">
+            <label for="cupoMinimo" class="form-label">
+              Cupo mínimo <span class="text-danger">*</span>
+            </label>
+            <input type="number" id="cupoMinimo" class="form-control" data-testid="input-cupo-minimo"
+              formControlName="cupoMinimo" min="1" [class.is-invalid]="campoInvalido('cupoMinimo') || errorCupos" />
+            @if (campoInvalido('cupoMinimo')) {
+            <div class="invalid-feedback">El cupo mínimo debe ser mayor a cero.</div>
+            }
+          </div>
+
+          <div class="col-12 col-sm-6">
+            <label for="cupoMaximo" class="form-label">
+              Cupo máximo <span class="text-danger">*</span>
+            </label>
+            <input type="number" id="cupoMaximo" class="form-control" data-testid="input-cupo-maximo"
+              formControlName="cupoMaximo" min="1" [class.is-invalid]="campoInvalido('cupoMaximo') || errorCupos" />
+            @if (campoInvalido('cupoMaximo')) {
+            <div class="invalid-feedback">Revisá el cupo máximo.</div>
+            }
+          </div>
+
+          @if (errorCupos) {
+          <div class="col-12">
+            <div class="alert alert-warning py-1 px-2 mb-0">
+              <i class="bi bi-exclamation-circle me-1"></i>
+              El cupo mínimo no puede ser mayor que el cupo máximo.
+            </div>
+          </div>
+          }
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Acceso al evento ───────────────────────────────────────────────── -->
+    <div class="creacion-evento__section card mb-3">
+      <div class="card-body">
+        <h2 class="card-title h6 text-uppercase text-muted mb-3">Acceso al evento</h2>
+        <div class="row g-3">
+
+          <div class="col-12 col-sm-6">
+            <label for="tipoIngreso" class="form-label">
+              Tipo de ingreso <span class="text-danger">*</span>
+            </label>
+            <select id="tipoIngreso" class="form-select" data-testid="select-tipo-ingreso"
+              formControlName="tipoIngreso">
+              @for (tipo of tiposIngreso; track tipo) {
+              <option [value]="tipo">{{ tipo }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="col-12 col-sm-6">
+            <label for="tiempoCancelacion" class="form-label">
+              Tiempo límite de cancelación (horas)
+            </label>
+            <input type="number" id="tiempoCancelacion" class="form-control" data-testid="input-tiempo-cancelacion"
+              formControlName="tiempoCancelacionHoras" min="1" max="24"
+              [class.is-invalid]="campoInvalido('tiempoCancelacionHoras')" />
+            <div class="form-text">Entre 1 y 24 horas antes del inicio. Por defecto: 1 hora.</div>
+            @if (campoInvalido('tiempoCancelacionHoras')) {
+            <div class="invalid-feedback">Debe estar entre 1 y 24 horas.</div>
+            }
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Nivel de habilidad ─────────────────────────────────────────────── -->
+    <div class="creacion-evento__section card mb-4">
+      <div class="card-body">
+        <h2 class="card-title h6 text-uppercase text-muted mb-3">Nivel de habilidad</h2>
+        <div class="col-12 col-sm-6">
+          <label for="nivelHabilidad" class="form-label">
+            Nivel requerido @if (deporteNombre()) { (Deporte: {{ deporteNombre() }}) }
+          </label>
+          <select id="nivelHabilidad" class="form-select" data-testid="select-nivel-habilidad"
+            formControlName="nivelHabilidad" (change)="onNivelCambiado($event)">
+            <option value="">Sin especificar</option>
+            @for (nivel of niveles(); track nivel.uuid) {
+            <option [value]="nivel.uuid">{{ nivel.nombre }}</option>
+            }
+          </select>
+          @if (nivelHabilidadSeleccionado(); as selectedNivel) {
+          <div class="form-text text-muted mt-2" data-testid="descripcion-nivel-habilidad">
+            {{ selectedNivel.descripcion }}
+          </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Acciones ───────────────────────────────────────────────────────── -->
+    <div class="creacion-evento__actions d-flex gap-2 justify-content-end">
+      <button type="button" class="btn btn-outline-secondary" (click)="volver()">
+        Cancelar
+      </button>
+      <button type="submit" class="btn btn-primary" data-testid="btn-confirmar" [disabled]="enviando()">
+        @if (enviando()) {
+        <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+        Creando...
+        } @else {
+        Confirmar Creación
+        }
+      </button>
+    </div>
+
+  </form>
+
+  }
+
+  }
+
+</div>

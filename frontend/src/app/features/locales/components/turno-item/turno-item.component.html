@@ -6,12 +6,23 @@
     @if (turno().turno) {
       <div class="turno-sub">
         Org: {{ turno().turno!.organizadorNombre }} ·
-        {{ turno().turno!.cantidadConfirmados }}/{{ turno().turno!.capacidad}} confirmados
+        {{ turno().turno!.cantidadConfirmados }}/{{ turno().turno!.capacidad }} confirmados
       </div>
     }
   </div>
   <span class="badge" [class]="turno().estado">{{ turno().estado }}</span>
-  <span class="chevron" [class.open]="abierto()" [style.visibility]="turno().turno ? 'visible' : 'hidden'">›</span>
+
+  @if (turno().estado === 'libre' || turno().estado === 'incompleto') {
+<button
+  class="btn btn-primary btn-reservar"
+  data-testid="btn-reservar"
+  (click)="$event.stopPropagation(); reservar.emit()">
+  Reservar
+</button>
+  } @else {
+    <span class="chevron" [class.open]="abierto()" 
+          [style.visibility]="turno().turno ? 'visible' : 'hidden'">›</span>
+  }
 </div>
 
 @if (turno().turno) {

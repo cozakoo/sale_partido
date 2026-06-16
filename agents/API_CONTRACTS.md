@@ -370,6 +370,89 @@ Elimina una cancha.
 
 ---
 
+## E3 — Eventos
+
+### POST /eventos
+Crea un nuevo evento a partir de un turno reservado.
+
+**Body:**
+```json
+{
+  "turno": {
+    "fecha": "2026-06-15",
+    "horaInicio": "18:00:00",
+    "horaFin": "19:00:00",
+    "canchaUuid": "660e8400-e29b-41d4-a716-446655440001"
+  },
+  "organizadorUuid": "880e8400-e29b-41d4-a716-446655440003",
+  "nombre": "Evento en Cancha A",
+  "cupoMinimo": 8,
+  "cupoMaximo": 10,
+  "tipo": "CERRADO",
+  "limiteCancelacionParticipacion": 60,
+  "nivelRequeridoUuid": "990e8400-e29b-41d4-a716-446655440004"
+}
+```
+
+**Respuesta:**
+```json
+{
+  "uuid": "aa0e8400-e29b-41d4-a716-446655440005",
+  "nombre": "Evento en Cancha A",
+  "deporte": "Fútbol",
+  "descripcion": null,
+  "tipo": "CERRADO",
+  "estado": "DISPONIBLE",
+  "cupoMinimo": 8,
+  "cupoMaximo": 10,
+  "participantesConfirmados": 0,
+  "participantes": [],
+  "nivelRequerido": {
+    "uuid": "990e8400-e29b-41d4-a716-446655440004",
+    "nombre": "Intermedio",
+    "orden": 2,
+    "deporte": "Fútbol"
+  },
+  "turno": {
+    "uuid": "770e8400-e29b-41d4-a716-446655440002",
+    "fecha": "2026-06-15",
+    "horaInicio": "18:00:00",
+    "horaFin": "19:00:00",
+    "cancha": {
+      "uuid": "660e8400-e29b-41d4-a716-446655440001",
+      "nombre": "Cancha A"
+    },
+    "local": {
+      "uuid": "550e8400-e29b-41d4-a716-446655440000",
+      "nombre": "Cancha Central",
+      "direccion": "Av. Roca 123, Puerto Madryn"
+    }
+  }
+}
+```
+
+**Status:** 201 Created | 400 Bad Request
+
+---
+
+### GET /eventos
+Lista todos los eventos.
+
+**Respuesta:** Array de `EventoDetailDTO` (ver formato en POST /eventos).
+
+**Status:** 200 OK
+
+---
+
+### GET /eventos/{uuid}
+Obtiene el detalle de un evento específico.
+
+**Respuesta:** Objeto `EventoDetailDTO` (ver formato en POST /eventos).
+
+**Status:** 200 OK | 404 Not Found
+
+---
+
 ## Convenciones Generales
 
 **Status Codes:**
@@ -401,7 +484,6 @@ Elimina una cancha.
 ## Próximos Endpoints (Planificado)
 
 - E2 — Reviews (calificaciones)
-- E3 — Eventos
 - E5 — Reservas
 - E6 — Notificaciones
 - E7 — Pagos

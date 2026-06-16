@@ -13,6 +13,9 @@ public record DisponibilidadCanchaDTO(
     @Schema(description = "Nombre de la cancha", example = "Cancha 1")
     String canchaNombre,
 
+    @Schema(description = "Capacidad de la cancha", example = "10")
+    Integer capacidad,
+    
     @Schema(description = "Lista de turnos generados")
     List<TurnoSlotDTO> turnos
 ) {}

@@ -4,11 +4,11 @@ export interface TurnoDetalleBackendDTO {
   deporte: string;
   cantidadParticipantesConfirmados: number;
   estadoEvento: string;
-   capacidad: number;
-
+  capacidad: number;
 }
 
 export interface TurnoBackendDTO {
+  uuid: string;          // uuid real del Turno en la BD — necesario para CrearEventoRequest
   fecha: string;
   horaInicio: string;
   horaFin: string;
@@ -22,4 +22,5 @@ export interface DisponibilidadCanchaBackendDTO {
   canchaUuid: string;
   canchaNombre: string;
   turnos: TurnoBackendDTO[];
+  capacidad: number;
 }

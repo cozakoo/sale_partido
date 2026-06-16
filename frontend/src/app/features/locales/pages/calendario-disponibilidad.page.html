@@ -30,6 +30,20 @@
       </div>
 
     </div>
+ @if (usuarios().length > 0) {
+  <div class="d-flex align-items-center gap-2 py-2 border-bottom mb-2">
+    <span class="text-muted small">Simular Usuario:</span>
+    <select class="form-select form-select-sm"
+            style="width: auto;"
+            (change)="onUsuarioCambiado($event)">
+      @for (u of usuarios(); track u.uuid) {
+        <option [value]="u.uuid" [selected]="u.uuid === usuarioSeleccionado()?.uuid">
+          {{ u.nombre }}
+        </option>
+      }
+    </select>
+  </div>
+}
 
     <app-barra-filtros [opciones]="opcionesFiltros()" [seleccion]="seleccionFiltros()"
       (seleccionChange)="onFiltrosCambiar($event)" (limpiar)="limpiarFiltros()" />
@@ -73,8 +87,8 @@
           @if (dia.turnos.length > 0) {
 
           @for (turno of dia.turnos; track turno.id) {
-          <app-turno-item [turno]="turno" [abierto]="isTurnoAbierto(turno.id)"
-            (toggleDetalle)="toggleTurno(turno.id)" />
+          <app-turno-item [turno]="turno" [abierto]="isTurnoAbierto(turno.id)" (toggleDetalle)="toggleTurno(turno.id)"
+            (reservar)="onReservar(turno)" />
           }
 
           } @else {
@@ -126,7 +140,8 @@
         @if (dia.turnos.length > 0) {
 
         @for (turno of dia.turnos; track turno.id) {
-        <app-turno-item [turno]="turno" [abierto]="isTurnoAbierto(turno.id)" (toggleDetalle)="toggleTurno(turno.id)" />
+        <app-turno-item [turno]="turno" [abierto]="isTurnoAbierto(turno.id)" (toggleDetalle)="toggleTurno(turno.id)"
+          (reservar)="onReservar(turno)" />
         }
 
         } @else {

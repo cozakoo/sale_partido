@@ -12,4 +12,6 @@ export class TurnoItemComponent {
   turno = input.required<Turno>();
   abierto = input(false);
   toggleDetalle = output<void>();
+  reservar = output<void>();
+
 }
