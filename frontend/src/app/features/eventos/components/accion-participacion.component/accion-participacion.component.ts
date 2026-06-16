@@ -95,6 +95,7 @@ export class AccionParticipacionComponent {
   mostrarBotonUnirse = computed(
     () =>
       this.evento().tipo === 'ABIERTO' &&
+      !this.invitacionPendiente() &&
       !this.participacion()?.esInvitacion &&
       !this.estadoParticipacionTexto()
   );
