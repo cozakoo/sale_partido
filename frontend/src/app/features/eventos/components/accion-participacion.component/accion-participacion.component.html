@@ -60,6 +60,13 @@
         Ya participás de este evento
       </div>
     }
+    @if (mensajeActivo() === 'mensaje-invitacion-ya-aceptada') {
+      <div class="alert alert-info accion__alert"
+           data-testid="mensaje-invitacion-ya-aceptada">
+        <i class="bi bi-info-circle" aria-hidden="true"></i>
+        Ya aceptaste esta solicitud / tu solicitud ya está aceptada
+      </div>
+    }
     @if (mensajeActivo() === 'mensaje-invitacion-ya-procesada') {
       <div class="alert alert-secondary accion__alert"
            data-testid="mensaje-invitacion-ya-procesada">
