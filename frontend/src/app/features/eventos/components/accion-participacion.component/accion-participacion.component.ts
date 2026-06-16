@@ -52,6 +52,9 @@ export class AccionParticipacionComponent {
   );
 
   nivelIncompatible = computed(() => {
+    // Si es una invitación, se ignora el nivel requerido porque el organizador lo avala
+    if (this.participacion()?.esInvitacion) return false;
+
     const requerido = this.evento().nivelRequerido;
     if (!requerido) return false;
 
@@ -93,13 +96,14 @@ export class AccionParticipacionComponent {
     () =>
       this.evento().tipo === 'ABIERTO' &&
       !this.invitacionPendiente() &&
+      !this.participacion()?.esInvitacion &&
       !this.estadoParticipacionTexto()
   );
 
   mostrarBotonSolicitar = computed(
     () =>
       this.evento().tipo === 'CON_CONFIRMACION' &&
-      !this.invitacionPendiente() &&
+      !this.participacion()?.esInvitacion &&
       !this.estadoParticipacionTexto()
   );
 
