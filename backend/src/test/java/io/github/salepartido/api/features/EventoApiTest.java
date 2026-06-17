@@ -24,17 +24,17 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.server.ResponseStatusException;
 
+import io.github.salepartido.api.domain.eventos.exception.CupoMaximoSuperaCapacidadException;
+import io.github.salepartido.api.domain.eventos.exception.CupoMinimoInvalidoException;
+import io.github.salepartido.api.domain.eventos.exception.CupoMinimoMayorMaximoException;
+import io.github.salepartido.api.domain.eventos.exception.TiempoCancelacionInvalidoException;
+import io.github.salepartido.api.domain.eventos.model.Evento;
+import io.github.salepartido.api.domain.eventos.model.TipoEvento;
+import io.github.salepartido.api.domain.eventos.service.EventoService;
 import io.github.salepartido.api.domain.locales.model.Cancha;
 import io.github.salepartido.api.domain.locales.model.Local;
 import io.github.salepartido.api.domain.locales.model.Turno;
 import io.github.salepartido.api.domain.locales.service.LocalService;
-import io.github.salepartido.api.domain.participation.exception.CupoMaximoSuperaCapacidadException;
-import io.github.salepartido.api.domain.participation.exception.CupoMinimoInvalidoException;
-import io.github.salepartido.api.domain.participation.exception.CupoMinimoMayorMaximoException;
-import io.github.salepartido.api.domain.participation.exception.TiempoCancelacionInvalidoException;
-import io.github.salepartido.api.domain.participation.model.Evento;
-import io.github.salepartido.api.domain.participation.model.TipoEvento;
-import io.github.salepartido.api.domain.participation.service.EventoService;
 
 @SpringBootTest
 @DisplayName("API de Eventos — E3-H01")

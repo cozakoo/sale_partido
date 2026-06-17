@@ -11,10 +11,8 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import io.github.salepartido.api.domain.locales.model.Cancha;
 import io.github.salepartido.api.domain.locales.model.ConfiguracionDia;
@@ -23,12 +21,13 @@ import io.github.salepartido.api.domain.locales.model.Local;
 import io.github.salepartido.api.domain.locales.model.Turno;
 import io.github.salepartido.api.domain.locales.repository.LocalRepository;
 import io.github.salepartido.api.domain.locales.repository.TurnoRepository;
-import io.github.salepartido.api.domain.locales.controller.dto.DisponibilidadCanchaDTO;
-import io.github.salepartido.api.domain.locales.controller.dto.TurnoDTO;
-import io.github.salepartido.api.domain.locales.controller.dto.TurnoSlotDTO;
-import io.github.salepartido.api.domain.participation.repository.EventoRepository;
-import io.github.salepartido.api.domain.participation.model.Evento;
-import io.github.salepartido.api.domain.participation.model.EstadoParticipacion;
+import io.github.salepartido.api.domain.eventos.model.EstadoParticipacion;
+import io.github.salepartido.api.domain.eventos.model.Evento;
+import io.github.salepartido.api.domain.eventos.repository.EventoRepository;
+import io.github.salepartido.api.domain.locales.service.dto.CanchaDisponibilidad;
+import io.github.salepartido.api.domain.locales.service.dto.TurnoSlot;
+import io.github.salepartido.api.domain.locales.service.dto.TurnoInfo;
+import io.github.salepartido.api.domain.locales.exception.LocalNoEncontradoException;
 
 @Service
 public class DisponibilidadService {
@@ -44,10 +43,10 @@ public class DisponibilidadService {
     }
 
     @Transactional(readOnly = true)
-    public List<DisponibilidadCanchaDTO> obtenerDisponibilidadLocal(UUID localUuid, LocalDate fechaInicio,
+    public List<CanchaDisponibilidad> obtenerDisponibilidadLocal(UUID localUuid, LocalDate fechaInicio,
             LocalDate fechaFin) {
         Local local = localRepository.findById(localUuid)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Local no encontrado"));
+                .orElseThrow(LocalNoEncontradoException::new);
 
         List<Cancha> canchas = local.getCanchas();
         if (canchas == null || canchas.isEmpty()) {
@@ -61,15 +60,15 @@ public class DisponibilidadService {
         List<Turno> turnos = turnoRepository.findByCanchasAndDateRange(canchaUuids, fechaInicio, fechaFin);
 
         return canchas.stream()
-                .map(cancha -> new DisponibilidadCanchaDTO(
+                .map(cancha -> new CanchaDisponibilidad(
                         cancha.getUuid(),
                         cancha.getNombre(),
-                        cancha.getCapacidad(), // ← nuevo
+                        cancha.getCapacidad(),
                         buildTurnoSlotsForCancha(cancha, fechaInicio, fechaFin, turnos)))
                 .collect(Collectors.toList());
     }
 
-    private List<TurnoSlotDTO> buildTurnoSlotsForCancha(Cancha cancha, LocalDate fechaInicio, LocalDate fechaFin,
+    private List<TurnoSlot> buildTurnoSlotsForCancha(Cancha cancha, LocalDate fechaInicio, LocalDate fechaFin,
             List<Turno> turnos) {
         ConfiguracionHorario configHorario = findActiveConfiguracionHorario(cancha);
         if (configHorario == null) {
@@ -104,10 +103,10 @@ public class DisponibilidadService {
                 .collect(Collectors.toMap(ConfiguracionDia::getDiaSemana, d -> d));
     }
 
-    private List<TurnoSlotDTO> buildSlotList(Cancha cancha, LocalDate fechaInicio, LocalDate fechaFin,
+    private List<TurnoSlot> buildSlotList(Cancha cancha, LocalDate fechaInicio, LocalDate fechaFin,
             Duration duration,
             Map<DayOfWeek, ConfiguracionDia> configDias, List<Turno> turnos) {
-        List<TurnoSlotDTO> slotList = new ArrayList<>();
+        List<TurnoSlot> slotList = new ArrayList<>();
 
         for (LocalDate currentFecha = fechaInicio; !currentFecha.isAfter(fechaFin); currentFecha = currentFecha
                 .plusDays(1)) {
@@ -121,9 +120,9 @@ public class DisponibilidadService {
         return slotList;
     }
 
-    private List<TurnoSlotDTO> buildSlotsForDay(Cancha cancha, LocalDate fecha, Duration duration,
+    private List<TurnoSlot> buildSlotsForDay(Cancha cancha, LocalDate fecha, Duration duration,
             ConfiguracionDia configDia, List<Turno> turnos) {
-        List<TurnoSlotDTO> slots = new ArrayList<>();
+        List<TurnoSlot> slots = new ArrayList<>();
 
         LocalTime currentSlotStart = configDia.getHoraInicio();
         LocalTime end = configDia.getHoraFin();
@@ -136,7 +135,7 @@ public class DisponibilidadService {
 
             Optional<Turno> overlappingTurno = findOverlappingTurno(cancha.getUuid(), fecha, currentSlotStart,
                     currentSlotEnd, turnos);
-            slots.add(buildTurnoSlotDTO(cancha, fecha, currentSlotStart, currentSlotEnd, overlappingTurno));
+            slots.add(buildTurnoSlot(cancha, fecha, currentSlotStart, currentSlotEnd, overlappingTurno));
             currentSlotStart = currentSlotEnd;
         }
 
@@ -152,7 +151,7 @@ public class DisponibilidadService {
                 .findFirst();
     }
 
-    private TurnoSlotDTO buildTurnoSlotDTO(Cancha cancha, LocalDate fecha, LocalTime slotStart,
+    private TurnoSlot buildTurnoSlot(Cancha cancha, LocalDate fecha, LocalTime slotStart,
             LocalTime slotEnd, Optional<Turno> turnoOpt) {
         if (turnoOpt.isPresent()) {
             Turno t = turnoOpt.get();
@@ -181,18 +180,17 @@ public class DisponibilidadService {
                 }
             }
 
-            TurnoDTO turnoDTO = new TurnoDTO(
+            TurnoInfo turnoInfo = new TurnoInfo(
                     t.getUuid(),
                     nombreOrganizador,
                     deporte,
                     cancha.getCapacidad(),
                     cantidadParticipantesConfirmados,
                     estadoEvento);
-            return new TurnoSlotDTO(fecha, slotStart, slotEnd, cancha.getNombre(), deporte, "OCUPADO", turnoDTO);
+            return new TurnoSlot(fecha, slotStart, slotEnd, cancha.getNombre(), deporte, "OCUPADO", turnoInfo);
         }
 
         String deporteCancha = cancha.getDeporte() != null ? cancha.getDeporte().getNombre() : null;
-        return new TurnoSlotDTO(fecha, slotStart, slotEnd, cancha.getNombre(), deporteCancha, "LIBRE", null);
+        return new TurnoSlot(fecha, slotStart, slotEnd, cancha.getNombre(), deporteCancha, "LIBRE", null);
     }
-
 }

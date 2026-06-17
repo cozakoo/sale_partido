@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -13,9 +14,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.beans.factory.annotation.Value;
 
 import io.github.salepartido.api.domain.locales.controller.dto.DisponibilidadCanchaDTO;
+import io.github.salepartido.api.domain.locales.controller.mapper.DisponibilidadMapper;
 import io.github.salepartido.api.domain.locales.service.DisponibilidadService;
+import io.github.salepartido.api.domain.locales.service.dto.CanchaDisponibilidad;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -30,9 +34,16 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 public class DisponibilidadController {
 
     private final DisponibilidadService disponibilidadService;
+    private final DisponibilidadMapper disponibilidadMapper;
+    private final int maxDiasBusqueda;
 
-    public DisponibilidadController(DisponibilidadService disponibilidadService) {
+    public DisponibilidadController(
+            DisponibilidadService disponibilidadService,
+            DisponibilidadMapper disponibilidadMapper,
+            @Value("${app.limits.disponibilidad-max-dias:31}") int maxDiasBusqueda) {
         this.disponibilidadService = disponibilidadService;
+        this.disponibilidadMapper = disponibilidadMapper;
+        this.maxDiasBusqueda = maxDiasBusqueda;
     }
 
     @GetMapping("/{uuid}/disponibilidad")
@@ -55,11 +66,14 @@ public class DisponibilidadController {
         }
 
         long daysBetween = ChronoUnit.DAYS.between(fechaInicio, fechaFin);
-        if (daysBetween > 31) {
+        if (daysBetween > maxDiasBusqueda) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "El rango de búsqueda de disponibilidad no puede exceder los 31 días");
+                    "El rango de búsqueda de disponibilidad no puede exceder los " + maxDiasBusqueda + " días");
         }
 
-        return disponibilidadService.obtenerDisponibilidadLocal(uuid, fechaInicio, fechaFin);
+        List<CanchaDisponibilidad> availability = disponibilidadService.obtenerDisponibilidadLocal(uuid, fechaInicio, fechaFin);
+        return availability.stream()
+                .map(disponibilidadMapper::toDTO)
+                .collect(Collectors.toList());
     }
 }

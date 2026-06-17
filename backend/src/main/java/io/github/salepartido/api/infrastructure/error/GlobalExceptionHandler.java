@@ -15,17 +15,22 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.server.ResponseStatusException;
 
-import io.github.salepartido.api.domain.participation.exception.EventoNoDisponibleException;
-import io.github.salepartido.api.domain.participation.exception.EventoSinCuposException;
-import io.github.salepartido.api.domain.participation.exception.InvitacionYaRespondidaException;
-import io.github.salepartido.api.domain.participation.exception.NivelInsuficienteException;
-import io.github.salepartido.api.domain.participation.exception.ParticipanteYaRegistradoException;
-import io.github.salepartido.api.domain.participation.exception.TipoEventoInvalidoException;
-import io.github.salepartido.api.domain.participation.exception.CupoMaximoSuperaCapacidadException;
-import io.github.salepartido.api.domain.participation.exception.CupoMinimoInvalidoException;
-import io.github.salepartido.api.domain.participation.exception.CupoMinimoMayorMaximoException;
-import io.github.salepartido.api.domain.participation.exception.TiempoCancelacionInvalidoException;
-import io.github.salepartido.api.domain.participation.exception.TurnoRequeridoException;
+import io.github.salepartido.api.domain.eventos.exception.CupoMaximoSuperaCapacidadException;
+import io.github.salepartido.api.domain.eventos.exception.CupoMinimoInvalidoException;
+import io.github.salepartido.api.domain.eventos.exception.CupoMinimoMayorMaximoException;
+import io.github.salepartido.api.domain.eventos.exception.EventoNoDisponibleException;
+import io.github.salepartido.api.domain.eventos.exception.EventoSinCuposException;
+import io.github.salepartido.api.domain.eventos.exception.InvitacionYaRespondidaException;
+import io.github.salepartido.api.domain.eventos.exception.NivelInsuficienteException;
+import io.github.salepartido.api.domain.eventos.exception.ParticipanteYaRegistradoException;
+import io.github.salepartido.api.domain.eventos.exception.TiempoCancelacionInvalidoException;
+import io.github.salepartido.api.domain.eventos.exception.TipoEventoInvalidoException;
+import io.github.salepartido.api.domain.eventos.exception.TurnoRequeridoException;
+import io.github.salepartido.api.domain.locales.exception.LocalNoEncontradoException;
+import io.github.salepartido.api.domain.locales.exception.CanchaNoEncontradaException;
+import io.github.salepartido.api.domain.locales.exception.FechaInvalidaException;
+import io.github.salepartido.api.domain.locales.exception.HorarioInvalidoException;
+import io.github.salepartido.api.domain.locales.exception.CanchaNoPerteneceAlLocalException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -79,7 +84,10 @@ public class GlobalExceptionHandler {
     @ExceptionHandler({
         CupoMinimoInvalidoException.class,
         CupoMinimoMayorMaximoException.class,
-        TiempoCancelacionInvalidoException.class
+        TiempoCancelacionInvalidoException.class,
+        FechaInvalidaException.class,
+        HorarioInvalidoException.class,
+        CanchaNoPerteneceAlLocalException.class
     })
     public ProblemDetail handleDomainBadRequest(RuntimeException exception) {
         ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
@@ -89,7 +97,9 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler({
-        TurnoRequeridoException.class
+        TurnoRequeridoException.class,
+        LocalNoEncontradoException.class,
+        CanchaNoEncontradaException.class
     })
     public ProblemDetail handleNotFoundRuntime(RuntimeException exception) {
         ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.NOT_FOUND);

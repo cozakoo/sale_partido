@@ -10,16 +10,14 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 
-import { EventoParticipacionService } from '../../services/evento-participacion.service';
+import { EventoService } from '../../services/evento.service';
 import { EventoInfoComponent } from '../../components/evento-info.component/evento-info.component';
 import { AccionParticipacionComponent } from '../../components/accion-participacion.component/accion-participacion.component';
 import { ParticipantesListaComponent } from '../../components/participantes-lista-component/participantes-lista-component';
-import {
-  EventoDetalle,
-  ParticipacionResponse,
-  ResultadoAccion,
-  UsuarioSesion,
-} from '../../models/evento-detalle.model';
+import { EventoDetalle } from '../../models/evento-detalle';
+import { ParticipacionResponse } from '../../models/participacion-response';
+import { ResultadoAccion } from '../../models/resultado-accion';
+import { UsuarioSesion } from '../../models/usuario-sesion';
 
 @Component({
   selector: 'app-evento-detalle-page',
@@ -35,7 +33,7 @@ import {
 })
 export class EventoDetallePage implements OnInit {
   private route = inject(ActivatedRoute);
-  private service = inject(EventoParticipacionService);
+  private service = inject(EventoService);
   private destroyRef = inject(DestroyRef);
 
   evento = signal<EventoDetalle | null>(null);

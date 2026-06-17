@@ -13,31 +13,33 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.server.ResponseStatusException;
 
+import io.github.salepartido.api.domain.eventos.exception.CupoMaximoSuperaCapacidadException;
+import io.github.salepartido.api.domain.eventos.exception.CupoMinimoInvalidoException;
+import io.github.salepartido.api.domain.eventos.exception.CupoMinimoMayorMaximoException;
+import io.github.salepartido.api.domain.eventos.exception.TiempoCancelacionInvalidoException;
+import io.github.salepartido.api.domain.eventos.exception.TurnoRequeridoException;
+import io.github.salepartido.api.domain.eventos.model.EstadoEvento;
+import io.github.salepartido.api.domain.eventos.model.Evento;
+import io.github.salepartido.api.domain.eventos.model.NivelDeporte;
+import io.github.salepartido.api.domain.eventos.model.TipoEvento;
+import io.github.salepartido.api.domain.eventos.model.Usuario;
+import io.github.salepartido.api.domain.eventos.repository.EventoRepository;
+import io.github.salepartido.api.domain.eventos.repository.NivelDeporteRepository;
+import io.github.salepartido.api.domain.eventos.repository.UsuarioRepository;
+import io.github.salepartido.api.domain.eventos.service.EventoService;
+import io.github.salepartido.api.domain.eventos.service.dto.CrearEventoOperation;
+import io.github.salepartido.api.domain.eventos.service.dto.TurnoOperation;
 import io.github.salepartido.api.domain.locales.model.Cancha;
 import io.github.salepartido.api.domain.locales.model.Turno;
 import io.github.salepartido.api.domain.locales.repository.TurnoRepository;
-import io.github.salepartido.api.domain.participation.exception.CupoMaximoSuperaCapacidadException;
-import io.github.salepartido.api.domain.participation.exception.CupoMinimoInvalidoException;
-import io.github.salepartido.api.domain.participation.exception.CupoMinimoMayorMaximoException;
-import io.github.salepartido.api.domain.participation.exception.TiempoCancelacionInvalidoException;
-import io.github.salepartido.api.domain.participation.exception.TurnoRequeridoException;
-import io.github.salepartido.api.domain.participation.model.EstadoEvento;
-import io.github.salepartido.api.domain.participation.model.Evento;
-import io.github.salepartido.api.domain.participation.model.NivelDeporte;
-import io.github.salepartido.api.domain.participation.model.TipoEvento;
-import io.github.salepartido.api.domain.participation.model.Usuario;
 import io.github.salepartido.api.domain.locales.repository.CanchaRepository;
-import io.github.salepartido.api.domain.participation.repository.EventoRepository;
-import io.github.salepartido.api.domain.participation.repository.NivelDeporteRepository;
-import io.github.salepartido.api.domain.participation.repository.UsuarioRepository;
-import io.github.salepartido.api.domain.participation.service.CrearEventoCommand;
-import io.github.salepartido.api.domain.participation.service.EventoService;
-import io.github.salepartido.api.domain.participation.service.TurnoCommand;
+import io.github.salepartido.api.domain.eventos.service.mapper.CrearEventoOperationMapper;
+import io.github.salepartido.api.domain.eventos.service.mapper.TurnoOperationMapper;
+
 import java.time.LocalDate;
 import java.time.LocalTime;
 
@@ -55,11 +57,13 @@ class EventoServiceTest {
     private UsuarioRepository usuarioRepository;
     @Mock
     private NivelDeporteRepository nivelDeporteRepository;
+    @Mock
+    private CrearEventoOperationMapper crearEventoOperationMapper;
+    @Mock
+    private TurnoOperationMapper turnoOperationMapper;
 
-    @InjectMocks
     private EventoService eventoService;
 
-    private final UUID turnoId = UUID.randomUUID();
     private final UUID organizadorId = UUID.randomUUID();
     private final UUID nivelId = UUID.randomUUID();
 
@@ -69,6 +73,16 @@ class EventoServiceTest {
 
     @BeforeEach
     void setUp() {
+        eventoService = new EventoService(
+            eventoRepository,
+            turnoRepository,
+            canchaRepository,
+            usuarioRepository,
+            nivelDeporteRepository,
+            crearEventoOperationMapper,
+            turnoOperationMapper,
+            1, 1, 24
+        );
         cancha = new Cancha();
         cancha.setCapacidad(10);
         cancha.setUuid(UUID.randomUUID());
@@ -83,39 +97,54 @@ class EventoServiceTest {
     // Helpers
     // ─────────────────────────────────────────────────────────────────────────
 
-    private CrearEventoCommand comandoBase() {
-        TurnoCommand tc = new TurnoCommand(
+    private CrearEventoOperation comandoBase() {
+        TurnoOperation tc = new TurnoOperation(
                 LocalDate.now().plusDays(1),
                 LocalTime.of(18, 0),
                 LocalTime.of(19, 0),
                 cancha.getUuid()
         );
-        return new CrearEventoCommand(
+        return new CrearEventoOperation(
                 tc, organizadorId, "Partido de fútbol",
                 8, 10, TipoEvento.CERRADO, Duration.ofHours(1), null);
     }
 
-    private CrearEventoCommand crearComandoConParametros(Integer cupoMin, Integer cupoMax, TipoEvento tipo, Duration limite, UUID nivel) {
-        TurnoCommand tc = new TurnoCommand(
+    private CrearEventoOperation crearComandoConParametros(Integer cupoMin, Integer cupoMax, TipoEvento tipo, Duration limite, UUID nivel) {
+        TurnoOperation tc = new TurnoOperation(
                 LocalDate.now().plusDays(1),
                 LocalTime.of(18, 0),
                 LocalTime.of(19, 0),
                 cancha.getUuid()
         );
-        return new CrearEventoCommand(
+        return new CrearEventoOperation(
                 tc, organizadorId, "Partido",
                 cupoMin, cupoMax, tipo, limite, nivel);
     }
 
     private void mockTurnoYOrganizador() {
         when(canchaRepository.findById(any(UUID.class))).thenReturn(Optional.of(cancha));
+        when(turnoOperationMapper.toTurnoEntity(any(TurnoOperation.class), any(Cancha.class))).thenReturn(turno);
         when(turnoRepository.save(any(Turno.class))).thenAnswer(inv -> inv.getArgument(0));
         when(usuarioRepository.findById(organizadorId)).thenReturn(Optional.of(organizador));
+        when(crearEventoOperationMapper.toEventoEntity(any(CrearEventoOperation.class), any(Turno.class), any(Usuario.class), any(), any(), any())).thenAnswer(inv -> {
+            Evento e = new Evento();
+            CrearEventoOperation op = inv.getArgument(0);
+            e.setCupoMinimo(op.cupoMinimo());
+            e.setCupoMaximo(op.cupoMaximo());
+            e.setTurno(inv.getArgument(1));
+            e.setOrganizador(inv.getArgument(2));
+            e.setNivelRequerido(inv.getArgument(3));
+            e.setTipo(inv.getArgument(4));
+            e.setLimiteCancelacionParticipacion(inv.getArgument(5));
+            e.setEstado(EstadoEvento.DISPONIBLE);
+            return e;
+        });
         when(eventoRepository.save(any(Evento.class))).thenAnswer(inv -> inv.getArgument(0));
     }
 
     private void mockCanchaYOrganizador() {
         when(canchaRepository.findById(any(UUID.class))).thenReturn(Optional.of(cancha));
+        when(turnoOperationMapper.toTurnoEntity(any(TurnoOperation.class), any(Cancha.class))).thenReturn(turno);
         when(turnoRepository.save(any(Turno.class))).thenAnswer(inv -> inv.getArgument(0));
         when(usuarioRepository.findById(organizadorId)).thenReturn(Optional.of(organizador));
     }
@@ -145,7 +174,7 @@ class EventoServiceTest {
         @DisplayName("Crea evento con tipo Abierto y límite de cancelación 24 horas")
         void crearEvento_tipoAbierto_limite24Horas() {
             mockTurnoYOrganizador();
-            CrearEventoCommand command = crearComandoConParametros(8, 10, TipoEvento.ABIERTO, Duration.ofHours(24), null);
+            CrearEventoOperation command = crearComandoConParametros(8, 10, TipoEvento.ABIERTO, Duration.ofHours(24), null);
 
             Evento resultado = eventoService.crearEvento(command);
 
@@ -158,7 +187,7 @@ class EventoServiceTest {
         @DisplayName("El tipo por defecto es CERRADO cuando no se especifica")
         void crearEvento_sinTipo_defaultCerrado() {
             mockTurnoYOrganizador();
-            CrearEventoCommand command = crearComandoConParametros(5, 10, null, Duration.ofHours(2), null);
+            CrearEventoOperation command = crearComandoConParametros(5, 10, null, Duration.ofHours(2), null);
 
             Evento resultado = eventoService.crearEvento(command);
 
@@ -169,7 +198,7 @@ class EventoServiceTest {
         @DisplayName("El límite de cancelación por defecto es 1 hora cuando no se especifica")
         void crearEvento_sinLimite_default1Hora() {
             mockTurnoYOrganizador();
-            CrearEventoCommand command = crearComandoConParametros(5, 10, TipoEvento.CERRADO, null, null);
+            CrearEventoOperation command = crearComandoConParametros(5, 10, TipoEvento.CERRADO, null, null);
 
             Evento resultado = eventoService.crearEvento(command);
 
@@ -192,7 +221,7 @@ class EventoServiceTest {
             mockTurnoYOrganizador();
             NivelDeporte nivel = new NivelDeporte();
             when(nivelDeporteRepository.findById(nivelId)).thenReturn(Optional.of(nivel));
-            CrearEventoCommand command = crearComandoConParametros(5, 10, TipoEvento.CERRADO, Duration.ofHours(1), nivelId);
+            CrearEventoOperation command = crearComandoConParametros(5, 10, TipoEvento.CERRADO, Duration.ofHours(1), nivelId);
 
             Evento resultado = eventoService.crearEvento(command);
 
@@ -203,7 +232,7 @@ class EventoServiceTest {
         @DisplayName("Cupo mínimo igual al máximo es válido")
         void crearEvento_cupoMinIgualMax_esValido() {
             mockTurnoYOrganizador();
-            CrearEventoCommand command = crearComandoConParametros(10, 10, TipoEvento.CERRADO, Duration.ofHours(1), null);
+            CrearEventoOperation command = crearComandoConParametros(10, 10, TipoEvento.CERRADO, Duration.ofHours(1), null);
 
             assertDoesNotThrow(() -> eventoService.crearEvento(command));
         }
@@ -212,7 +241,7 @@ class EventoServiceTest {
         @DisplayName("Límite de cancelación exactamente en el límite superior (24h) es válido")
         void crearEvento_limite24Horas_esValido() {
             mockTurnoYOrganizador();
-            CrearEventoCommand command = crearComandoConParametros(5, 10, TipoEvento.CERRADO, Duration.ofHours(24), null);
+            CrearEventoOperation command = crearComandoConParametros(5, 10, TipoEvento.CERRADO, Duration.ofHours(24), null);
 
             assertDoesNotThrow(() -> eventoService.crearEvento(command));
         }
@@ -230,7 +259,7 @@ class EventoServiceTest {
         @DisplayName("Lanza excepción cuando cupo mínimo es cero")
         void crearEvento_cupoMinimoEsCero_lanzaExcepcion() {
             mockCanchaYOrganizador();
-            CrearEventoCommand command = crearComandoConParametros(0, 10, TipoEvento.CERRADO, Duration.ofHours(1), null);
+            CrearEventoOperation command = crearComandoConParametros(0, 10, TipoEvento.CERRADO, Duration.ofHours(1), null);
 
             assertThrows(CupoMinimoInvalidoException.class, () -> eventoService.crearEvento(command));
         }
@@ -239,7 +268,7 @@ class EventoServiceTest {
         @DisplayName("Lanza excepción cuando cupo mínimo es negativo")
         void crearEvento_cupoMinimoNegativo_lanzaExcepcion() {
             mockCanchaYOrganizador();
-            CrearEventoCommand command = crearComandoConParametros(-1, 10, TipoEvento.CERRADO, Duration.ofHours(1), null);
+            CrearEventoOperation command = crearComandoConParametros(-1, 10, TipoEvento.CERRADO, Duration.ofHours(1), null);
 
             assertThrows(CupoMinimoInvalidoException.class, () -> eventoService.crearEvento(command));
         }
@@ -248,7 +277,7 @@ class EventoServiceTest {
         @DisplayName("Lanza excepción cuando cupo mínimo supera al máximo")
         void crearEvento_cupoMinimoMayorQueMaximo_lanzaExcepcion() {
             mockCanchaYOrganizador();
-            CrearEventoCommand command = crearComandoConParametros(12, 10, TipoEvento.CERRADO, Duration.ofHours(1), null);
+            CrearEventoOperation command = crearComandoConParametros(12, 10, TipoEvento.CERRADO, Duration.ofHours(1), null);
 
             assertThrows(CupoMinimoMayorMaximoException.class, () -> eventoService.crearEvento(command));
         }
@@ -257,7 +286,7 @@ class EventoServiceTest {
         @DisplayName("Lanza excepción cuando cupo máximo supera la capacidad de la cancha")
         void crearEvento_cupoMaximoSuperaCapacidad_lanzaExcepcion() {
             mockCanchaYOrganizador();
-            CrearEventoCommand command = crearComandoConParametros(10, 15, TipoEvento.CERRADO, Duration.ofHours(1), null);
+            CrearEventoOperation command = crearComandoConParametros(10, 15, TipoEvento.CERRADO, Duration.ofHours(1), null);
 
             assertThrows(CupoMaximoSuperaCapacidadException.class, () -> eventoService.crearEvento(command));
         }
@@ -275,7 +304,7 @@ class EventoServiceTest {
         @DisplayName("Lanza excepción cuando el límite supera las 24 horas")
         void crearEvento_limite48Horas_lanzaExcepcion() {
             mockCanchaYOrganizador();
-            CrearEventoCommand command = crearComandoConParametros(5, 10, TipoEvento.CERRADO, Duration.ofHours(48), null);
+            CrearEventoOperation command = crearComandoConParametros(5, 10, TipoEvento.CERRADO, Duration.ofHours(48), null);
 
             assertThrows(TiempoCancelacionInvalidoException.class, () -> eventoService.crearEvento(command));
         }
@@ -284,7 +313,7 @@ class EventoServiceTest {
         @DisplayName("Lanza excepción cuando el límite es menor a 1 hora")
         void crearEvento_limite30Minutos_lanzaExcepcion() {
             mockCanchaYOrganizador();
-            CrearEventoCommand command = crearComandoConParametros(5, 10, TipoEvento.CERRADO, Duration.ofMinutes(30), null);
+            CrearEventoOperation command = crearComandoConParametros(5, 10, TipoEvento.CERRADO, Duration.ofMinutes(30), null);
 
             assertThrows(TiempoCancelacionInvalidoException.class, () -> eventoService.crearEvento(command));
         }
@@ -301,7 +330,7 @@ class EventoServiceTest {
         @Test
         @DisplayName("Lanza excepción cuando turno es null")
         void crearEvento_turnoIdNull_lanzaExcepcion() {
-            CrearEventoCommand command = new CrearEventoCommand(
+            CrearEventoOperation command = new CrearEventoOperation(
                     null, organizadorId, "Partido", 5, 10, TipoEvento.CERRADO, Duration.ofHours(1), null);
 
             assertThrows(TurnoRequeridoException.class, () -> eventoService.crearEvento(command));

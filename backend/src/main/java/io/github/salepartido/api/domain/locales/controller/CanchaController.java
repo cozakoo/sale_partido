@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
+import io.github.salepartido.api.domain.eventos.repository.NivelDeporteRepository;
 import io.github.salepartido.api.domain.locales.controller.dto.CanchaDeporteResponseDTO;
 import io.github.salepartido.api.domain.locales.controller.dto.CanchaDetail;
 import io.github.salepartido.api.domain.locales.controller.dto.CanchaRequestDTO;
@@ -24,7 +25,8 @@ import io.github.salepartido.api.domain.locales.controller.dto.NivelHabilidadDTO
 import io.github.salepartido.api.domain.locales.controller.mapper.CanchaMapper;
 import io.github.salepartido.api.domain.locales.model.Cancha;
 import io.github.salepartido.api.domain.locales.service.CanchaService;
-import io.github.salepartido.api.domain.participation.repository.NivelDeporteRepository;
+import io.github.salepartido.api.domain.locales.service.dto.CrearCanchaOperation;
+import io.github.salepartido.api.domain.locales.service.dto.ActualizarCanchaOperation;
 import jakarta.validation.Valid;
 
 @RestController
@@ -78,32 +80,21 @@ public class CanchaController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public CanchaSummary createCancha(@Valid @RequestBody CanchaRequestDTO request) {
-        Cancha cancha = new Cancha();
-        cancha.setNombre(request.name());
-        cancha.setCapacidad(request.capacidad());
-        
-        Cancha saved = canchaService.guardarCancha(cancha);
+        CrearCanchaOperation op = canchaMapper.toOperation(request);
+        Cancha saved = canchaService.crearCancha(op);
         return canchaMapper.toSummary(saved);
     }
 
     @PutMapping("/{uuid}")
     public CanchaSummary updateCancha(@PathVariable UUID uuid, @Valid @RequestBody CanchaRequestDTO request) {
-        Cancha existing = canchaService.buscarCanchaPorId(uuid)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cancha no encontrada"));
-
-        existing.setNombre(request.name());
-        existing.setCapacidad(request.capacidad());
-        
-        Cancha updated = canchaService.guardarCancha(existing);
+        ActualizarCanchaOperation op = canchaMapper.toActualizarOperation(request);
+        Cancha updated = canchaService.actualizarCancha(uuid, op);
         return canchaMapper.toSummary(updated);
     }
 
     @DeleteMapping("/{uuid}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteCancha(@PathVariable UUID uuid) {
-        if (!canchaService.buscarCanchaPorId(uuid).isPresent()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Cancha no encontrada");
-        }
         canchaService.eliminarCancha(uuid);
     }
 }
