@@ -9,12 +9,25 @@ import io.github.salepartido.api.domain.locales.controller.dto.CanchaSummary;
 import io.github.salepartido.api.domain.locales.controller.dto.CanchaViewModel;
 import io.github.salepartido.api.domain.locales.controller.dto.ConfiguracionDiaDTO;
 import io.github.salepartido.api.domain.locales.controller.dto.ConfiguracionHorarioDTO;
+import io.github.salepartido.api.domain.locales.controller.dto.CanchaRequestDTO;
+import io.github.salepartido.api.domain.locales.service.dto.CrearCanchaOperation;
+import io.github.salepartido.api.domain.locales.service.dto.ActualizarCanchaOperation;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
 public class CanchaMapper {
+
+    public CrearCanchaOperation toOperation(CanchaRequestDTO request) {
+        if (request == null) return null;
+        return new CrearCanchaOperation(request.name(), request.capacidad());
+    }
+
+    public ActualizarCanchaOperation toActualizarOperation(CanchaRequestDTO request) {
+        if (request == null) return null;
+        return new ActualizarCanchaOperation(request.name(), request.capacidad());
+    }
 
     public CanchaSummary toSummary(Cancha cancha) {
         if (cancha == null) return null;

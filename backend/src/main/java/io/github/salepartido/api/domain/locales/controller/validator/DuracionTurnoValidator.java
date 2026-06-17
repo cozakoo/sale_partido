@@ -2,18 +2,24 @@ package io.github.salepartido.api.domain.locales.controller.validator;
 
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
-import java.util.Arrays;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 import java.util.List;
 
+@Component
 public class DuracionTurnoValidator implements ConstraintValidator<DuracionTurnoValida, Long> {
 
-    private static final List<Long> VALORES_PERMITIDOS = Arrays.asList(30L, 60L, 90L, 120L);
+    private final List<Long> valoresPermitidos;
+
+    public DuracionTurnoValidator(@Value("${app.limits.duracion-turno-permitida:30,60,90,120}") List<Long> valoresPermitidos) {
+        this.valoresPermitidos = valoresPermitidos;
+    }
 
     @Override
     public boolean isValid(Long value, ConstraintValidatorContext context) {
         if (value == null) {
             return true;
         }
-        return VALORES_PERMITIDOS.contains(value);
+        return valoresPermitidos.contains(value);
     }
 }

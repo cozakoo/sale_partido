@@ -17,8 +17,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.server.ResponseStatusException;
 
 import io.github.salepartido.api.domain.locales.model.Cancha;
 import io.github.salepartido.api.domain.locales.model.ConfiguracionDia;
@@ -29,15 +27,15 @@ import io.github.salepartido.api.domain.locales.model.Turno;
 import io.github.salepartido.api.domain.locales.repository.LocalRepository;
 import io.github.salepartido.api.domain.locales.repository.TurnoRepository;
 import io.github.salepartido.api.domain.locales.service.DisponibilidadService;
-import io.github.salepartido.api.domain.locales.controller.dto.DisponibilidadCanchaDTO;
-import io.github.salepartido.api.domain.locales.controller.dto.TurnoSlotDTO;
-
-import io.github.salepartido.api.domain.participation.repository.EventoRepository;
-import io.github.salepartido.api.domain.participation.model.Evento;
-import io.github.salepartido.api.domain.participation.model.EstadoEvento;
-import io.github.salepartido.api.domain.participation.model.EstadoParticipacion;
-import io.github.salepartido.api.domain.participation.model.Participacion;
-import io.github.salepartido.api.domain.participation.model.Usuario;
+import io.github.salepartido.api.domain.eventos.model.EstadoEvento;
+import io.github.salepartido.api.domain.eventos.model.EstadoParticipacion;
+import io.github.salepartido.api.domain.eventos.model.Evento;
+import io.github.salepartido.api.domain.eventos.model.Participacion;
+import io.github.salepartido.api.domain.eventos.model.Usuario;
+import io.github.salepartido.api.domain.eventos.repository.EventoRepository;
+import io.github.salepartido.api.domain.locales.exception.LocalNoEncontradoException;
+import io.github.salepartido.api.domain.locales.service.dto.CanchaDisponibilidad;
+import io.github.salepartido.api.domain.locales.service.dto.TurnoSlot;
 
 @ExtendWith(MockitoExtension.class)
 class DisponibilidadServiceTest {
@@ -62,12 +60,11 @@ class DisponibilidadServiceTest {
 
         when(localRepository.findById(localUuid)).thenReturn(Optional.empty());
 
-        ResponseStatusException ex = assertThrows(ResponseStatusException.class, () -> {
+        LocalNoEncontradoException ex = assertThrows(LocalNoEncontradoException.class, () -> {
             disponibilidadService.obtenerDisponibilidadLocal(localUuid, inicio, fin);
         });
 
-        assertEquals(HttpStatus.NOT_FOUND, ex.getStatusCode());
-        assertEquals("Local no encontrado", ex.getReason());
+        assertEquals("Local no encontrado", ex.getMessage());
     }
 
     @Test
@@ -82,7 +79,7 @@ class DisponibilidadServiceTest {
 
         when(localRepository.findById(localUuid)).thenReturn(Optional.of(local));
 
-        List<DisponibilidadCanchaDTO> resultado = disponibilidadService.obtenerDisponibilidadLocal(localUuid, inicio, fin);
+        List<CanchaDisponibilidad> resultado = disponibilidadService.obtenerDisponibilidadLocal(localUuid, inicio, fin);
 
         assertNotNull(resultado);
         assertTrue(resultado.isEmpty());
@@ -148,41 +145,41 @@ class DisponibilidadServiceTest {
                 .thenReturn(List.of(turno));
         when(eventoRepository.findByTurnoUuid(turno.getUuid())).thenReturn(Optional.of(e));
 
-        List<DisponibilidadCanchaDTO> resultado = disponibilidadService.obtenerDisponibilidadLocal(localUuid, fechaTest, fechaTest);
+        List<CanchaDisponibilidad> resultado = disponibilidadService.obtenerDisponibilidadLocal(localUuid, fechaTest, fechaTest);
 
         assertNotNull(resultado);
         assertEquals(1, resultado.size());
 
-        DisponibilidadCanchaDTO canchaDisp = resultado.get(0);
+        CanchaDisponibilidad canchaDisp = resultado.get(0);
         assertEquals(cancha.getUuid(), canchaDisp.canchaUuid());
         assertEquals("Cancha 1", canchaDisp.canchaNombre());
 
-        List<TurnoSlotDTO> turnos = canchaDisp.turnos();
+        List<TurnoSlot> turnos = canchaDisp.slots();
         // Debería generar exactamente 2 turnos: 08:00-09:00 y 09:00-10:00
         assertEquals(2, turnos.size());
 
         // Primer turno: 08:00 - 09:00 (LIBRE)
-        TurnoSlotDTO t1 = turnos.get(0);
+        TurnoSlot t1 = turnos.get(0);
         assertEquals(fechaTest, t1.fecha());
         assertEquals(LocalTime.of(8, 0), t1.horaInicio());
         assertEquals(LocalTime.of(9, 0), t1.horaFin());
-        assertEquals("Cancha 1", t1.espacioNombre());
+        assertEquals("Cancha 1", t1.canchaNombre());
         assertEquals("Fútbol", t1.deporte());
         assertEquals("LIBRE", t1.estado());
         assertNull(t1.turno());
 
         // Segundo turno: 09:00 - 10:00 (OCUPADO)
-        TurnoSlotDTO t2 = turnos.get(1);
+        TurnoSlot t2 = turnos.get(1);
         assertEquals(fechaTest, t2.fecha());
         assertEquals(LocalTime.of(9, 0), t2.horaInicio());
         assertEquals(LocalTime.of(10, 0), t2.horaFin());
-        assertEquals("Cancha 1", t2.espacioNombre());
+        assertEquals("Cancha 1", t2.canchaNombre());
         assertEquals("Fútbol", t2.deporte());
         assertEquals("OCUPADO", t2.estado());
         assertNotNull(t2.turno());
-        assertEquals("Martín", t2.turno().nombreOrganizador());
+        assertEquals("Martín", t2.turno().organizadorNombre());
         assertEquals("Fútbol", t2.turno().deporte());
-        assertEquals(10, t2.turno().cantidadParticipantesConfirmados());
+        assertEquals(10, t2.turno().cantidadConfirmados());
         assertEquals("DISPONIBLE", t2.turno().estadoEvento());
     }
 }

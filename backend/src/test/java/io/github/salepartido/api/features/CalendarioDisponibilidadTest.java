@@ -23,6 +23,14 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
+import io.github.salepartido.api.domain.eventos.model.EstadoEvento;
+import io.github.salepartido.api.domain.eventos.model.EstadoParticipacion;
+import io.github.salepartido.api.domain.eventos.model.Evento;
+import io.github.salepartido.api.domain.eventos.model.Participacion;
+import io.github.salepartido.api.domain.eventos.model.Rol;
+import io.github.salepartido.api.domain.eventos.model.Usuario;
+import io.github.salepartido.api.domain.eventos.repository.EventoRepository;
+import io.github.salepartido.api.domain.eventos.repository.UsuarioRepository;
 import io.github.salepartido.api.domain.locales.model.Cancha;
 import io.github.salepartido.api.domain.locales.model.ConfiguracionDia;
 import io.github.salepartido.api.domain.locales.model.ConfiguracionHorario;
@@ -33,14 +41,7 @@ import io.github.salepartido.api.domain.locales.model.Ubicacion;
 import io.github.salepartido.api.domain.locales.model.Turno;
 import io.github.salepartido.api.domain.locales.repository.LocalRepository;
 import io.github.salepartido.api.domain.locales.repository.TurnoRepository;
-import io.github.salepartido.api.domain.participation.model.Evento;
-import io.github.salepartido.api.domain.participation.model.Usuario;
-import io.github.salepartido.api.domain.participation.model.EstadoEvento;
-import io.github.salepartido.api.domain.participation.model.Participacion;
-import io.github.salepartido.api.domain.participation.model.EstadoParticipacion;
-import io.github.salepartido.api.domain.participation.model.Rol;
-import io.github.salepartido.api.domain.participation.repository.EventoRepository;
-import io.github.salepartido.api.domain.participation.repository.UsuarioRepository;
+
 import java.util.ArrayList;
 import java.time.LocalDateTime;
 
@@ -115,7 +116,7 @@ public class CalendarioDisponibilidadTest {
 
         Evento evento = new Evento();
         evento.setNombre("Partido de Fútbol");
-        evento.setTipo(io.github.salepartido.api.domain.participation.model.TipoEvento.CERRADO);
+        evento.setTipo(io.github.salepartido.api.domain.eventos.model.TipoEvento.CERRADO);
         evento.setCupoMinimo(2);
         evento.setCupoMaximo(10);
         evento.setEstado(EstadoEvento.DISPONIBLE);

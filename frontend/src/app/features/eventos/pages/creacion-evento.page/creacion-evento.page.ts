@@ -22,10 +22,13 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { Location } from '@angular/common';
 import { EventoService } from '../../services/evento.service';
-import { EventoParticipacionService } from '../../services/evento-participacion.service';
 
-import { UsuarioSesion } from '../../models/evento-detalle.model';
-import { CrearEventoRequest, EspacioReservado, NivelHabilidadDTO, TipoEvento, TipoIngresoLabel } from '../../models/evento.model';
+import { UsuarioSesion } from '../../models/usuario-sesion';
+import { CrearEventoRequest } from '../../models/crear-evento-request';
+import { EspacioReservado } from '../../models/espacio-reservado';
+import { NivelHabilidadDTO } from '../../models/nivel-habilidad-dto';
+import { TipoEvento } from '../../models/tipo-evento';
+import { TipoIngresoLabel } from '../../models/tipo-ingreso-label';
 
 // ── Mapas de conversión label UI → enum API ───────────────────────────────────
 // Los tests E2E usan los labels en español; la conversión ocurre en confirmar()
@@ -61,7 +64,7 @@ function cupoMinimoMenorQueMaximo(): ValidatorFn {
 export class CreacionEventoPage implements OnInit {
   private fb = inject(FormBuilder);
   private eventoService = inject(EventoService);
-  private serviceUsr = inject(EventoParticipacionService);
+  private serviceUsr = inject(EventoService);
   private destroyRef = inject(DestroyRef);
   private cdr = inject(ChangeDetectorRef);
   private router = inject(Router);

@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -18,25 +17,25 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import io.github.salepartido.api.domain.eventos.exception.EventoNoDisponibleException;
+import io.github.salepartido.api.domain.eventos.exception.EventoSinCuposException;
+import io.github.salepartido.api.domain.eventos.exception.InvitacionYaRespondidaException;
+import io.github.salepartido.api.domain.eventos.exception.NivelInsuficienteException;
+import io.github.salepartido.api.domain.eventos.exception.ParticipanteYaRegistradoException;
+import io.github.salepartido.api.domain.eventos.exception.TipoEventoInvalidoException;
+import io.github.salepartido.api.domain.eventos.model.EstadoEvento;
+import io.github.salepartido.api.domain.eventos.model.EstadoParticipacion;
+import io.github.salepartido.api.domain.eventos.model.Evento;
+import io.github.salepartido.api.domain.eventos.model.HabilidadJugador;
+import io.github.salepartido.api.domain.eventos.model.NivelDeporte;
+import io.github.salepartido.api.domain.eventos.model.Participacion;
+import io.github.salepartido.api.domain.eventos.model.TipoEvento;
+import io.github.salepartido.api.domain.eventos.model.Usuario;
+import io.github.salepartido.api.domain.eventos.repository.EventoRepository;
+import io.github.salepartido.api.domain.eventos.repository.ParticipacionRepository;
+import io.github.salepartido.api.domain.eventos.repository.UsuarioRepository;
+import io.github.salepartido.api.domain.eventos.service.ParticipacionService;
 import io.github.salepartido.api.domain.locales.model.Deporte;
-import io.github.salepartido.api.domain.participation.exception.EventoNoDisponibleException;
-import io.github.salepartido.api.domain.participation.exception.EventoSinCuposException;
-import io.github.salepartido.api.domain.participation.exception.InvitacionYaRespondidaException;
-import io.github.salepartido.api.domain.participation.exception.NivelInsuficienteException;
-import io.github.salepartido.api.domain.participation.exception.ParticipanteYaRegistradoException;
-import io.github.salepartido.api.domain.participation.exception.TipoEventoInvalidoException;
-import io.github.salepartido.api.domain.participation.model.EstadoEvento;
-import io.github.salepartido.api.domain.participation.model.EstadoParticipacion;
-import io.github.salepartido.api.domain.participation.model.Evento;
-import io.github.salepartido.api.domain.participation.model.HabilidadJugador;
-import io.github.salepartido.api.domain.participation.model.NivelDeporte;
-import io.github.salepartido.api.domain.participation.model.Participacion;
-import io.github.salepartido.api.domain.participation.model.TipoEvento;
-import io.github.salepartido.api.domain.participation.model.Usuario;
-import io.github.salepartido.api.domain.participation.repository.EventoRepository;
-import io.github.salepartido.api.domain.participation.repository.ParticipacionRepository;
-import io.github.salepartido.api.domain.participation.repository.UsuarioRepository;
-import io.github.salepartido.api.domain.participation.service.ParticipacionService;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("ParticipacionService — E2-H01")
