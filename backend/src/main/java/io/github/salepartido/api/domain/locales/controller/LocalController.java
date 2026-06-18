@@ -9,8 +9,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import io.github.salepartido.api.domain.locales.service.LocalService;
+import io.github.salepartido.api.domain.locales.service.dto.BuscarLocalesOperation;
+import io.github.salepartido.api.domain.locales.service.dto.ActualizarConfiguracionesHorariosOperation;
 import io.github.salepartido.api.domain.locales.controller.dto.*;
-import io.github.salepartido.api.domain.locales.controller.dto.FiltroViewModel;
 import io.github.salepartido.api.domain.locales.controller.mapper.LocalMapper;
 import io.github.salepartido.api.domain.locales.controller.mapper.CanchaMapper;
 import io.github.salepartido.api.domain.locales.model.Local;
@@ -33,14 +34,13 @@ public class LocalController {
     @GetMapping
     public List<LocalViewModel> getLocales(
             @RequestParam(required = false) String ubicacion,
-            @RequestParam(required = false) String zona,
             @RequestParam(required = false) String fecha,
             @RequestParam(required = false) String tipoDeporte,
             @RequestParam(required = false) String horarioDesde,
             @RequestParam(required = false) String horarioHasta) {
 
         // Si no hay filtros, retornar todos los locales en modo summary
-        if (isEmptyFilter(ubicacion, zona, fecha, tipoDeporte, horarioDesde, horarioHasta)) {
+        if (isEmptyFilter(ubicacion, fecha, tipoDeporte, horarioDesde, horarioHasta)) {
             return localService.obtenerTodosLosLocales().stream()
                     .map(localMapper::toViewModel)
                     .collect(Collectors.toList());
@@ -51,17 +51,17 @@ public class LocalController {
                 ? new HorarioDisponibleViewModel(horarioDesde, horarioHasta)
                 : null;
 
-        FiltroViewModel filtro = new FiltroViewModel(ubicacion, zona, fecha, tipoDeporte, horario);
+        FiltroViewModel filtro = new FiltroViewModel(ubicacion, fecha, tipoDeporte, horario);
+        BuscarLocalesOperation operation = localMapper.toOperation(filtro);
 
-        return localService.buscarLocales(filtro).stream()
+        return localService.buscarLocales(operation).stream()
                 .map(localMapper::toViewModel)
                 .collect(Collectors.toList());
     }
 
-    private boolean isEmptyFilter(String ubicacion, String zona, String fecha, String tipoDeporte,
+    private boolean isEmptyFilter(String ubicacion, String fecha, String tipoDeporte,
             String horarioDesde, String horarioHasta) {
         return (ubicacion == null || ubicacion.isBlank()) &&
-               (zona == null || zona.isBlank()) &&
                (fecha == null || fecha.isBlank()) &&
                (tipoDeporte == null || tipoDeporte.isBlank()) &&
                (horarioDesde == null || horarioDesde.isBlank()) &&
@@ -70,7 +70,8 @@ public class LocalController {
 
     @PostMapping("/busqueda")
     public List<LocalViewModel> buscarLocales(@RequestBody FiltroViewModel filtro) {
-        return localService.buscarLocales(filtro).stream()
+        BuscarLocalesOperation operation = localMapper.toOperation(filtro);
+        return localService.buscarLocales(operation).stream()
                 .map(localMapper::toViewModel)
                 .collect(Collectors.toList());
     }
@@ -96,7 +97,8 @@ public class LocalController {
 
     @PostMapping("/{uuid}/configuraciones-horarios")
     public SaveCanchasConfiguracionesHorariosResponse saveConfiguracionesHorarios(@PathVariable UUID uuid, @Valid @RequestBody SaveCanchasConfiguracionesHorariosRequest request) {
-        return localService.actualizarConfiguracionesHorarios(uuid, request);
+        ActualizarConfiguracionesHorariosOperation operation = localMapper.toOperation(request);
+        localService.actualizarConfiguracionesHorarios(uuid, operation);
+        return new SaveCanchasConfiguracionesHorariosResponse(request.canchas());
     }
 }
-

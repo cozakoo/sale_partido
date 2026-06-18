@@ -1,0 +1,98 @@
+<div class="modal-header">
+  @if (evento()) {
+    <div class="d-flex align-items-center gap-2">
+      <span class="badge bg-primary">{{ evento()!.deporte }}</span>
+      <h5 class="modal-title fw-semibold mb-0">{{ evento()!.nombre }}</h5>
+    </div>
+    <span class="badge bg-{{ tipoIngresoBadge() }} bg-opacity-10 text-{{ tipoIngresoBadge() }} ms-auto me-3">
+      {{ tipoIngresoLabel() }}
+    </span>
+  }
+  <button
+    type="button"
+    class="btn-close"
+    aria-label="Cerrar"
+    (click)="activeModal.dismiss()"
+  ></button>
+</div>
+
+<div class="modal-body">
+  @if (cargando()) {
+    <div class="d-flex justify-content-center py-4">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Cargando...</span>
+      </div>
+    </div>
+  } @else if (evento() && usuario()) {
+
+    <!-- Info del evento -->
+    <div class="evento-modal__info mb-4" data-testid="evento-detalle">
+      <ul class="list-unstyled d-flex flex-column gap-2 mb-0">
+        <li class="d-flex align-items-center gap-2">
+          <i class="bi bi-calendar-event text-muted" aria-hidden="true"></i>
+          <span>
+            <span data-testid="evento-fecha">{{ evento()!.turno.fecha }}</span>
+            —
+            <span data-testid="evento-hora">{{ evento()!.turno.horaInicio }}hs</span>
+          </span>
+        </li>
+        <li class="d-flex align-items-center gap-2">
+          <i class="bi bi-geo-alt text-muted" aria-hidden="true"></i>
+          <strong data-testid="evento-local">{{ evento()!.turno.local.nombre }}</strong>
+          <span class="text-muted">·</span>
+          <span data-testid="evento-direccion">{{ evento()!.turno.local.direccion }}</span>
+        </li>
+        <li class="d-flex align-items-center gap-2">
+          <i class="bi bi-trophy text-muted" aria-hidden="true"></i>
+          <span>
+            Nivel requerido:
+            <strong data-testid="evento-nivel-requerido">{{ evento()!.nivelRequerido?.nombre ?? 'CUALQUIERA' }}</strong>
+          </span>
+        </li>
+        <li class="d-flex align-items-center gap-2">
+          <i class="bi bi-people text-muted" aria-hidden="true"></i>
+          <span>
+            <span data-testid="evento-participantes-confirmados">
+              {{ evento()!.participantes.length }}
+            </span>/<span data-testid="evento-cupo-maximo">{{ evento()!.cupoMaximo }}</span>
+            confirmados
+            <span class="text-muted">
+              (mín. <span data-testid="evento-cupo-minimo">{{ evento()!.cupoMinimo }}</span>)
+            </span>
+          </span>
+        </li>
+        <li class="d-flex align-items-center gap-2">
+          <i class="bi bi-door-open text-muted" aria-hidden="true"></i>
+          <span>
+            Ingreso:
+            <strong data-testid="evento-tipo-ingreso">{{ evento()!.tipo }}</strong>
+          </span>
+        </li>
+      </ul>
+
+      @if (evento()!.descripcion) {
+        <p class="text-muted small mt-3 mb-0">{{ evento()!.descripcion }}</p>
+      }
+    </div>
+
+    <hr>
+
+    <!-- Participantes -->
+    <app-participantes-lista
+      [participantes]="evento()!.participantes"
+    />
+
+    <hr>
+
+    <!-- Acción -->
+    <app-accion-participacion
+      [evento]="evento()!"
+      [usuario]="usuario()!"
+      [participacion]="participacion()"
+      [yaParticipa]="yaParticipa()"
+      [cargando]="false"
+      (accionEjecutada)="onAccionEjecutada($event)"
+    />
+
+  }
+</div>

@@ -1,0 +1,157 @@
+<div class="card accion">
+  <div class="card-body">
+
+    <!-- Estado post-acción -->
+    @if (estadoParticipacionTexto()) {
+      <p class="accion__estado accion__estado--participacion"
+         data-testid="estado-participacion">
+        {{ estadoParticipacionTexto() }}
+      </p>
+    }
+    @if (estadoInvitacionTexto()) {
+      <p class="accion__estado accion__estado--invitacion"
+         data-testid="estado-invitacion">
+        {{ estadoInvitacionTexto() }}
+      </p>
+    }
+
+    <!-- Sin cupos (siempre visible si está lleno) -->
+    @if (cupoLleno()) {
+      <p class="accion__mensaje accion__mensaje--peligro"
+         data-testid="mensaje-sin-cupos">
+        <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>
+        No hay cupos disponibles
+      </p>
+    }
+
+    <!-- Mensajes de resultado de acciones -->
+    @if (mensajeActivo() === 'mensaje-confirmacion-participacion') {
+      <div class="alert alert-success accion__alert"
+           data-testid="mensaje-confirmacion-participacion">
+        <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
+        Tu participación fue confirmada
+      </div>
+    }
+    @if (mensajeActivo() === 'mensaje-confirmacion-solicitud') {
+      <div class="alert alert-warning accion__alert"
+           data-testid="mensaje-confirmacion-solicitud">
+        <i class="bi bi-hourglass-split" aria-hidden="true"></i>
+        Tu solicitud fue enviada. El organizador revisará tu pedido.
+      </div>
+    }
+    @if (mensajeActivo() === 'mensaje-confirmacion-rechazo') {
+      <div class="alert alert-secondary accion__alert"
+           data-testid="mensaje-confirmacion-rechazo">
+        <i class="bi bi-x-circle" aria-hidden="true"></i>
+        Rechazaste la invitación
+      </div>
+    }
+    @if (mensajeActivo() === 'mensaje-nivel-incompatible') {
+      <div class="alert alert-warning accion__alert"
+           data-testid="mensaje-nivel-incompatible">
+        <i class="bi bi-shield-exclamation" aria-hidden="true"></i>
+        No cumplís con el nivel requerido
+      </div>
+    }
+    @if (mensajeActivo() === 'mensaje-ya-participa') {
+      <div class="alert alert-info accion__alert"
+           data-testid="mensaje-ya-participa">
+        <i class="bi bi-info-circle" aria-hidden="true"></i>
+        Ya participás de este evento
+      </div>
+    }
+    @if (mensajeActivo() === 'mensaje-invitacion-ya-aceptada') {
+      <div class="alert alert-info accion__alert"
+           data-testid="mensaje-invitacion-ya-aceptada">
+        <i class="bi bi-info-circle" aria-hidden="true"></i>
+        Ya aceptaste esta solicitud / tu solicitud ya está aceptada
+      </div>
+    }
+    @if (mensajeActivo() === 'mensaje-invitacion-ya-procesada') {
+      <div class="alert alert-secondary accion__alert"
+           data-testid="mensaje-invitacion-ya-procesada">
+        <i class="bi bi-slash-circle" aria-hidden="true"></i>
+        Esta invitación ya fue procesada
+      </div>
+    }
+
+    <!-- Botones -->
+    <div class="accion__botones" data-testid="acciones">
+
+      <!-- Invitación pendiente -->
+      @if (mostrarBotonesInvitacion()) {
+        <button
+          class="btn btn-success w-100"
+          data-testid="btn-aceptar-invitacion"
+          [disabled]="cargando()"
+          (click)="onAceptarInvitacion()"
+        >
+          @if (cargando()) {
+            <span class="spinner-border spinner-border-sm me-2"></span>
+          }
+          <i class="bi bi-check-lg me-1" aria-hidden="true"></i>
+          Aceptar invitación
+        </button>
+        <button
+          class="btn btn-outline-danger w-100"
+          data-testid="btn-rechazar-invitacion"
+          [disabled]="cargando()"
+          (click)="onRechazarInvitacion()"
+        >
+          <i class="bi bi-x-lg me-1" aria-hidden="true"></i>
+          Rechazar invitación
+        </button>
+      }
+
+      <!-- Invitación ya respondida -->
+      @if (mostrarInvitacionYaRespondida()) {
+        <button
+          class="btn btn-success w-100"
+          data-testid="btn-aceptar-invitacion"
+          (click)="onAceptarInvitacionYaRespondida()"
+        >
+          Aceptar invitación
+        </button>
+      }
+
+      <!-- Evento ABIERTO -->
+      @if (mostrarBotonUnirse()) {
+        <button
+          class="btn btn-primary w-100"
+          data-testid="btn-unirse"
+          [disabled]="cargando() || cupoLleno()"
+          (click)="onUnirse()"
+        >
+          @if (cargando()) {
+            <span class="spinner-border spinner-border-sm me-2"></span>
+          }
+          Unirse
+        </button>
+      }
+
+      <!-- Evento CON_CONFIRMACION -->
+      @if (mostrarBotonSolicitar()) {
+        <button
+          class="btn btn-outline-primary w-100"
+          data-testid="btn-solicitar-participacion"
+          [disabled]="cargando()"
+          (click)="onSolicitar()"
+        >
+          @if (cargando()) {
+            <span class="spinner-border spinner-border-sm me-2"></span>
+          }
+          Solicitar participación
+        </button>
+      }
+
+      <!-- Evento CERRADO sin invitación -->
+      @if (mostrarMensajeCerrado()) {
+        <div class="alert alert-secondary mb-0">
+          <i class="bi bi-lock me-2" aria-hidden="true"></i>
+          Este evento es privado. Solo podés unirte si tenés una invitación.
+        </div>
+      }
+
+    </div>
+  </div>
+</div>

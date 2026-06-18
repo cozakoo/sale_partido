@@ -1,0 +1,96 @@
+<div class="container mt-4">
+  <h1 class="mb-4">Buscar locales</h1>
+
+  <div class="search-section card shadow-sm mb-4 p-3">
+    <div class="row g-2">
+      <div class="col-6 col-md-3 col-lg-2">
+        <label class="form-label fw-medium" for="filtroUbicacion">Ubicación</label>
+        <input id="filtroUbicacion" type="text" class="form-control" placeholder="Buscar por ubicación..."
+          [(ngModel)]="ubicacionSeleccionada" (input)="buscar()" />
+      </div>
+      <div class="col-6 col-md-3 col-lg-2">
+        <label class="form-label fw-medium" for="filtroDeporte">Deporte</label>
+        <select id="filtroDeporte" class="form-select" [(ngModel)]="deporteSeleccionado" (change)="buscar()">
+          <option value="">Todos</option>
+          @for (deporte of deportes; track deporte) {
+          <option [value]="deporte">{{ deporte }}</option>
+          }
+        </select>
+      </div>
+      <div class="col-12 col-md-4 col-lg-2">
+        <label class="form-label fw-medium" for="filtroFecha">Fecha</label>
+        <input id="filtroFecha" type="date" class="form-control" [(ngModel)]="fechaSeleccionada" (change)="buscar()" />
+      </div>
+      <div class="col-6 col-md-4 col-lg-auto">
+        <label class="form-label fw-medium" for="filtroHorarioDesde">Desde</label>
+        <input id="filtroHorarioDesde" type="time" class="form-control" [class.is-invalid]="isHorarioInvalido"
+          [(ngModel)]="horarioDesdeSeleccionado" (change)="buscar()" />
+      </div>
+      <div class="col-6 col-md-4 col-lg-auto">
+        <label class="form-label fw-medium" for="filtroHorarioHasta">Hasta</label>
+        <input id="filtroHorarioHasta" type="time" class="form-control" [class.is-invalid]="isHorarioInvalido"
+          [(ngModel)]="horarioHastaSeleccionado" (change)="buscar()" />
+      </div>
+      <div class="col-12 d-flex flex-wrap justify-content-end gap-2 mt-3">
+        <button class="btn btn-outline-secondary px-4" (click)="limpiarFiltros()" title="Limpiar filtros">
+          Limpiar
+        </button>
+        <button class="btn btn-primary px-4" (click)="buscar()">Buscar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="position-relative" style="min-height: 300px;">
+    @if (buscando()) {
+      <div class="position-absolute top-50 start-50 translate-middle text-center z-3">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Buscando...</span>
+        </div>
+      </div>
+    }
+
+    <div [class.opacity-50]="buscando()" [class.pe-none]="buscando()">
+      @if (resultados().length === 0) {
+        @if (!buscando()) {
+          <div class="text-center py-5 text-muted">
+            <p class="fs-5 mb-1">No se encontraron locales</p>
+            <p class="small">Probá con otros términos o limpiá los filtros.</p>
+          </div>
+        }
+      } @else {
+        <div class="row">
+          @for (local of resultados(); track local.uuid) {
+            <div class="col-12 col-sm-6 col-lg-4 mb-4">
+              <div class="card h-100 shadow-sm local-card" (click)="verDetalle(local.uuid)">
+                <div class="card-body d-flex flex-column">
+                  <h5 class="card-title mb-1">{{ local.nombre }}</h5>
+                  <p class="text-muted small mb-2">
+                    <span class="me-3">📍 {{ local.ubicacion }}</span>
+                  </p>
+                  <div class="text-muted small mb-2">
+                    <p class="mb-1 fw-medium">🕐 Horarios:</p>
+                    <ul class="list-unstyled ms-3 mb-0">
+                      @for (h of local.horario; track h.dia) {
+                        <li>{{ formatDia(h.dia) }}: {{ formatHorario(h.horarioApertura) }} - {{ formatHorario(h.horarioCierre) }}</li>
+                      }
+                    </ul>
+                  </div>
+                  <p class="card-text small flex-grow-1">{{ local.descripcion }}</p>
+                  <div class="mb-2">
+                    @for (deporte of local.deportes; track deporte) {
+                      <span class="badge bg-primary bg-opacity-10 text-primary me-1">{{ deporte }}</span>
+                    }
+                  </div>
+                  <p class="small text-muted mb-0">📞 {{ local.telefono }}</p>
+                </div>
+                <div class="card-footer bg-transparent text-end border-top-0 pt-0">
+                  <span class="text-primary small fw-medium">Ver detalle &raquo;</span>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  </div>
+</div>

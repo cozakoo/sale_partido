@@ -1,0 +1,260 @@
+@startuml modelo
+
+' Este es el modelo de datos que se pasará
+' a clases en Spring Boot como entidades de persistencia
+
+' configuraciones
+hide methods
+
+' =====================================================
+' E1–E4: Locales, Canchas, Disponibilidad
+' =====================================================
+
+class Local {
+    - uuid : UUID
+    - nombre : String
+    - telefono : String
+    - descripcion : String
+}
+
+class Ubicacion {
+    - uuid : UUID
+    - direccion : String
+}
+
+class Localidad {
+    - uuid : UUID
+    - nombre : String
+}
+
+class Cancha {
+    - uuid : UUID
+    - nombre : String
+    - capacidad: int
+}
+
+class Deporte {
+    - uuid: UUID
+    - nombre: String
+}
+
+class HorarioAtencion {
+    - uuid: UUID
+    - dia: DayOfWeek
+    - horarioApertura: LocalTime
+    - horarioCierre: LocalTime
+}
+
+class ConfiguracionHorario {
+    - uuid : UUID
+    - activo : Boolean
+    - duracionTurno : Duration
+}
+
+class ConfiguracionDia {
+    - uuid : UUID
+    - diaSemana : DayOfWeek
+    - horaInicio : LocalTime
+    - horaFin : LocalTime
+}
+
+class Turno {
+    - uuid: UUID
+    - fecha: LocalDate
+    - horaInicio: LocalTime
+    - horaFin: LocalTime
+}
+
+
+' =====================================================
+' E2-H01: Participación en eventos deportivos
+' =====================================================
+
+class NivelDeporte {
+    - uuid : UUID
+    - nombre : String
+    - descripcion : String
+    - orden : Integer
+}
+
+note right of NivelDeporte
+  Cada deporte define su propia jerarquía de niveles.
+  El campo 'orden' establece la posición en esa jerarquía:
+  valor mayor = mayor nivel de habilidad.
+  Ejemplos: Pádel tiene 8 niveles (8va a 1ra),
+  Fútbol/Tenis/Voley/Básquet tienen 3 niveles cada uno.
+
+  Compatibilidad de nivel:
+    habilidadJugador.nivel.orden >= evento.nivelRequerido.orden
+    (ambos deben ser del mismo deporte)
+end note
+
+class HabilidadJugador {
+    - uuid : UUID
+}
+
+note right of HabilidadJugador
+  Asocia a un Usuario con su nivel en un deporte específico.
+  Un usuario puede tener habilidades para múltiples deportes.
+  El campo deporte en HabilidadJugador es redundante con
+  el deporte de NivelDeporte, pero facilita consultas
+  y previene inconsistencias a nivel de aplicación.
+end note
+
+class Usuario {
+    - uuid : UUID
+    - nombre : String
+    - rol : Rol
+}
+
+note right of Usuario
+  scoringPromedio excluido intencionalmente.
+  Pertenece al dominio de E8 (Competencias/Rankings).
+  Incluirlo en E2 sería complejidad prematura y
+  generaría conflictos con el modelo de ranking futuro.
+end note
+
+' Ahora mismo no se esta usando ni es necesario
+' Probablemente se revisará recién cuando se necesite
+' login o autorización de acciones o visibilidad.
+enum Rol {
+    DEPORTISTA
+    PROPIETARIO
+}
+
+class Evento {
+    - uuid : UUID
+    - nombre : String
+    - tipo : TipoEvento
+    - cupoMinimo : int
+    - cupoMaximo : int
+    - estado : EstadoEvento
+    - limiteCancelacionParticipacion : Duration
+}
+
+note right of Evento
+  nivelRequerido referencia NivelDeporte, lo que
+  implica el deporte del evento. No hace falta
+  un campo deporte separado en Evento.
+
+  cantidadParticipantesConfirmados no se persiste:
+  se deriva contando Participacion con estado=CONFIRMADO.
+
+  Evento referencia un Turno existente para obtener
+  fecha, hora y cancha, evitando duplicar datos de scheduling.
+  Un Turno puede tener a lo sumo un Evento activo.
+
+  El límite de cancelación de participación representa cuánto tiempo
+  antes del evento puede un participante confirmado cancelar su participación.
+end note
+
+enum TipoEvento {
+    ABIERTO
+    CERRADO
+    CON_CONFIRMACION
+}
+
+note right of TipoEvento
+  Representa el Tipo de Ingreso 
+  que puede tener un evento
+end note
+
+enum EstadoEvento {
+    DISPONIBLE
+    COMPLETO
+    CANCELADO
+    FINALIZADO
+}
+
+note top of EstadoEvento
+  DISPONIBLE: el evento está en espera de participantes
+  COMPLETO: el evento puede llevarse a cabo (su cupo mínimo fue alcanzado)
+  CANCELADO: el evento no se llevará a cabo 
+  FINALIZADO: el evento ya se llevó a cabo
+end note
+
+class Participacion {
+    - uuid : UUID
+    - esInvitacion : Boolean
+    - estado : EstadoParticipacion
+    - fechaEstado : LocalDateTime
+    - asistio : Boolean
+}
+
+note bottom of Participacion
+  esInvitacion=true: el organizador invitó al participante.
+  esInvitacion=false: el participante solicitó unirse.
+
+  Simplificación intencional: participación directa
+  e invitación se unifican en una sola entidad en lugar de
+  modelar Invitacion como entidad separada.
+
+  Estado PENDIENTE aplica a dos casos:
+    - solicitud propia esperando aprobación del organizador
+    - invitación recibida aún sin responder
+end note
+
+enum EstadoParticipacion {
+    PENDIENTE
+    CONFIRMADO
+    RECHAZADO
+    CANCELADO
+}
+
+note top of EstadoParticipacion
+  DISPONIBLE: el evento está en espera de participantes
+  COMPLETO: el evento puede llevarse a cabo (su cupo mínimo fue alcanzado)
+  CANCELADO: el evento no se llevará a cabo 
+  FINALIZADO: el evento ya se llevó a cabo
+end note
+
+' =====================================================
+' Relaciones — E1–E4
+' =====================================================
+
+Local "1" *--> "*" HorarioAtencion
+Local "1" *--> "*" Cancha
+Local "*" --> "1" Ubicacion: ubicacion
+Ubicacion "*" --> "1" Localidad: localidad
+Cancha "1" *--> "*" ConfiguracionHorario
+ConfiguracionHorario "1" *--> "*" ConfiguracionDia
+Cancha "*" --> "1" Deporte
+Turno "*" --> "1" Cancha
+
+
+' =====================================================
+' Relaciones — E2-H01
+' =====================================================
+
+NivelDeporte "*" --> "1" Deporte : deporte
+HabilidadJugador "*" --> "1" Deporte : deporte
+HabilidadJugador "*" --> "1" NivelDeporte : nivel
+Usuario "1" *--> "*" HabilidadJugador : habilidades
+Evento "*" --> "0..1" NivelDeporte : nivelRequerido
+Evento "0..1" --> "1" Turno : turno
+Evento "*" --> "1" Usuario : organizador
+Evento "1" *--> "*" Participacion : participaciones
+Participacion "*" --> "1" Usuario : participante
+
+
+' =====================================================
+' Para el futuro (no implementar aún)
+' =====================================================
+' class Resena {
+'     uuid: UUID
+'     tipo: TipoResena
+'     puntuacion: Decimal
+'     comentarios: Texto
+' }
+'
+' enum TipoResena {
+'     JUGADOR
+'     LOCAL
+' }
+'
+' Resena "*" *-- "1" Usuario : evaluador
+' Resena "*" *-- "1" Usuario : evaluado
+' Resena "*" *-- "1" Evento
+' Resena "*" *-- "1" Local
+
+@enduml

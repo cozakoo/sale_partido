@@ -1,0 +1,48 @@
+.accion {
+  &__estado {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+
+    &--participacion {
+      color: var(--bs-success);
+    }
+
+    &--invitacion {
+      color: var(--bs-secondary);
+    }
+  }
+
+  &__mensaje {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.9rem;
+    margin-bottom: 0.75rem;
+
+    &--peligro {
+      color: var(--bs-danger);
+    }
+
+    &--advertencia {
+      color: var(--bs-warning-text-emphasis);
+    }
+  }
+
+  &__alert {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+
+    i {
+      flex-shrink: 0;
+    }
+  }
+
+  &__botones {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 0.25rem;
+  }
+}
