@@ -28,7 +28,11 @@ test.describe('Búsqueda de locales deportivos - Jugador', () => {
 
   test.beforeEach(async ({ page }) => {
     // Mock las llamadas al backend para obtener locales
-    await page.route('http://localhost:8080/locales*', async route => {
+    await page.route('**/locales*', async route => {
+      if (route.request().resourceType() === 'document') {
+        await route.continue();
+        return;
+      }
       const url = new URL(route.request().url());
       let resultado = [...mockLocales];
 

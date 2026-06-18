@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
-import { Participante } from '../../models/evento-detalle.model';
+import { Participante } from '../../models/participante';
 
 @Component({
   selector: 'app-participantes-lista',

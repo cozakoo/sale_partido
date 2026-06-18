@@ -9,10 +9,20 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
+import io.github.salepartido.api.domain.eventos.model.EstadoEvento;
+import io.github.salepartido.api.domain.eventos.model.EstadoParticipacion;
+import io.github.salepartido.api.domain.eventos.model.Evento;
+import io.github.salepartido.api.domain.eventos.model.HabilidadJugador;
+import io.github.salepartido.api.domain.eventos.model.NivelDeporte;
+import io.github.salepartido.api.domain.eventos.model.Participacion;
+import io.github.salepartido.api.domain.eventos.model.Rol;
+import io.github.salepartido.api.domain.eventos.model.TipoEvento;
+import io.github.salepartido.api.domain.eventos.model.Usuario;
 import io.github.salepartido.api.domain.locales.model.Cancha;
 import io.github.salepartido.api.domain.locales.model.ConfiguracionDia;
 import io.github.salepartido.api.domain.locales.model.ConfiguracionHorario;
@@ -22,130 +32,79 @@ import io.github.salepartido.api.domain.locales.model.Local;
 import io.github.salepartido.api.domain.locales.model.Localidad;
 import io.github.salepartido.api.domain.locales.model.Turno;
 import io.github.salepartido.api.domain.locales.model.Ubicacion;
-import io.github.salepartido.api.domain.locales.repository.DeporteRepository;
-import io.github.salepartido.api.domain.locales.repository.LocalidadRepository;
-import io.github.salepartido.api.domain.locales.repository.UbicacionRepository;
-import io.github.salepartido.api.domain.locales.service.LocalService;
-import io.github.salepartido.api.domain.locales.service.TurnoService;
-import io.github.salepartido.api.domain.participation.model.EstadoEvento;
-import io.github.salepartido.api.domain.participation.model.EstadoParticipacion;
-import io.github.salepartido.api.domain.participation.model.Evento;
-import io.github.salepartido.api.domain.participation.model.HabilidadJugador;
-import io.github.salepartido.api.domain.participation.model.NivelDeporte;
-import io.github.salepartido.api.domain.participation.model.Participacion;
-import io.github.salepartido.api.domain.participation.model.Rol;
-import io.github.salepartido.api.domain.participation.model.TipoEvento;
-import io.github.salepartido.api.domain.participation.model.Usuario;
-import io.github.salepartido.api.domain.participation.repository.EventoRepository;
-import io.github.salepartido.api.domain.participation.repository.NivelDeporteRepository;
-import io.github.salepartido.api.domain.participation.repository.UsuarioRepository;
 import net.datafaker.Faker;
 
 @Service
 @Profile("dev")
 public class SeedService {
 
-    private final TurnoService turnoService;
-    private final LocalService localService;
+    private final SeedRepository seedRepository;
     private final Faker faker = new Faker(Locale.of("es"));
-    private final DeporteRepository deporteRepository;
-    private final LocalidadRepository localidadRepository;
-    private final UbicacionRepository ubicacionRepository;
-    private final NivelDeporteRepository nivelDeporteRepository;
-    private final UsuarioRepository usuarioRepository;
-    private final EventoRepository eventoRepository;
+    private final int localesCount = SeedValues.LOCALES_COUNT;
+    private final int canchasPerLocal = SeedValues.CANCHAS_PER_LOCAL;
+    private final int usuariosCount = SeedValues.USUARIOS_COUNT;
+    private final int capacidadDefault = SeedValues.CAPACIDAD_DEFAULT;
+    private final List<String> localidadesList = SeedValues.LOCALIDADES_LIST;
+    private final String[] nombresLocales = SeedValues.NOMBRES_LOCALES;
+    private final String[] tematicas = SeedValues.TEMATICAS;
+    private final String[] tiposCancha = SeedValues.TIPOS_CANCHA;
+    private final String[] direcciones = SeedValues.DIRECCIONES;
+    private final String[] deportesPredeterminados = SeedValues.DEPORTES_PREDETERMINADOS;
+    private final String[] nombresUsuarios = SeedValues.NOMBRES_USUARIOS;
+    private final Map<String, Integer> capacidadPorDeporte = SeedValues.CAPACIDAD_POR_DEPORTE;
+    private final String[] nivelesPaddle = SeedValues.NIVELES_PADDLE;
+    private final String[] nivelesFutbol = SeedValues.NIVELES_FUTBOL;
+    private final String[] nivelesTenis = SeedValues.NIVELES_TENIS;
+    private final String[] nivelesVoley = SeedValues.NIVELES_VOLEY;
+    private final String[] nivelesBasquet = SeedValues.NIVELES_BASQUET;
 
-    public SeedService(
-            DeporteRepository deporteRepository,
-            TurnoService turnoService,
-            LocalService localService,
-            LocalidadRepository localidadRepository,
-            UbicacionRepository ubicacionRepository,
-            NivelDeporteRepository nivelDeporteRepository,
-            UsuarioRepository usuarioRepository,
-            EventoRepository eventoRepository) {
-        this.deporteRepository = deporteRepository;
-        this.turnoService = turnoService;
-        this.localService = localService;
-        this.localidadRepository = localidadRepository;
-        this.ubicacionRepository = ubicacionRepository;
-        this.nivelDeporteRepository = nivelDeporteRepository;
-        this.usuarioRepository = usuarioRepository;
-        this.eventoRepository = eventoRepository;
+    public SeedService(SeedRepository seedRepository) {
+        this.seedRepository = seedRepository;
     }
 
     public void generate() {
-        List<Local> localesGuardados = guardarLocales(generarLocales(20, 5));
+        List<Local> localesGuardados = guardarLocales(generarLocales(localesCount, canchasPerLocal));
 
         List<NivelDeporte> niveles = poblarNivelesDeporte();
-        List<Usuario> usuarios = poblarUsuarios(10);
+        List<Usuario> usuarios = poblarUsuarios(usuariosCount, niveles);
 
         generarTurnosYEventos(localesGuardados, usuarios, niveles);
     }
+
     private List<Local> guardarLocales(List<Local> locales) {
         List<Local> localesGuardados = new ArrayList<>();
         for (Local local : locales) {
-            localesGuardados.add(localService.guardarLocal(local));
+            localesGuardados.add(seedRepository.guardarLocal(local));
         }
         return localesGuardados;
     }
 
-    /* VALORES POSIBLES =============================== */
-
-    private static final Map<String, Integer> CAPACIDAD_POR_DEPORTE = Map.of(
-            "Fútbol", 10,
-            "Básquet", 10,
-            "Tenis", 4,
-            "Paddle", 4, // ← sin tilde, sin é
-            "Vóley", 12 // ← con tilde en la o
-    );
-
-    private static final String[] NOMBRES_LOCALES = {
-            "Complejo", "Club", "Arena", "Zona", "Center", "Sports"
-    };
-
-    private static final String[] TEMATICAS = {
-            "Gol", "Elite", "Norte", "Sur", "Patagonia", "Fútbol", "Punto", "Master"
-    };
-
-    private static final String[] TIPOS_CANCHA = {
-            "Sintética", "Techada", "Exterior", "Premium"
-    };
-
-    private static final String[] DIRECCIONES = {
-            "Avda. Roca 1300", "Juan B. Justo 1200", "Calle 123", "9 de Julio 1234", "San Martín 567", "Libertad 890",
-            "Av. Córdoba 456", "Belgrano 789", "Mitre 321", "Sarmiento 654", "Av. San Juan 987", "Pueyrredón 432",
-            "Av. Santa Fe 876", "Rivadavia 543", "Corrientes 678", "Entre Ríos 345", "Independencia 901",
-            "Belgrano 234", "Corrientes 567"
-    };
-
     /* GENERACIÓN =============================== */
 
     private String generarNombreLocal(Faker faker) {
-        return faker.options().option(NOMBRES_LOCALES)
+        return faker.options().option(nombresLocales)
                 + " "
-                + faker.options().option(TEMATICAS);
+                + faker.options().option(tematicas);
     }
 
     private String generarNombreCancha(Faker faker, int numero) {
-        return "Cancha " + numero + " - " + faker.options().option(TIPOS_CANCHA);
+        return "Cancha " + numero + " - " + faker.options().option(tiposCancha);
     }
 
     private List<Local> generarLocales(int cantidad, int canchasPorLocal) {
         List<Local> locales = new ArrayList<>();
 
-        List<String> nombresLocalidades = List.of("Puerto Madryn", "Trelew", "Rawson", "Gaiman");
-        List<Localidad> localidadesExistentes = localidadRepository.findAll();
+        List<Localidad> localidadesExistentes = seedRepository.findLocalidadesExistentes();
         List<Localidad> localidades = new ArrayList<>();
 
-        for (String nombreLoc : nombresLocalidades) {
+        for (String nombreLoc : localidadesList) {
             Localidad localidad = localidadesExistentes.stream()
                 .filter(l -> l.getNombre() != null && l.getNombre().equalsIgnoreCase(nombreLoc))
                 .findFirst()
                 .orElseGet(() -> {
                     Localidad newLoc = new Localidad();
                     newLoc.setNombre(nombreLoc);
-                    return localidadRepository.save(newLoc);
+                    return seedRepository.guardarLocalidad(newLoc);
                 });
             localidades.add(localidad);
         }
@@ -154,17 +113,16 @@ public class SeedService {
             Local local = new Local();
             local.setNombre(generarNombreLocal(faker));
             local.setTelefono(faker.phoneNumber().phoneNumber());
-            local.setDescripcion("Complejo deportivo con excelentes instalaciones para disfrutar del deporte. " + faker.lorem().paragraph(1));
+            local.setDescripcion("Complejo deportivo con excelentes instalaciones para disfrutar del deporte.");
 
             Localidad localidadElegida = localidades.get(faker.number().numberBetween(0, localidades.size()));
 
             Ubicacion ubicacion = new Ubicacion();
             ubicacion.setLocalidad(localidadElegida);
-            ubicacion.setDireccion(faker.options().option(DIRECCIONES));
+            ubicacion.setDireccion(faker.options().option(direcciones));
             local.setUbicacion(ubicacion);
 
             local.setCanchas(generarCanchas(canchasPorLocal));
-            // local.setDeportes(generarDeportes( deportesPorLocal));
             local.setHorariosAtencion(generarHorariosAtencionSemanal());
             locales.add(local);
         }
@@ -181,7 +139,7 @@ public class SeedService {
 
             Deporte deporte = obtenerDeporteAleatorioPersistido();
             cancha.setDeporte(deporte);
-            cancha.setCapacidad(CAPACIDAD_POR_DEPORTE.getOrDefault(deporte.getNombre(), 6));
+            cancha.setCapacidad(capacidadPorDeporte.getOrDefault(deporte.getNombre(), capacidadDefault));
 
             canchas.add(cancha);
         }
@@ -257,11 +215,15 @@ public class SeedService {
                                 turno.setFecha(fecha);
                                 turno.setHoraInicio(startReserva);
                                 turno.setHoraFin(endReserva);
-                                turno = turnoService.guardarTurno(turno);
+                                turno = seedRepository.guardarTurno(turno);
 
                                 Usuario organizador = deportistas.get(faker.random().nextInt(deportistas.size()));
-                                NivelDeporte nivelRequerido = niveles.isEmpty() ? null
-                                        : niveles.get(faker.random().nextInt(niveles.size()));
+
+                                List<NivelDeporte> nivelesFiltrados = niveles.stream()
+                                    .filter(nivel -> nivel.getDeporte().getUuid().equals(cancha.getDeporte().getUuid()))
+                                    .toList();
+                                NivelDeporte nivelRequerido = nivelesFiltrados.isEmpty() ? null
+                                        : nivelesFiltrados.get(faker.random().nextInt(nivelesFiltrados.size()));
 
                                 Evento evento = new Evento();
                                 String deporteName = cancha.getDeporte() != null ? cancha.getDeporte().getNombre() : "Fútbol";
@@ -273,7 +235,7 @@ public class SeedService {
                                 if (fecha.isBefore(hoy)) {
                                     evento.setEstado(EstadoEvento.FINALIZADO);
                                 } else {
-                                    evento.setEstado(faker.options().option(EstadoEvento.values()));
+                                    evento.setEstado(EstadoEvento.DISPONIBLE);
                                 }
 
                                 evento.setNivelRequerido(nivelRequerido);
@@ -281,7 +243,7 @@ public class SeedService {
                                 evento.setOrganizador(organizador);
                                 evento.setParticipaciones(generarParticipaciones(deportistas, organizador));
 
-                                eventoRepository.save(evento);
+                                seedRepository.guardarEvento(evento);
                             }
                         }
                     }
@@ -309,18 +271,14 @@ public class SeedService {
         return horarios;
     }
 
-    private static final String[] DEPORTES_PREDETERMINADOS = {
-        "Fútbol", "Tenis", "Paddle", "Vóley", "Básquet"
-    };
-
     private List<Deporte> poblarDeportes() {
         List<Deporte> deportes = new ArrayList<>();
-        for (String nombre : DEPORTES_PREDETERMINADOS) {
-            Deporte deporte = deporteRepository.findByNombre(nombre)
+        for (String nombre : deportesPredeterminados) {
+            Deporte deporte = seedRepository.findDeporteByNombre(nombre)
                     .orElseGet(() -> {
                         Deporte nuevo = new Deporte();
                         nuevo.setNombre(nombre);
-                        return deporteRepository.save(nuevo);
+                        return seedRepository.guardarDeporte(nuevo);
                     });
             deportes.add(deporte);
         }
@@ -328,109 +286,94 @@ public class SeedService {
     }
 
     private Deporte obtenerDeporteAleatorioPersistido() {
-        List<Deporte> deportes = deporteRepository.findAll();
+        List<Deporte> deportes = seedRepository.findDeportesExistentes();
         if (deportes.isEmpty()) {
             deportes = poblarDeportes();
         }
         return deportes.get(faker.random().nextInt(deportes.size()));
     }
 
-    private List<Deporte> generarDeportes(int numOfDeportes) {
-        List<Deporte> deportes = new ArrayList<>();
-        for (int i = 0; i < numOfDeportes; i++) {
-            deportes.add(obtenerDeporteAleatorioPersistido());
-        }
-        return deportes;
+    /* PARTICIPATION =============================== */
+
+    private String[] obtenerDefinicionesNiveles(String deporteNombre) {
+        if (deporteNombre == null) return new String[0];
+        return switch (deporteNombre) {
+            case "Paddle" -> nivelesPaddle;
+            case "Fútbol" -> nivelesFutbol;
+            case "Tenis" -> nivelesTenis;
+            case "Vóley" -> nivelesVoley;
+            case "Básquet" -> nivelesBasquet;
+            default -> new String[0];
+        };
     }
-
-    /* PARTICIPATION (E2-H01) =============================== */
-
-
-
-    private static final Map<String, String[][]> NIVELES_POR_DEPORTE = Map.of(
-        "Paddle", new String[][]{
-            {"8va categoría", "Nivel inicial de pádel"},
-            {"7ma categoría", "Jugador en formación"},
-            {"6ta categoría", "Conoce los fundamentos básicos"},
-            {"5ta categoría", "Maneja bien los golpes básicos"},
-            {"4ta categoría", "Juego consistente"},
-            {"3ra categoría", "Buen nivel competitivo"},
-            {"2da categoría", "Nivel avanzado"},
-            {"1ra categoría", "Nivel de alto rendimiento"}
-        },
-        "Fútbol", new String[][]{
-            {"Principiante", "Aprendiendo los conceptos básicos del fútbol"},
-            {"Intermedio", "Maneja bien la pelota y conoce las posiciones"},
-            {"Avanzado", "Nivel competitivo con buena técnica y táctica"}
-        },
-        "Tenis", new String[][]{
-            {"Principiante", "Aprendiendo los golpes básicos del tenis"},
-            {"Intermedio", "Juega rallies con consistencia"},
-            {"Avanzado", "Nivel competitivo con saque y volea efectivos"}
-        },
-        "Vóley", new String[][]{
-            {"Principiante", "Aprendiendo las técnicas fundamentales"},
-            {"Intermedio", "Maneja saque, recepción y armado básico"},
-            {"Avanzado", "Nivel competitivo con sistema de juego definido"}
-        },
-        "Básquet", new String[][]{
-            {"Principiante", "Aprendiendo dribling, pase y tiro básico"},
-            {"Intermedio", "Maneja bien los fundamentos y conoce la táctica"},
-            {"Avanzado", "Nivel competitivo con lectura de juego avanzada"}
-        }
-    );
 
     private List<NivelDeporte> poblarNivelesDeporte() {
         List<NivelDeporte> todos = new ArrayList<>();
-        List<Deporte> deportes = deporteRepository.findAll();
+        List<Deporte> deportes = seedRepository.findDeportesExistentes();
         if (deportes.isEmpty()) {
             deportes = poblarDeportes();
         }
 
         for (Deporte deporte : deportes) {
-            String[][] definiciones = NIVELES_POR_DEPORTE.get(deporte.getNombre());
-            if (definiciones == null) continue;
+            String[] rawDefiniciones = obtenerDefinicionesNiveles(deporte.getNombre());
+            if (rawDefiniciones == null || rawDefiniciones.length == 0) continue;
 
-            List<NivelDeporte> existentes = nivelDeporteRepository.findByDeporteUuidOrderByOrdenAsc(deporte.getUuid());
+            List<NivelDeporte> existentes = seedRepository.findNivelesDeportePorDeporte(deporte.getUuid());
             if (!existentes.isEmpty()) {
                 todos.addAll(existentes);
                 continue;
             }
 
-            for (int i = 0; i < definiciones.length; i++) {
+            for (int i = 0; i < rawDefiniciones.length; i++) {
+                String raw = rawDefiniciones[i];
+                String[] parts = raw.split(":", 2);
+                String nombreNivel = parts[0];
+                String descNivel = parts.length > 1 ? parts[1] : "";
+
                 NivelDeporte nivel = new NivelDeporte();
-                nivel.setNombre(definiciones[i][0]);
-                nivel.setDescripcion(definiciones[i][1]);
+                nivel.setNombre(nombreNivel);
+                nivel.setDescripcion(descNivel);
                 nivel.setOrden(i + 1);
                 nivel.setDeporte(deporte);
-                todos.add(nivelDeporteRepository.save(nivel));
+                todos.add(seedRepository.guardarNivelDeporte(nivel));
             }
         }
         return todos;
     }
 
-    private static final String[] NOMBRES_USUARIOS = {
-        "Ana García", "Bruno Martínez", "Carolina López", "Diego Fernández",
-        "Elena Rodríguez", "Facundo Gómez", "Gabriela Pérez", "Hernán Díaz",
-        "Inés Torres", "Javier Morales", "Karen Ruiz", "Lucas Herrera",
-        "Martina Castro", "Nicolás Romero", "Paula Flores"
-    };
-
-    private List<Usuario> poblarUsuarios(int cantidad) {
+    private List<Usuario> poblarUsuarios(int cantidad, List<NivelDeporte> niveles) {
         List<Usuario> usuarios = new ArrayList<>();
-        int cantidadReal = Math.min(cantidad, NOMBRES_USUARIOS.length);
+        int cantidadReal = Math.min(cantidad, nombresUsuarios.length);
+
+        Map<Deporte, List<NivelDeporte>> nivelesPorDeporte = niveles.stream()
+                .filter(n -> n.getDeporte() != null)
+                .collect(Collectors.groupingBy(NivelDeporte::getDeporte));
 
         for (int i = 0; i < cantidadReal; i++) {
             Usuario usuario = new Usuario();
-            usuario.setNombre(NOMBRES_USUARIOS[i]);
+            usuario.setNombre(nombresUsuarios[i]);
             // Los últimos 2 son PROPIETARIO, el resto DEPORTISTA
             usuario.setRol(i < cantidadReal - 2 ? Rol.DEPORTISTA : Rol.PROPIETARIO);
-            usuarios.add(usuarioRepository.save(usuario));
+
+            if (usuario.getRol() == Rol.DEPORTISTA && !nivelesPorDeporte.isEmpty()) {
+                for (Map.Entry<Deporte, List<NivelDeporte>> entry : nivelesPorDeporte.entrySet()) {
+                    if (faker.random().nextBoolean()) {
+                        List<NivelDeporte> levels = entry.getValue();
+                        if (levels != null && !levels.isEmpty()) {
+                            NivelDeporte selectedNivel = levels.get(faker.random().nextInt(levels.size()));
+                            HabilidadJugador hj = new HabilidadJugador();
+                            hj.setDeporte(entry.getKey());
+                            hj.setNivel(selectedNivel);
+                            usuario.getHabilidades().add(hj);
+                        }
+                    }
+                }
+            }
+
+            usuarios.add(seedRepository.guardarUsuario(usuario));
         }
         return usuarios;
     }
-
-
 
     private List<Participacion> generarParticipaciones(List<Usuario> deportistas, Usuario organizador) {
         List<Participacion> participaciones = new ArrayList<>();
@@ -462,5 +405,4 @@ public class SeedService {
 
         return participaciones;
     }
-
 }

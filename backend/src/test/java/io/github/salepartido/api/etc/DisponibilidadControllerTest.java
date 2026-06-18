@@ -14,7 +14,6 @@ import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
@@ -25,7 +24,9 @@ import org.springframework.web.server.ResponseStatusException;
 
 import io.github.salepartido.api.domain.locales.controller.DisponibilidadController;
 import io.github.salepartido.api.domain.locales.controller.dto.DisponibilidadCanchaDTO;
+import io.github.salepartido.api.domain.locales.controller.mapper.DisponibilidadMapper;
 import io.github.salepartido.api.domain.locales.service.DisponibilidadService;
+import io.github.salepartido.api.domain.locales.service.dto.CanchaDisponibilidad;
 
 @ExtendWith(MockitoExtension.class)
 class DisponibilidadControllerTest {
@@ -38,7 +39,9 @@ class DisponibilidadControllerTest {
         @Mock
         private DisponibilidadService disponibilidadService;
 
-        @InjectMocks
+        @Mock
+        private DisponibilidadMapper disponibilidadMapper;
+
         private DisponibilidadController controller;
 
         private UUID localUuid;
@@ -47,6 +50,7 @@ class DisponibilidadControllerTest {
 
         @BeforeEach
         void setup() {
+                controller = new DisponibilidadController(disponibilidadService, disponibilidadMapper, 31);
                 mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
                 localUuid = UUID.randomUUID();
                 fechaInicio = LocalDate.of(2026, 6, 1);
@@ -56,15 +60,20 @@ class DisponibilidadControllerTest {
         @Test
         void getDisponibilidad_ConParametrosValidos_RetornaListaDeDisponibilidad() throws Exception {
                 // Arrange
-                List<DisponibilidadCanchaDTO> disponibilidad = new ArrayList<>();
-                disponibilidad.add(new DisponibilidadCanchaDTO(
-                                UUID.randomUUID(),
+                List<CanchaDisponibilidad> disponibilidad = new ArrayList<>();
+                UUID canchaUuid = UUID.randomUUID();
+                disponibilidad.add(new CanchaDisponibilidad(
+                                canchaUuid,
                                 "Cancha 1",
                                 null,
                                 new ArrayList<>()));
 
+                DisponibilidadCanchaDTO dto = new DisponibilidadCanchaDTO(canchaUuid, "Cancha 1", null, new ArrayList<>());
+
                 when(disponibilidadService.obtenerDisponibilidadLocal(localUuid, fechaInicio, fechaFin))
                                 .thenReturn(disponibilidad);
+                when(disponibilidadMapper.toDTO(any(CanchaDisponibilidad.class)))
+                                .thenReturn(dto);
 
                 // Act & Assert
                 mockMvc.perform(get("/locales/{uuid}/disponibilidad", localUuid)
@@ -81,7 +90,7 @@ class DisponibilidadControllerTest {
         @Test
         void getDisponibilidad_ConCanchasSinTurnos_RetornaListaVacia() throws Exception {
                 // Arrange
-                List<DisponibilidadCanchaDTO> disponibilidad = new ArrayList<>();
+                List<CanchaDisponibilidad> disponibilidad = new ArrayList<>();
 
                 when(disponibilidadService.obtenerDisponibilidadLocal(localUuid, fechaInicio, fechaFin))
                                 .thenReturn(disponibilidad);
@@ -179,7 +188,7 @@ class DisponibilidadControllerTest {
                 // Arrange
                 LocalDate inicio31 = LocalDate.of(2026, 6, 1);
                 LocalDate fin31 = LocalDate.of(2026, 7, 2); // Exactamente 31 días
-                List<DisponibilidadCanchaDTO> disponibilidad = new ArrayList<>();
+                List<CanchaDisponibilidad> disponibilidad = new ArrayList<>();
 
                 when(disponibilidadService.obtenerDisponibilidadLocal(localUuid, inicio31, fin31))
                                 .thenReturn(disponibilidad);
@@ -207,13 +216,18 @@ class DisponibilidadControllerTest {
         @Test
         void getDisponibilidad_ConMultiplesCanchas_RetornaTodasEnLaRespuesta() throws Exception {
                 // Arrange
-                List<DisponibilidadCanchaDTO> disponibilidad = new ArrayList<>();
-                disponibilidad.add(new DisponibilidadCanchaDTO(UUID.randomUUID(), "Cancha 1", null, new ArrayList<>()));
-                disponibilidad.add(new DisponibilidadCanchaDTO(UUID.randomUUID(), "Cancha 2", null, new ArrayList<>()));
-                disponibilidad.add(new DisponibilidadCanchaDTO(UUID.randomUUID(), "Cancha 3", null, new ArrayList<>()));
+                List<CanchaDisponibilidad> disponibilidad = new ArrayList<>();
+                disponibilidad.add(new CanchaDisponibilidad(UUID.randomUUID(), "Cancha 1", null, new ArrayList<>()));
+                disponibilidad.add(new CanchaDisponibilidad(UUID.randomUUID(), "Cancha 2", null, new ArrayList<>()));
+                disponibilidad.add(new CanchaDisponibilidad(UUID.randomUUID(), "Cancha 3", null, new ArrayList<>()));
 
                 when(disponibilidadService.obtenerDisponibilidadLocal(localUuid, fechaInicio, fechaFin))
                                 .thenReturn(disponibilidad);
+                when(disponibilidadMapper.toDTO(any(CanchaDisponibilidad.class)))
+                                .thenAnswer(inv -> {
+                                    CanchaDisponibilidad dom = inv.getArgument(0);
+                                    return new DisponibilidadCanchaDTO(dom.canchaUuid(), dom.canchaNombre(), dom.capacidad(), new ArrayList<>());
+                                });
 
                 // Act & Assert
                 mockMvc.perform(get("/locales/{uuid}/disponibilidad", localUuid)

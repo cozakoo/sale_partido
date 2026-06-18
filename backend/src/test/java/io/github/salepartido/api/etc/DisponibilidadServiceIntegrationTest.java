@@ -27,16 +27,17 @@ import io.github.salepartido.api.domain.locales.model.Turno;
 import io.github.salepartido.api.domain.locales.repository.LocalRepository;
 import io.github.salepartido.api.domain.locales.repository.TurnoRepository;
 import io.github.salepartido.api.domain.locales.service.DisponibilidadService;
-import io.github.salepartido.api.domain.locales.controller.dto.DisponibilidadCanchaDTO;
-import io.github.salepartido.api.domain.locales.controller.dto.TurnoSlotDTO;
-import io.github.salepartido.api.domain.participation.model.Evento;
-import io.github.salepartido.api.domain.participation.model.Usuario;
-import io.github.salepartido.api.domain.participation.model.EstadoEvento;
-import io.github.salepartido.api.domain.participation.model.Participacion;
-import io.github.salepartido.api.domain.participation.model.EstadoParticipacion;
-import io.github.salepartido.api.domain.participation.model.Rol;
-import io.github.salepartido.api.domain.participation.repository.EventoRepository;
-import io.github.salepartido.api.domain.participation.repository.UsuarioRepository;
+import io.github.salepartido.api.domain.eventos.model.EstadoEvento;
+import io.github.salepartido.api.domain.eventos.model.EstadoParticipacion;
+import io.github.salepartido.api.domain.eventos.model.Evento;
+import io.github.salepartido.api.domain.eventos.model.Participacion;
+import io.github.salepartido.api.domain.eventos.model.Rol;
+import io.github.salepartido.api.domain.eventos.model.Usuario;
+import io.github.salepartido.api.domain.eventos.repository.EventoRepository;
+import io.github.salepartido.api.domain.eventos.repository.UsuarioRepository;
+import io.github.salepartido.api.domain.locales.service.dto.CanchaDisponibilidad;
+import io.github.salepartido.api.domain.locales.service.dto.TurnoSlot;
+
 import java.util.ArrayList;
 import java.time.LocalDateTime;
 
@@ -109,7 +110,7 @@ class DisponibilidadServiceIntegrationTest {
 
         Evento evento = new Evento();
         evento.setNombre("Partido de Fútbol");
-        evento.setTipo(io.github.salepartido.api.domain.participation.model.TipoEvento.CERRADO);
+        evento.setTipo(io.github.salepartido.api.domain.eventos.model.TipoEvento.CERRADO);
         evento.setCupoMinimo(2);
         evento.setCupoMaximo(10);
         evento.setEstado(EstadoEvento.DISPONIBLE);
@@ -129,39 +130,39 @@ class DisponibilidadServiceIntegrationTest {
         evento.setParticipaciones(participaciones);
         eventoRepository.save(evento);
 
-        List<DisponibilidadCanchaDTO> resultado = disponibilidadService.obtenerDisponibilidadLocal(
+        List<CanchaDisponibilidad> resultado = disponibilidadService.obtenerDisponibilidadLocal(
                 savedLocal.getUuid(), fechaTest, fechaTest);
 
         assertNotNull(resultado);
         assertEquals(1, resultado.size());
 
-        DisponibilidadCanchaDTO canchaDisp = resultado.get(0);
+        CanchaDisponibilidad canchaDisp = resultado.get(0);
         assertEquals(canchaUuid, canchaDisp.canchaUuid());
         assertEquals("Cancha 1", canchaDisp.canchaNombre());
 
-        List<TurnoSlotDTO> turnos = canchaDisp.turnos();
+        List<TurnoSlot> turnos = canchaDisp.slots();
         assertEquals(2, turnos.size());
 
-        TurnoSlotDTO t1 = turnos.get(0);
+        TurnoSlot t1 = turnos.get(0);
         assertEquals(fechaTest, t1.fecha());
         assertEquals(LocalTime.of(8, 0), t1.horaInicio());
         assertEquals(LocalTime.of(9, 0), t1.horaFin());
-        assertEquals("Cancha 1", t1.espacioNombre());
+        assertEquals("Cancha 1", t1.canchaNombre());
         assertEquals("Fútbol", t1.deporte());
         assertEquals("LIBRE", t1.estado());
         assertNull(t1.turno());
 
-        TurnoSlotDTO t2 = turnos.get(1);
+        TurnoSlot t2 = turnos.get(1);
         assertEquals(fechaTest, t2.fecha());
         assertEquals(LocalTime.of(9, 0), t2.horaInicio());
         assertEquals(LocalTime.of(10, 0), t2.horaFin());
-        assertEquals("Cancha 1", t2.espacioNombre());
+        assertEquals("Cancha 1", t2.canchaNombre());
         assertEquals("Fútbol", t2.deporte());
         assertEquals("OCUPADO", t2.estado());
         assertNotNull(t2.turno());
-        assertEquals("Martín", t2.turno().nombreOrganizador());
+        assertEquals("Martín", t2.turno().organizadorNombre());
         assertEquals("Fútbol", t2.turno().deporte());
-        assertEquals(10, t2.turno().cantidadParticipantesConfirmados());
+        assertEquals(10, t2.turno().cantidadConfirmados());
         assertEquals("DISPONIBLE", t2.turno().estadoEvento());
     }
 
@@ -173,7 +174,7 @@ class DisponibilidadServiceIntegrationTest {
 
         Local saved = localRepository.save(local);
 
-        List<DisponibilidadCanchaDTO> resultado = disponibilidadService.obtenerDisponibilidadLocal(
+        List<CanchaDisponibilidad> resultado = disponibilidadService.obtenerDisponibilidadLocal(
                 saved.getUuid(), LocalDate.now(), LocalDate.now().plusDays(1));
 
         assertNotNull(resultado);
@@ -196,12 +197,12 @@ class DisponibilidadServiceIntegrationTest {
         local.setCanchas(List.of(cancha));
         Local saved = localRepository.save(local);
 
-        List<DisponibilidadCanchaDTO> resultado = disponibilidadService.obtenerDisponibilidadLocal(
+        List<CanchaDisponibilidad> resultado = disponibilidadService.obtenerDisponibilidadLocal(
                 saved.getUuid(), LocalDate.now(), LocalDate.now().plusDays(1));
 
         assertNotNull(resultado);
         assertEquals(1, resultado.size());
-        assertTrue(resultado.get(0).turnos().isEmpty());
+        assertTrue(resultado.get(0).slots().isEmpty());
     }
 
     private void setUbicacionHelper(Local local, String direccion) {

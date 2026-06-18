@@ -9,8 +9,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import io.github.salepartido.api.domain.locales.service.LocalService;
+import io.github.salepartido.api.domain.locales.service.dto.BuscarLocalesOperation;
+import io.github.salepartido.api.domain.locales.service.dto.ActualizarConfiguracionesHorariosOperation;
 import io.github.salepartido.api.domain.locales.controller.dto.*;
-import io.github.salepartido.api.domain.locales.controller.dto.FiltroViewModel;
 import io.github.salepartido.api.domain.locales.controller.mapper.LocalMapper;
 import io.github.salepartido.api.domain.locales.controller.mapper.CanchaMapper;
 import io.github.salepartido.api.domain.locales.model.Local;
@@ -51,8 +52,9 @@ public class LocalController {
                 : null;
 
         FiltroViewModel filtro = new FiltroViewModel(ubicacion, fecha, tipoDeporte, horario);
+        BuscarLocalesOperation operation = localMapper.toOperation(filtro);
 
-        return localService.buscarLocales(filtro).stream()
+        return localService.buscarLocales(operation).stream()
                 .map(localMapper::toViewModel)
                 .collect(Collectors.toList());
     }
@@ -68,7 +70,8 @@ public class LocalController {
 
     @PostMapping("/busqueda")
     public List<LocalViewModel> buscarLocales(@RequestBody FiltroViewModel filtro) {
-        return localService.buscarLocales(filtro).stream()
+        BuscarLocalesOperation operation = localMapper.toOperation(filtro);
+        return localService.buscarLocales(operation).stream()
                 .map(localMapper::toViewModel)
                 .collect(Collectors.toList());
     }
@@ -94,7 +97,8 @@ public class LocalController {
 
     @PostMapping("/{uuid}/configuraciones-horarios")
     public SaveCanchasConfiguracionesHorariosResponse saveConfiguracionesHorarios(@PathVariable UUID uuid, @Valid @RequestBody SaveCanchasConfiguracionesHorariosRequest request) {
-        return localService.actualizarConfiguracionesHorarios(uuid, request);
+        ActualizarConfiguracionesHorariosOperation operation = localMapper.toOperation(request);
+        localService.actualizarConfiguracionesHorarios(uuid, operation);
+        return new SaveCanchasConfiguracionesHorariosResponse(request.canchas());
     }
 }
-

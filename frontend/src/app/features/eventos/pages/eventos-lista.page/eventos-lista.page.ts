@@ -8,9 +8,10 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
-import { EventoParticipacionService } from '../../services/evento-participacion.service';
+import { EventoService } from '../../services/evento.service';
 import { EventoModalComponent } from '../../components/evento-modal/evento-modal.component';
-import { EventoDetalle, UsuarioSesion } from '../../models/evento-detalle.model';
+import { EventoDetalle } from '../../models/evento-detalle';
+import { UsuarioSesion } from '../../models/usuario-sesion';
 import { RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 
@@ -23,7 +24,7 @@ import { CommonModule } from '@angular/common';
   imports: [CommonModule, RouterModule],
 })
 export class EventosListaPage implements OnInit {
-  private service = inject(EventoParticipacionService);
+  private service = inject(EventoService);
   private modalService = inject(NgbModal);
   private destroyRef = inject(DestroyRef);
 

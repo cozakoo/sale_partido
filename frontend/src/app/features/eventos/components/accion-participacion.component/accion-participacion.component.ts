@@ -10,13 +10,11 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
-import {
-  EventoDetalle,
-  ParticipacionResponse,
-  ResultadoAccion,
-  UsuarioSesion,
-} from '../../models/evento-detalle.model';
-import { EventoParticipacionService } from '../../services/evento-participacion.service';
+import { EventoDetalle } from '../../models/evento-detalle';
+import { ParticipacionResponse } from '../../models/participacion-response';
+import { ResultadoAccion } from '../../models/resultado-accion';
+import { UsuarioSesion } from '../../models/usuario-sesion';
+import { EventoService } from '../../services/evento.service';
 
 @Component({
   selector: 'app-accion-participacion',
@@ -37,7 +35,7 @@ export class AccionParticipacionComponent {
   accionEjecutada = output<ResultadoAccion>();
 
   // ── DI ─────────────────────────────────────────────────────────────────────
-  private service = inject(EventoParticipacionService);
+  private service = inject(EventoService);
   private destroyRef = inject(DestroyRef);
 
   // ── Estado local post-acción ───────────────────────────────────────────────
@@ -52,6 +50,9 @@ export class AccionParticipacionComponent {
   );
 
   nivelIncompatible = computed(() => {
+    // Si es una invitación, se ignora el nivel requerido porque el organizador lo avala
+    if (this.participacion()?.esInvitacion) return false;
+
     const requerido = this.evento().nivelRequerido;
     if (!requerido) return false;
 
@@ -93,13 +94,14 @@ export class AccionParticipacionComponent {
     () =>
       this.evento().tipo === 'ABIERTO' &&
       !this.invitacionPendiente() &&
+      !this.participacion()?.esInvitacion &&
       !this.estadoParticipacionTexto()
   );
 
   mostrarBotonSolicitar = computed(
     () =>
       this.evento().tipo === 'CON_CONFIRMACION' &&
-      !this.invitacionPendiente() &&
+      !this.participacion()?.esInvitacion &&
       !this.estadoParticipacionTexto()
   );
 

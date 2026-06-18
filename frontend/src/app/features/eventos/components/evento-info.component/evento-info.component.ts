@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
-import { EventoDetalle } from '../../models/evento-detalle.model';
+import { EventoDetalle } from '../../models/evento-detalle';
 
 @Component({
   selector: 'app-evento-info',

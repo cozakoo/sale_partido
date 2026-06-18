@@ -2,7 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { Constantes } from '../../../core/Constantes';
+import { Constantes } from '../../../core/constantes';
 import { CanchaDetail } from '../models/cancha-detail';
 import { LocalDetail } from '../models/local-detail';
 import { LocalSummary } from '../models/local-summary';
@@ -70,11 +70,11 @@ export class LocalService {
   getCanchaDetail(uuid: string): Observable<CanchaDetail> {
     return this.http.get<CanchaDetail>(`${Constantes.ENDPOINT_CANCHAS}/${uuid}`);
   }
-  
+
   getCanchasSummaryFromLocal(uuid: string): Observable<CanchaSummary[]> {
     return this.http.get<CanchaSummary[]>(`${Constantes.ENDPOINT_LOCALES}/${uuid}/canchas?view=resumen`);
   }
-  
+
   getCanchasDetailFromLocal(uuid: string): Observable<CanchaDetail[]> {
     return this.http.get<CanchaDetail[]>(`${Constantes.ENDPOINT_LOCALES}/${uuid}/canchas?view=detalle`);
   }

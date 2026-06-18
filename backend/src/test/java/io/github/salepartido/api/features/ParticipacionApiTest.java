@@ -22,19 +22,19 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.server.ResponseStatusException;
 
-import io.github.salepartido.api.domain.participation.exception.EventoNoDisponibleException;
-import io.github.salepartido.api.domain.participation.exception.EventoSinCuposException;
-import io.github.salepartido.api.domain.participation.exception.InvitacionYaRespondidaException;
-import io.github.salepartido.api.domain.participation.exception.NivelInsuficienteException;
-import io.github.salepartido.api.domain.participation.exception.ParticipanteYaRegistradoException;
-import io.github.salepartido.api.domain.participation.exception.TipoEventoInvalidoException;
-import io.github.salepartido.api.domain.participation.model.EstadoEvento;
-import io.github.salepartido.api.domain.participation.model.EstadoParticipacion;
-import io.github.salepartido.api.domain.participation.model.Evento;
-import io.github.salepartido.api.domain.participation.model.Participacion;
-import io.github.salepartido.api.domain.participation.model.TipoEvento;
-import io.github.salepartido.api.domain.participation.service.EventoService;
-import io.github.salepartido.api.domain.participation.service.ParticipacionService;
+import io.github.salepartido.api.domain.eventos.exception.EventoNoDisponibleException;
+import io.github.salepartido.api.domain.eventos.exception.EventoSinCuposException;
+import io.github.salepartido.api.domain.eventos.exception.InvitacionYaRespondidaException;
+import io.github.salepartido.api.domain.eventos.exception.NivelInsuficienteException;
+import io.github.salepartido.api.domain.eventos.exception.ParticipanteYaRegistradoException;
+import io.github.salepartido.api.domain.eventos.exception.TipoEventoInvalidoException;
+import io.github.salepartido.api.domain.eventos.model.EstadoEvento;
+import io.github.salepartido.api.domain.eventos.model.EstadoParticipacion;
+import io.github.salepartido.api.domain.eventos.model.Evento;
+import io.github.salepartido.api.domain.eventos.model.Participacion;
+import io.github.salepartido.api.domain.eventos.model.TipoEvento;
+import io.github.salepartido.api.domain.eventos.service.EventoService;
+import io.github.salepartido.api.domain.eventos.service.ParticipacionService;
 
 /**
  * Tests de integración de la API — E2-H01: Participar de un evento.

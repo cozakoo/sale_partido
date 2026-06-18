@@ -10,15 +10,13 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 
-import { EventoParticipacionService } from '../../services/evento-participacion.service';
+import { EventoService } from '../../services/evento.service';
 import { AccionParticipacionComponent } from '../accion-participacion.component/accion-participacion.component';
 import { ParticipantesListaComponent } from '../participantes-lista-component/participantes-lista-component';
-import {
-  EventoDetalle,
-  ParticipacionResponse,
-  ResultadoAccion,
-  UsuarioSesion,
-} from '../../models/evento-detalle.model';
+import { EventoDetalle } from '../../models/evento-detalle';
+import { ParticipacionResponse } from '../../models/participacion-response';
+import { ResultadoAccion } from '../../models/resultado-accion';
+import { UsuarioSesion } from '../../models/usuario-sesion';
 
 @Component({
   selector: 'app-evento-modal',
@@ -30,7 +28,7 @@ import {
 })
 export class EventoModalComponent implements OnInit {
   activeModal = inject(NgbActiveModal);
-  private service = inject(EventoParticipacionService);
+  private service = inject(EventoService);
   private destroyRef = inject(DestroyRef);
 
   // Seteado desde el page antes de abrir
