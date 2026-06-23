@@ -57,7 +57,7 @@ export class EventosListaPage implements OnInit {
   private cargarEventos(): void {
     this.cargando.set(true);
     this.service
-      .getEventos()
+      .getEventos(false)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (eventos) => {

@@ -62,8 +62,8 @@ public class EventoController {
     }
 
     @GetMapping
-    public List<EventoDetailDTO> getEventos() {
-        return eventoService.getEventos().stream()
+    public List<EventoDetailDTO> getEventos(@org.springframework.web.bind.annotation.RequestParam(value = "finalizados", required = false) Boolean finalizados) {
+        return eventoService.getEventos(finalizados).stream()
                 .map(evento -> {
                     Local local = null;
                     if (evento.getTurno() != null && evento.getTurno().getCancha() != null) {

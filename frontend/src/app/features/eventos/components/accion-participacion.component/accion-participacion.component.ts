@@ -16,6 +16,31 @@ import { ResultadoAccion } from '../../models/resultado-accion';
 import { UsuarioSesion } from '../../models/usuario-sesion';
 import { EventoService } from '../../services/evento.service';
 
+function obtenerOrdenNivel(nivelNombre: string, deporte: string): number {
+  const normalizar = (str: string) =>
+    str ? str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim() : '';
+
+  const nombreNorm = normalizar(nivelNombre);
+  const deporteNorm = normalizar(deporte);
+
+  if (deporteNorm === 'paddle' || deporteNorm === 'padel') {
+    if (nombreNorm.includes('8va')) return 1;
+    if (nombreNorm.includes('7ma')) return 2;
+    if (nombreNorm.includes('6ta')) return 3;
+    if (nombreNorm.includes('5ta')) return 4;
+    if (nombreNorm.includes('4ta')) return 5;
+    if (nombreNorm.includes('3ra')) return 6;
+    if (nombreNorm.includes('2da')) return 7;
+    if (nombreNorm.includes('1ra')) return 8;
+  }
+
+  if (nombreNorm.includes('principiante')) return 1;
+  if (nombreNorm.includes('intermedio')) return 2;
+  if (nombreNorm.includes('avanzado')) return 3;
+
+  return 0;
+}
+
 @Component({
   selector: 'app-accion-participacion',
   standalone: true,
@@ -66,7 +91,10 @@ export class AccionParticipacionComponent {
     );
     const nivelUsuario = keyEncontrada ? habilidades[keyEncontrada] : undefined;
 
-    return nivelUsuario !== requerido.nombre;
+    if (!nivelUsuario) return true;
+
+    const ordenUsuario = obtenerOrdenNivel(nivelUsuario, this.evento().deporte);
+    return ordenUsuario < requerido.orden;
   });
 
   invitacionPendiente = computed(
@@ -87,22 +115,30 @@ export class AccionParticipacionComponent {
   );
 
   mostrarInvitacionYaRespondida = computed(
-    () => this.invitacionYaRespondida() && !this.estadoInvitacionTexto()
+    () => false
   );
 
   mostrarBotonUnirse = computed(
     () =>
+      this.evento().estado === 'DISPONIBLE' &&
       this.evento().tipo === 'ABIERTO' &&
+      !this.yaParticipa() &&
       !this.invitacionPendiente() &&
       !this.participacion()?.esInvitacion &&
-      !this.estadoParticipacionTexto()
+      !this.estadoParticipacionTexto() &&
+      this.participacion()?.estado !== 'CONFIRMADO' &&
+      this.participacion()?.estado !== 'PENDIENTE'
   );
 
   mostrarBotonSolicitar = computed(
     () =>
+      this.evento().estado === 'DISPONIBLE' &&
       this.evento().tipo === 'CON_CONFIRMACION' &&
+      !this.yaParticipa() &&
       !this.participacion()?.esInvitacion &&
-      !this.estadoParticipacionTexto()
+      !this.estadoParticipacionTexto() &&
+      this.participacion()?.estado !== 'CONFIRMADO' &&
+      this.participacion()?.estado !== 'PENDIENTE'
   );
 
   mostrarMensajeCerrado = computed(
@@ -110,6 +146,22 @@ export class AccionParticipacionComponent {
       this.evento().tipo === 'CERRADO' &&
       (!this.participacion() || !this.participacion()?.esInvitacion)
   );
+
+  mensajeAMostrar = computed(() => {
+    if (this.mensajeActivo()) {
+      return this.mensajeActivo();
+    }
+    if (this.invitacionYaRespondida()) {
+      return 'mensaje-invitacion-ya-procesada';
+    }
+    if (this.yaParticipa() || this.participacion()?.estado === 'CONFIRMADO') {
+      return 'mensaje-ya-participa';
+    }
+    if (this.participacion()?.estado === 'PENDIENTE' && !this.participacion()?.esInvitacion) {
+      return 'mensaje-confirmacion-solicitud';
+    }
+    return null;
+  });
 
   // ── Handlers ───────────────────────────────────────────────────────────────
 
