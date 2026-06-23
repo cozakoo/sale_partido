@@ -41,8 +41,12 @@ export class EventoService {
     return this.http.get<EventoDetalle>(`${Constantes.ENDPOINT_EVENTOS}/${uuid}`);
   }
 
-  getEventos(): Observable<EventoDetalle[]> {
-    return this.http.get<EventoDetalle[]>(Constantes.ENDPOINT_EVENTOS);
+  getEventos(finalizados?: boolean): Observable<EventoDetalle[]> {
+    let url = Constantes.ENDPOINT_EVENTOS;
+    if (finalizados !== undefined) {
+      url += `?finalizados=${finalizados}`;
+    }
+    return this.http.get<EventoDetalle[]>(url);
   }
 
   getUsuarios(): Observable<UsuarioSesion[]> {

@@ -37,7 +37,7 @@ export class EventoModalComponent implements OnInit {
   evento = signal<EventoDetalle | null>(null);
   usuario = signal<UsuarioSesion | null>(null);
   participacion = signal<ParticipacionResponse | null>(null);
-  yaParticipa = computed(() => this.participacion() !== null);
+  yaParticipa = computed(() => this.participacion()?.estado === 'CONFIRMADO');
   cargando = signal(true);
 
   ngOnInit(): void {

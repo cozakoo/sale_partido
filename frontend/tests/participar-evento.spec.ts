@@ -45,7 +45,7 @@ async function cargarEscenario(page: Page, cfg: EventoConfig): Promise<void> {
     nivelRequerido: cfg.nivelRequerido ? {
       uuid: 'test-nivel-uuid',
       nombre: cfg.nivelRequerido,
-      orden: 2,
+      orden: cfg.nivelRequerido === 'AVANZADO' ? 3 : (cfg.nivelRequerido === 'INTERMEDIO' ? 2 : 1),
       deporte: 'Fútbol'
     } : null,
     turno: {
@@ -405,8 +405,7 @@ test.describe('E2-H01 | Escenario: Intentar unirse a un evento en el que ya part
     // Dado: participacionActual presente → ya inscripto
     await cargarEscenario(page, { tipoIngreso: 'ABIERTO', nivelRequerido: 'INTERMEDIO', cupoMaximo: 10, participantesConfirmados: 6, participacionActual: { estado: 'CONFIRMADO' } });
 
-    await page.click('[data-testid="btn-unirse"]');
-
+    await expect(page.locator('[data-testid="btn-unirse"]')).toBeHidden();
     await expect(page.locator('[data-testid="mensaje-ya-participa"]')).toBeVisible();
   });
 });
@@ -420,8 +419,10 @@ test.describe('E2-H01 | Escenario: Intentar responder una invitación ya respond
     // Dado: invitación con estado ACEPTADA → ya respondida
     await cargarEscenario(page, { tipoIngreso: 'CERRADO', invitacion: { estado: 'ACEPTADA' } });
 
-    await page.click('[data-testid="btn-aceptar-invitacion"]');
+    // El botón Aceptar invitación no debe estar visible ya que la invitación está procesada
+    await expect(page.locator('[data-testid="btn-aceptar-invitacion"]')).toBeHidden();
 
+    // El mensaje de que ya fue procesada debe mostrarse directamente
     await expect(page.locator('[data-testid="mensaje-invitacion-ya-procesada"]')).toBeVisible();
   });
 });

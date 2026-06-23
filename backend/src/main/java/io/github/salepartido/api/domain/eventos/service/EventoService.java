@@ -109,6 +109,13 @@ public class EventoService {
         return eventoRepository.findAll();
     }
 
+    public java.util.List<Evento> getEventos(Boolean finalizados) {
+        if (Boolean.FALSE.equals(finalizados)) {
+            return eventoRepository.findByEstadoNot(io.github.salepartido.api.domain.eventos.model.EstadoEvento.FINALIZADO);
+        }
+        return getEventos();
+    }
+
     /* --- Lookups --- */
 
     private Usuario buscarOrganizador(UUID organizadorId) {
