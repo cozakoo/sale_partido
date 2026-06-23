@@ -2,6 +2,8 @@ package io.github.salepartido.api.domain.locales.service;
 
 import java.time.DayOfWeek;
 import java.time.Duration;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -12,17 +14,17 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import io.github.salepartido.api.domain.locales.exception.CanchaNoEncontradaException;
+import io.github.salepartido.api.domain.locales.exception.CanchaNoPerteneceAlLocalException;
+import io.github.salepartido.api.domain.locales.exception.LocalNoEncontradoException;
 import io.github.salepartido.api.domain.locales.model.Cancha;
 import io.github.salepartido.api.domain.locales.model.ConfiguracionDia;
 import io.github.salepartido.api.domain.locales.model.ConfiguracionHorario;
 import io.github.salepartido.api.domain.locales.model.Local;
 import io.github.salepartido.api.domain.locales.repository.CanchaRepository;
 import io.github.salepartido.api.domain.locales.repository.LocalRepository;
-import io.github.salepartido.api.domain.locales.service.dto.BuscarLocalesOperation;
 import io.github.salepartido.api.domain.locales.service.dto.ActualizarConfiguracionesHorariosOperation;
-import io.github.salepartido.api.domain.locales.exception.LocalNoEncontradoException;
-import io.github.salepartido.api.domain.locales.exception.CanchaNoEncontradaException;
-import io.github.salepartido.api.domain.locales.exception.CanchaNoPerteneceAlLocalException;
+import io.github.salepartido.api.domain.locales.service.dto.BuscarLocalesOperation;
 
 @Service
 public class LocalService {
@@ -98,7 +100,7 @@ public class LocalService {
             .anyMatch(cancha -> cancha.getDeporte() != null && tipoDeporte.equalsIgnoreCase(cancha.getDeporte().getNombre()));
     }
 
-    private boolean matchesFecha(Local local, java.time.LocalDate fechaFiltro) {
+    private boolean matchesFecha(Local local, LocalDate fechaFiltro) {
         if (fechaFiltro == null) {
             return true;
         }
@@ -111,7 +113,7 @@ public class LocalService {
             .anyMatch(dia -> dia.getDiaSemana() == diaSemana);
     }
 
-    private boolean matchesHorarioDisponible(Local local, java.time.LocalDate fechaFiltro, java.time.LocalTime desde, java.time.LocalTime hasta) {
+    private boolean matchesHorarioDisponible(Local local, LocalDate fechaFiltro, LocalTime desde, LocalTime hasta) {
         if (desde == null && hasta == null) {
             return true;
         }
@@ -124,8 +126,8 @@ public class LocalService {
                 if (fechaFiltro != null && dia.getDiaSemana() != fechaFiltro.getDayOfWeek()) {
                     return false;
                 }
-                java.time.LocalTime inicio = dia.getHoraInicio();
-                java.time.LocalTime fin = dia.getHoraFin();
+                LocalTime inicio = dia.getHoraInicio();
+                LocalTime fin = dia.getHoraFin();
                 if (desde != null && hasta != null) {
                     return !fin.isBefore(desde) && !inicio.isAfter(hasta);
                 }

@@ -1,13 +1,14 @@
 package io.github.salepartido.api.domain.eventos.service;
 
 import java.time.Duration;
+import java.util.List;
 import java.util.UUID;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
-import org.springframework.beans.factory.annotation.Value;
 
 import io.github.salepartido.api.domain.eventos.exception.CupoMaximoSuperaCapacidadException;
 import io.github.salepartido.api.domain.eventos.exception.CupoMinimoInvalidoException;
@@ -105,7 +106,7 @@ public class EventoService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Evento no encontrado"));
     }
 
-    public java.util.List<Evento> getEventos() {
+    public List<Evento> getEventos() {
         return eventoRepository.findAll();
     }
 
@@ -118,17 +119,17 @@ public class EventoService {
 
     /* --- Lookups --- */
 
+    // Acoplamiento leve: se maneja lógica de búsqueda que debería pertenecer a UsuarioService
     private Usuario buscarOrganizador(UUID organizadorId) {
         return usuarioRepository.findById(organizadorId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado"));
     }
 
     private NivelDeporte resolverNivelRequerido(UUID nivelRequeridoId) {
-        if (nivelRequeridoId == null) {
-            return null;
-        }
-        return nivelDeporteRepository.findById(nivelRequeridoId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Nivel de deporte no encontrado"));
+        return (nivelRequeridoId == null)
+            ? null
+            : nivelDeporteRepository.findById(nivelRequeridoId)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Nivel de deporte no encontrado"));
     }
 
     /* --- Defaults --- */

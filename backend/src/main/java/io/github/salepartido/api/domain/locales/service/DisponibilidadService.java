@@ -14,6 +14,10 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import io.github.salepartido.api.domain.eventos.model.EstadoParticipacion;
+import io.github.salepartido.api.domain.eventos.model.Evento;
+import io.github.salepartido.api.domain.eventos.repository.EventoRepository;
+import io.github.salepartido.api.domain.locales.exception.LocalNoEncontradoException;
 import io.github.salepartido.api.domain.locales.model.Cancha;
 import io.github.salepartido.api.domain.locales.model.ConfiguracionDia;
 import io.github.salepartido.api.domain.locales.model.ConfiguracionHorario;
@@ -21,13 +25,9 @@ import io.github.salepartido.api.domain.locales.model.Local;
 import io.github.salepartido.api.domain.locales.model.Turno;
 import io.github.salepartido.api.domain.locales.repository.LocalRepository;
 import io.github.salepartido.api.domain.locales.repository.TurnoRepository;
-import io.github.salepartido.api.domain.eventos.model.EstadoParticipacion;
-import io.github.salepartido.api.domain.eventos.model.Evento;
-import io.github.salepartido.api.domain.eventos.repository.EventoRepository;
 import io.github.salepartido.api.domain.locales.service.dto.CanchaDisponibilidad;
-import io.github.salepartido.api.domain.locales.service.dto.TurnoSlot;
 import io.github.salepartido.api.domain.locales.service.dto.TurnoInfo;
-import io.github.salepartido.api.domain.locales.exception.LocalNoEncontradoException;
+import io.github.salepartido.api.domain.locales.service.dto.TurnoSlot;
 
 @Service
 public class DisponibilidadService {
@@ -133,7 +133,7 @@ public class DisponibilidadService {
                 break;
             }
 
-            Optional<Turno> overlappingTurno = findOverlappingTurno(cancha.getUuid(), fecha, currentSlotStart,
+            Turno overlappingTurno = findOverlappingTurno(cancha.getUuid(), fecha, currentSlotStart,
                     currentSlotEnd, turnos);
             slots.add(buildTurnoSlot(cancha, fecha, currentSlotStart, currentSlotEnd, overlappingTurno));
             currentSlotStart = currentSlotEnd;
@@ -142,55 +142,56 @@ public class DisponibilidadService {
         return slots;
     }
 
-    private Optional<Turno> findOverlappingTurno(UUID canchaUuid, LocalDate fecha, LocalTime slotStart,
+    private Turno findOverlappingTurno(UUID canchaUuid, LocalDate fecha, LocalTime slotStart,
             LocalTime slotEnd, List<Turno> turnos) {
-        return turnos.stream()
+        Optional<Turno> turnoOpt = turnos.stream()
                 .filter(t -> t.getCancha().getUuid().equals(canchaUuid))
                 .filter(t -> t.getFecha().equals(fecha))
                 .filter(t -> t.getHoraInicio().isBefore(slotEnd) && t.getHoraFin().isAfter(slotStart))
                 .findFirst();
+        return turnoOpt.orElse(null);
     }
 
     private TurnoSlot buildTurnoSlot(Cancha cancha, LocalDate fecha, LocalTime slotStart,
-            LocalTime slotEnd, Optional<Turno> turnoOpt) {
-        if (turnoOpt.isPresent()) {
-            Turno t = turnoOpt.get();
-            Optional<Evento> eventoOpt = eventoRepository.findByTurnoUuid(t.getUuid());
+            LocalTime slotEnd, Turno t) {
+        Evento e = (t == null) ? null : eventoRepository.findByTurnoUuid(t.getUuid()).orElse(null); // Sólo consulta si el turno existe
+        return new TurnoSlot(
+            fecha,
+            slotStart,
+            slotEnd,
+            cancha.getNombre(),
+            logicaObtencionDeporte(cancha, e),
+            (t == null) ? "LIBRE" : "OCUPADO",
+            (t == null) ? null : buildTurnoInfo(t, cancha, e)
+        );
+    }
 
-            String nombreOrganizador = "";
-            String deporte = cancha.getDeporte() != null ? cancha.getDeporte().getNombre() : "";
-            int cantidadParticipantesConfirmados = 0;
-            String estadoEvento = "";
+    private TurnoInfo buildTurnoInfo(Turno t, Cancha cancha, Evento e){
+        int cantidadConfirmados = (e == null)
+            ? 0
+            : (int) e.getParticipaciones()
+                .stream()
+                .filter(p -> p.getEstado() == EstadoParticipacion.CONFIRMADO)
+                .count();
+        return new TurnoInfo(
+            t.getUuid(),
+            (e != null && e.getOrganizador() != null) ? e.getOrganizador().getNombre() : "", // Nombre del organizador
+            logicaObtencionDeporte(cancha, e), // Nombre del deporte
+            cancha.getCapacidad(),
+            cantidadConfirmados,
+            e != null && e.getEstado() != null ? e.getEstado().name() : "" // Estado del evento
+        );
+    }
 
-            if (eventoOpt.isPresent()) {
-                Evento e = eventoOpt.get();
-                if (e.getOrganizador() != null) {
-                    nombreOrganizador = e.getOrganizador().getNombre();
-                }
-                if (e.getNivelRequerido() != null && e.getNivelRequerido().getDeporte() != null) {
-                    deporte = e.getNivelRequerido().getDeporte().getNombre();
-                } else if (cancha.getDeporte() != null) {
-                    deporte = cancha.getDeporte().getNombre();
-                }
-                cantidadParticipantesConfirmados = (int) e.getParticipaciones().stream()
-                        .filter(p -> p.getEstado() == EstadoParticipacion.CONFIRMADO)
-                        .count();
-                if (e.getEstado() != null) {
-                    estadoEvento = e.getEstado().name();
-                }
-            }
-
-            TurnoInfo turnoInfo = new TurnoInfo(
-                    t.getUuid(),
-                    nombreOrganizador,
-                    deporte,
-                    cancha.getCapacidad(),
-                    cantidadParticipantesConfirmados,
-                    estadoEvento);
-            return new TurnoSlot(fecha, slotStart, slotEnd, cancha.getNombre(), deporte, "OCUPADO", turnoInfo);
+    private String logicaObtencionDeporte(Cancha cancha, Evento e){
+        // Si el turno, el evento, el nivel requerido y el deporte del mismo existen, retorna el nombre de dicho deporte
+        if (e != null && e.getNivelRequerido() != null && e.getNivelRequerido().getDeporte() != null) {
+            return e.getNivelRequerido().getDeporte().getNombre();
         }
-
-        String deporteCancha = cancha.getDeporte() != null ? cancha.getDeporte().getNombre() : null;
-        return new TurnoSlot(fecha, slotStart, slotEnd, cancha.getNombre(), deporteCancha, "LIBRE", null);
+        // Sino, retorna el nombre del deporte de la cancha
+        if (cancha.getDeporte() != null){
+            return cancha.getDeporte().getNombre();
+        }
+        return ""; // O nada.
     }
 }
