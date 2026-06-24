@@ -93,4 +93,16 @@ public class SeedRepository {
     public Evento guardarEvento(Evento evento) {
         return eventoRepository.save(evento);
     }
+
+    public List<Usuario> guardarTodosUsuarios(List<Usuario> usuarios) {
+        return usuarioRepository.saveAll(usuarios);
+    }
+
+    public List<Turno> guardarTodosTurnos(List<Turno> turnos) {
+        return turnoService.guardarTodos(turnos);
+    }
+
+    public List<Evento> guardarTodosEventos(List<Evento> eventos) {
+        return eventoRepository.saveAll(eventos);
+    }
 }

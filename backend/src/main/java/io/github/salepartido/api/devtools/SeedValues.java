@@ -1,5 +1,7 @@
 package io.github.salepartido.api.devtools;
 
+import java.time.Duration;
+import java.time.LocalTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -13,10 +15,17 @@ public final class SeedValues {
         throw new UnsupportedOperationException("Esta es una clase de constantes y no puede ser instanciada.");
     }
 
-    public static final int LOCALES_COUNT = 20;
+    public static final int LOCALES_COUNT = 30;
     public static final int CANCHAS_PER_LOCAL = 5;
-    public static final int USUARIOS_COUNT = 10;
-    public static final int CAPACIDAD_DEFAULT = 6;
+    public static final int USUARIOS_COUNT = 100;
+    public static final int CAPACIDAD_DEFAULT = 10;
+
+    public static final int EVENTOS_FINALIZADOS_COUNT = 100;
+    public static final int EVENTOS_ACTIVOS_COUNT = 50;
+
+    public static final Duration DURACION_TURNO = Duration.ofMinutes(60);
+    public static final LocalTime HORA_INICIO_ATENCION = LocalTime.of(12, 0);
+    public static final LocalTime HORA_FIN_ATENCION = LocalTime.of(22, 0);
 
     public static final List<String> LOCALIDADES_LIST = Collections.unmodifiableList(Arrays.asList(
         "Puerto Madryn", "Trelew", "Rawson", "Gaiman"

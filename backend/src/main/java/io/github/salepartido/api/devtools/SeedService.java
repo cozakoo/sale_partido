@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import io.github.salepartido.api.domain.eventos.model.EstadoEvento;
 import io.github.salepartido.api.domain.eventos.model.EstadoParticipacion;
@@ -44,13 +45,14 @@ public class SeedService {
     private final int canchasPerLocal = SeedValues.CANCHAS_PER_LOCAL;
     private final int usuariosCount = SeedValues.USUARIOS_COUNT;
     private final int capacidadDefault = SeedValues.CAPACIDAD_DEFAULT;
+    private final int eventosFinalizadosCount = SeedValues.EVENTOS_FINALIZADOS_COUNT;
+    private final int eventosActivosCount = SeedValues.EVENTOS_ACTIVOS_COUNT;
     private final List<String> localidadesList = SeedValues.LOCALIDADES_LIST;
     private final String[] nombresLocales = SeedValues.NOMBRES_LOCALES;
     private final String[] tematicas = SeedValues.TEMATICAS;
     private final String[] tiposCancha = SeedValues.TIPOS_CANCHA;
     private final String[] direcciones = SeedValues.DIRECCIONES;
     private final String[] deportesPredeterminados = SeedValues.DEPORTES_PREDETERMINADOS;
-    private final String[] nombresUsuarios = SeedValues.NOMBRES_USUARIOS;
     private final Map<String, Integer> capacidadPorDeporte = SeedValues.CAPACIDAD_POR_DEPORTE;
     private final String[] nivelesPaddle = SeedValues.NIVELES_PADDLE;
     private final String[] nivelesFutbol = SeedValues.NIVELES_FUTBOL;
@@ -62,6 +64,7 @@ public class SeedService {
         this.seedRepository = seedRepository;
     }
 
+    @Transactional
     public void generate() {
         List<Local> localesGuardados = guardarLocales(generarLocales(localesCount, canchasPerLocal));
 
@@ -149,11 +152,12 @@ public class SeedService {
     private ConfiguracionHorario generarConfiguracionHorario() {
         ConfiguracionHorario horario = new ConfiguracionHorario();
         horario.setActivo(true);
-        horario.setDuracionTurno(
-                faker.options().option(
-                        Duration.ofMinutes(30),
-                        Duration.ofMinutes(60)));
-        horario.setConfiguracionesDias(generarConfiguracionesDias(DayOfWeek.values()));
+        horario.setDuracionTurno(SeedValues.DURACION_TURNO);
+        DayOfWeek[] sixDays = {
+            DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY,
+            DayOfWeek.THURSDAY, DayOfWeek.FRIDAY, DayOfWeek.SATURDAY
+        };
+        horario.setConfiguracionesDias(generarConfiguracionesDias(sixDays));
         return horario;
     }
 
@@ -161,79 +165,188 @@ public class SeedService {
         List<ConfiguracionDia> configuracionesDias = new ArrayList<>();
 
         for (DayOfWeek dayOfWeek : diasSemana) {
-            int horaInicio = faker.number().numberBetween(8, 14);
-            int horaFin = faker.number().numberBetween(16, 22);
-            LocalTime inicio = LocalTime.of(horaInicio, 0);
-            LocalTime fin = LocalTime.of(horaFin, 0);
-
             ConfiguracionDia dia = new ConfiguracionDia();
             dia.setDiaSemana(dayOfWeek);
-            dia.setHoraInicio(inicio);
-            dia.setHoraFin(fin);
+            dia.setHoraInicio(SeedValues.HORA_INICIO_ATENCION);
+            dia.setHoraFin(SeedValues.HORA_FIN_ATENCION);
 
             configuracionesDias.add(dia);
         }
         return configuracionesDias;
     }
 
+    private ConfiguracionDia obtenerConfiguracionDia(Cancha cancha, DayOfWeek dayOfWeek) {
+        if (cancha.getConfiguracionesHorarios() == null) {
+            return null;
+        }
+        ConfiguracionHorario activeConfig = cancha.getConfiguracionesHorarios().stream()
+                .filter(ConfiguracionHorario::isActivo)
+                .findFirst()
+                .orElse(null);
+        if (activeConfig == null || activeConfig.getConfiguracionesDias() == null) {
+            return null;
+        }
+        return activeConfig.getConfiguracionesDias().stream()
+                .filter(d -> d.getDiaSemana() == dayOfWeek)
+                .findFirst()
+                .orElse(null);
+    }
+
+    private void guardarTurnosYEventosEnLotes(List<Turno> turnos, List<Evento> eventos) {
+        int batchSize = 1000;
+        for (int i = 0; i < turnos.size(); i += batchSize) {
+            int toIndex = Math.min(i + batchSize, turnos.size());
+            List<Turno> batchTurnos = turnos.subList(i, toIndex);
+            List<Evento> batchEventos = eventos.subList(i, toIndex);
+            seedRepository.guardarTodosTurnos(batchTurnos);
+            seedRepository.guardarTodosEventos(batchEventos);
+        }
+    }
+
     private void generarTurnosYEventos(List<Local> locales, List<Usuario> usuarios, List<NivelDeporte> niveles) {
+        List<Cancha> allCanchas = new ArrayList<>();
+        for (Local local : locales) {
+            if (local.getCanchas() != null) {
+                allCanchas.addAll(local.getCanchas());
+            }
+        }
+        if (allCanchas.isEmpty()) return;
+
         List<Usuario> deportistas = usuarios.stream()
                 .filter(u -> u.getRol() == Rol.DEPORTISTA)
                 .toList();
         if (deportistas.isEmpty()) return;
 
-        LocalDate hoy = LocalDate.now();
-        List<LocalDate> fechas = List.of(hoy.minusDays(1), hoy, hoy.plusDays(1), hoy.plusDays(2));
+        generarEventosFinalizados(allCanchas, deportistas, niveles);
+        generarEventosActivos(allCanchas, deportistas, niveles);
+    }
 
-        for (Local local : locales) {
-            for (Cancha cancha : local.getCanchas()) {
-                ConfiguracionHorario horario = cancha.getConfiguracionesHorarios().stream()
-                        .filter(ConfiguracionHorario::isActivo)
-                        .findFirst()
-                        .orElse(null);
+    private void generarEventosFinalizados(List<Cancha> allCanchas, List<Usuario> deportistas, List<NivelDeporte> niveles) {
+        List<Turno> turnosFinalizados = new ArrayList<>();
+        List<Evento> eventosFinalizados = new ArrayList<>();
 
-                if (horario != null && !horario.getConfiguracionesDias().isEmpty()) {
-                    Duration duration = horario.getDuracionTurno();
-                    for (LocalDate fecha : fechas) {
-                        DayOfWeek dayOfWeek = fecha.getDayOfWeek();
-                        ConfiguracionDia diaConfig = horario.getConfiguracionesDias().stream()
-                                .filter(d -> d.getDiaSemana() == dayOfWeek)
-                                .findFirst()
-                                .orElse(null);
+        int finishedEventsCreated = 0;
+        int targetFinishedEvents = eventosFinalizadosCount;
+        LocalDate date = LocalDate.now().minusDays(1);
 
-                        if (diaConfig != null) {
-                            LocalTime horaInicioLocal = diaConfig.getHoraInicio();
-                            LocalTime horaFinLocal = diaConfig.getHoraFin();
+        while (finishedEventsCreated < targetFinishedEvents) {
+            for (Cancha cancha : allCanchas) {
+                if (finishedEventsCreated >= targetFinishedEvents) {
+                    break;
+                }
 
-                            // Reservamos un turno a las horaInicio + 2 horas
-                            LocalTime startReserva = horaInicioLocal.plusHours(2);
-                            LocalTime endReserva = startReserva.plus(duration);
+                DayOfWeek dayOfWeek = date.getDayOfWeek();
+                ConfiguracionDia diaConfig = obtenerConfiguracionDia(cancha, dayOfWeek);
+                if (diaConfig != null) {
+                    if (faker.random().nextDouble() < 0.85) {
+                        int slotsCount = (int) Duration.between(diaConfig.getHoraInicio(), diaConfig.getHoraFin()).toHours();
+                        if (slotsCount > 0) {
+                            int slotIndex = faker.number().numberBetween(0, slotsCount);
+                            LocalTime start = diaConfig.getHoraInicio().plusHours(slotIndex);
+                            LocalTime end = start.plusHours(1);
 
-                            if (endReserva.isBefore(horaFinLocal) || endReserva.equals(horaFinLocal)) {
+                            Turno turno = new Turno();
+                            turno.setCancha(cancha);
+                            turno.setFecha(date);
+                            turno.setHoraInicio(start);
+                            turno.setHoraFin(end);
+                            turnosFinalizados.add(turno);
+
+                            Usuario organizador = deportistas.get(faker.random().nextInt(deportistas.size()));
+
+                            List<NivelDeporte> nivelesFiltrados = niveles.stream()
+                                    .filter(nivel -> nivel.getDeporte().getUuid().equals(cancha.getDeporte().getUuid()))
+                                    .toList();
+                            NivelDeporte nivelRequerido = nivelesFiltrados.isEmpty() ? null
+                                    : nivelesFiltrados.get(faker.random().nextInt(nivelesFiltrados.size()));
+
+                            Evento evento = new Evento();
+                            evento.setNombre("Partido de " + cancha.getDeporte().getNombre());
+                            evento.setTipo(faker.options().option(TipoEvento.values()));
+                            evento.setCupoMinimo(2);
+                            evento.setCupoMaximo(cancha.getCapacidad());
+                            evento.setEstado(EstadoEvento.FINALIZADO);
+                            evento.setNivelRequerido(nivelRequerido);
+                            evento.setTurno(turno);
+                            evento.setOrganizador(organizador);
+                            evento.setParticipaciones(generarParticipacionesFinalizadas(deportistas, organizador, cancha.getCapacidad()));
+
+                            eventosFinalizados.add(evento);
+                            finishedEventsCreated++;
+                        }
+                    }
+                }
+            }
+            date = date.minusDays(1);
+        }
+        guardarTurnosYEventosEnLotes(turnosFinalizados, eventosFinalizados);
+    }
+
+    private void generarEventosActivos(List<Cancha> allCanchas, List<Usuario> deportistas, List<NivelDeporte> niveles) {
+        List<Turno> turnosActivos = new ArrayList<>();
+        List<Evento> eventosActivos = new ArrayList<>();
+
+        int activeEventsCreated = 0;
+        int targetActiveEvents = eventosActivosCount;
+        LocalDate date = LocalDate.now();
+
+        while (activeEventsCreated < targetActiveEvents) {
+            for (Cancha cancha : allCanchas) {
+                if (activeEventsCreated >= targetActiveEvents) {
+                    break;
+                }
+
+                DayOfWeek dayOfWeek = date.getDayOfWeek();
+                ConfiguracionDia diaConfig = obtenerConfiguracionDia(cancha, dayOfWeek);
+                if (diaConfig != null) {
+                    if (faker.random().nextDouble() < 0.35) {
+                        int slotsCount = (int) Duration.between(diaConfig.getHoraInicio(), diaConfig.getHoraFin()).toHours();
+                        if (slotsCount > 0) {
+                            int slotIndex = faker.number().numberBetween(0, slotsCount);
+                            LocalTime start = diaConfig.getHoraInicio().plusHours(slotIndex);
+                            LocalTime end = start.plusHours(1);
+
+                            final LocalDate currentFecha = date;
+                            final LocalTime currentStart = start;
+                            boolean overlap = turnosActivos.stream()
+                                    .anyMatch(t -> t.getCancha().getUuid().equals(cancha.getUuid())
+                                            && t.getFecha().equals(currentFecha)
+                                            && t.getHoraInicio().equals(currentStart));
+
+                            if (!overlap) {
                                 Turno turno = new Turno();
                                 turno.setCancha(cancha);
-                                turno.setFecha(fecha);
-                                turno.setHoraInicio(startReserva);
-                                turno.setHoraFin(endReserva);
-                                turno = seedRepository.guardarTurno(turno);
+                                turno.setFecha(date);
+                                turno.setHoraInicio(start);
+                                turno.setHoraFin(end);
+                                turnosActivos.add(turno);
 
                                 Usuario organizador = deportistas.get(faker.random().nextInt(deportistas.size()));
 
                                 List<NivelDeporte> nivelesFiltrados = niveles.stream()
-                                    .filter(nivel -> nivel.getDeporte().getUuid().equals(cancha.getDeporte().getUuid()))
-                                    .toList();
+                                        .filter(nivel -> nivel.getDeporte().getUuid().equals(cancha.getDeporte().getUuid()))
+                                        .toList();
                                 NivelDeporte nivelRequerido = nivelesFiltrados.isEmpty() ? null
                                         : nivelesFiltrados.get(faker.random().nextInt(nivelesFiltrados.size()));
 
+                                String tipoCupo;
+                                int mod = activeEventsCreated % 3;
+                                if (mod == 0) {
+                                    tipoCupo = "LLENO";
+                                } else if (mod == 1) {
+                                    tipoCupo = "VACIO";
+                                } else {
+                                    tipoCupo = "PARCIAL";
+                                }
+
                                 Evento evento = new Evento();
-                                String deporteName = cancha.getDeporte() != null ? cancha.getDeporte().getNombre() : "Fútbol";
-                                evento.setNombre("Partido de " + deporteName);
+                                evento.setNombre("Partido de " + cancha.getDeporte().getNombre());
                                 evento.setTipo(faker.options().option(TipoEvento.values()));
                                 evento.setCupoMinimo(2);
                                 evento.setCupoMaximo(cancha.getCapacidad());
 
-                                if (fecha.isBefore(hoy)) {
-                                    evento.setEstado(EstadoEvento.FINALIZADO);
+                                if ("LLENO".equals(tipoCupo)) {
+                                    evento.setEstado(EstadoEvento.COMPLETO);
                                 } else {
                                     evento.setEstado(EstadoEvento.DISPONIBLE);
                                 }
@@ -241,15 +354,18 @@ public class SeedService {
                                 evento.setNivelRequerido(nivelRequerido);
                                 evento.setTurno(turno);
                                 evento.setOrganizador(organizador);
-                                evento.setParticipaciones(generarParticipaciones(deportistas, organizador));
+                                evento.setParticipaciones(generarParticipacionesActivas(deportistas, organizador, cancha.getCapacidad(), tipoCupo));
 
-                                seedRepository.guardarEvento(evento);
+                                eventosActivos.add(evento);
+                                activeEventsCreated++;
                             }
                         }
                     }
                 }
             }
+            date = date.plusDays(1);
         }
+        guardarTurnosYEventosEnLotes(turnosActivos, eventosActivos);
     }
 
     private List<HorarioAtencion> generarHorariosAtencionSemanal() {
@@ -343,17 +459,15 @@ public class SeedService {
 
     private List<Usuario> poblarUsuarios(int cantidad, List<NivelDeporte> niveles) {
         List<Usuario> usuarios = new ArrayList<>();
-        int cantidadReal = Math.min(cantidad, nombresUsuarios.length);
 
         Map<Deporte, List<NivelDeporte>> nivelesPorDeporte = niveles.stream()
                 .filter(n -> n.getDeporte() != null)
                 .collect(Collectors.groupingBy(NivelDeporte::getDeporte));
 
-        for (int i = 0; i < cantidadReal; i++) {
+        for (int i = 0; i < cantidad; i++) {
             Usuario usuario = new Usuario();
-            usuario.setNombre(nombresUsuarios[i]);
-            // Los últimos 2 son PROPIETARIO, el resto DEPORTISTA
-            usuario.setRol(i < cantidadReal - 2 ? Rol.DEPORTISTA : Rol.PROPIETARIO);
+            usuario.setNombre(faker.name().fullName());
+            usuario.setRol(i < 100 ? Rol.PROPIETARIO : Rol.DEPORTISTA);
 
             if (usuario.getRol() == Rol.DEPORTISTA && !nivelesPorDeporte.isEmpty()) {
                 for (Map.Entry<Deporte, List<NivelDeporte>> entry : nivelesPorDeporte.entrySet()) {
@@ -370,37 +484,88 @@ public class SeedService {
                 }
             }
 
-            usuarios.add(seedRepository.guardarUsuario(usuario));
+            usuarios.add(usuario);
         }
-        return usuarios;
+        return seedRepository.guardarTodosUsuarios(usuarios);
     }
 
-    private List<Participacion> generarParticipaciones(List<Usuario> deportistas, Usuario organizador) {
+    private List<Participacion> generarParticipacionesFinalizadas(List<Usuario> deportistas, Usuario organizador, int capacidad) {
         List<Participacion> participaciones = new ArrayList<>();
 
-        // El organizador siempre participa como CONFIRMADO
         Participacion participacionOrg = new Participacion();
         participacionOrg.setEsInvitacion(false);
         participacionOrg.setEstado(EstadoParticipacion.CONFIRMADO);
-        participacionOrg.setFechaEstado(LocalDateTime.now().minusDays(faker.number().numberBetween(1, 5)));
-        participacionOrg.setAsistio(false);
+        participacionOrg.setFechaEstado(LocalDateTime.now().minusDays(3));
+        participacionOrg.setAsistio(true);
         participacionOrg.setParticipante(organizador);
         participaciones.add(participacionOrg);
 
-        // Agregar entre 1 y 3 participantes adicionales
-        int extras = faker.number().numberBetween(1, 4);
         List<Usuario> candidatos = deportistas.stream()
                 .filter(u -> !u.getUuid().equals(organizador.getUuid()))
                 .toList();
 
-        for (int i = 0; i < extras && i < candidatos.size(); i++) {
-            Participacion p = new Participacion();
-            p.setEsInvitacion(faker.bool().bool());
-            p.setEstado(faker.options().option(EstadoParticipacion.values()));
-            p.setFechaEstado(LocalDateTime.now().minusDays(faker.number().numberBetween(0, 3)));
-            p.setAsistio(false);
-            p.setParticipante(candidatos.get(i));
-            participaciones.add(p);
+        int targetConfirmed = faker.number().numberBetween(capacidad / 2, capacidad + 1);
+        if (targetConfirmed < 2) targetConfirmed = 2;
+
+        int added = 1;
+        int candidatesSize = candidatos.size();
+        java.util.Set<Integer> selectedIndices = new java.util.HashSet<>();
+        while (added < targetConfirmed && selectedIndices.size() < candidatesSize) {
+            int idx = faker.random().nextInt(candidatesSize);
+            if (selectedIndices.add(idx)) {
+                Participacion p = new Participacion();
+                p.setEsInvitacion(false);
+                p.setEstado(EstadoParticipacion.CONFIRMADO);
+                p.setFechaEstado(LocalDateTime.now().minusDays(2));
+                p.setAsistio(true);
+                p.setParticipante(candidatos.get(idx));
+                participaciones.add(p);
+                added++;
+            }
+        }
+
+        return participaciones;
+    }
+
+    private List<Participacion> generarParticipacionesActivas(List<Usuario> deportistas, Usuario organizador, int capacidad, String tipoCupo) {
+        List<Participacion> participaciones = new ArrayList<>();
+
+        Participacion participacionOrg = new Participacion();
+        participacionOrg.setEsInvitacion(false);
+        participacionOrg.setEstado(EstadoParticipacion.CONFIRMADO);
+        participacionOrg.setFechaEstado(LocalDateTime.now().minusHours(2));
+        participacionOrg.setAsistio(false);
+        participacionOrg.setParticipante(organizador);
+        participaciones.add(participacionOrg);
+
+        List<Usuario> candidatos = deportistas.stream()
+                .filter(u -> !u.getUuid().equals(organizador.getUuid()))
+                .toList();
+
+        int targetConfirmed;
+        if ("LLENO".equals(tipoCupo)) {
+            targetConfirmed = capacidad;
+        } else if ("VACIO".equals(tipoCupo)) {
+            targetConfirmed = 1;
+        } else {
+            targetConfirmed = faker.number().numberBetween(2, capacidad);
+        }
+
+        int added = 1;
+        int candidatesSize = candidatos.size();
+        java.util.Set<Integer> selectedIndices = new java.util.HashSet<>();
+        while (added < targetConfirmed && selectedIndices.size() < candidatesSize) {
+            int idx = faker.random().nextInt(candidatesSize);
+            if (selectedIndices.add(idx)) {
+                Participacion p = new Participacion();
+                p.setEsInvitacion(false);
+                p.setEstado(EstadoParticipacion.CONFIRMADO);
+                p.setFechaEstado(LocalDateTime.now().minusHours(1));
+                p.setAsistio(false);
+                p.setParticipante(candidatos.get(idx));
+                participaciones.add(p);
+                added++;
+            }
         }
 
         return participaciones;
