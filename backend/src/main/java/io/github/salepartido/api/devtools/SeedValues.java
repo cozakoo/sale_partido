@@ -54,12 +54,6 @@ public final class SeedValues {
         "Fútbol", "Tenis", "Paddle", "Vóley", "Básquet"
     };
 
-    public static final String[] NOMBRES_USUARIOS = {
-        "Ana García", "Bruno Martínez", "Carolina López", "Diego Fernández", "Elena Rodríguez", 
-        "Facundo Gómez", "Gabriela Pérez", "Hernán Díaz", "Inés Torres", "Javier Morales", 
-        "Karen Ruiz", "Lucas Herrera", "Martina Castro", "Nicolás Romero", "Paula Flores"
-    };
-
     public static final Map<String, Integer> CAPACIDAD_POR_DEPORTE;
     static {
         Map<String, Integer> map = new HashMap<>();

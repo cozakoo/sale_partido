@@ -467,7 +467,7 @@ public class SeedService {
         for (int i = 0; i < cantidad; i++) {
             Usuario usuario = new Usuario();
             usuario.setNombre(faker.name().fullName());
-            usuario.setRol(i < 100 ? Rol.PROPIETARIO : Rol.DEPORTISTA);
+            usuario.setRol(Rol.DEPORTISTA);
 
             if (usuario.getRol() == Rol.DEPORTISTA && !nivelesPorDeporte.isEmpty()) {
                 for (Map.Entry<Deporte, List<NivelDeporte>> entry : nivelesPorDeporte.entrySet()) {
